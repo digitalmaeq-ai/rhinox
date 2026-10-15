@@ -6,8 +6,6 @@ import type {
 
 export default function InteractiveRuntimeShell({
   experience,
-  runtimeState,
-  actions,
 }: InteractiveRuntimeRendererProps) {
   return (
     <section className="rx-section">

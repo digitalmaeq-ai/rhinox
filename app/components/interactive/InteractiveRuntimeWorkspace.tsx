@@ -1,9 +1,7 @@
 "use client";
 
-import { useMemo } from "react";
-
 import {
-  getInteractiveRuntimeRenderer,
+  interactiveRuntimeRenderers,
 } from "@/lib/interactive-runtime";
 
 import {
@@ -24,15 +22,13 @@ export default function InteractiveRuntimeWorkspace({
     actions,
   } = useInteractiveRuntime(experience);
 
-  // Resolve the renderer component once per runtime type instead of on
-  // every render — assigning a freshly-looked-up value to a PascalCase
-  // variable each render makes React treat it as a brand new component
-  // type, which would remount RuntimeRenderer (and reset any state it
-  // holds) on every re-render of this workspace.
-  const RuntimeRenderer = useMemo(
-    () => getInteractiveRuntimeRenderer(experience.runtime),
-    [experience.runtime],
-  );
+  // The registry maps each runtime type to a component defined once at
+  // module level, so this lookup returns the same component on every
+  // render and RuntimeRenderer keeps its state; it only remounts when the
+  // runtime type itself changes. Indexing the registry directly (rather
+  // than calling a lookup function) lets the React lint rules see that.
+  // There is no fallback: a new runtime type must be added to the registry.
+  const RuntimeRenderer = interactiveRuntimeRenderers[experience.runtime];
 
   // Virtual labs and the standard runtime show their own tasks and score;
   // every other activity gets the slim progress strip under it.
