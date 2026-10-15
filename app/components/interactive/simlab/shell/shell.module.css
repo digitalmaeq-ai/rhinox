@@ -1,0 +1,41 @@
+/* Shared by every lab dashboard: the tab bar, the task list and the quiz
+   frame. The lab's own stylesheet sets the colour variables on its root. */
+.card {
+  background: #fff; border: 1px solid var(--line); border-radius: 14px; padding: 12px;
+  box-shadow: 0 6px 20px rgba(30, 64, 175, 0.06); min-width: 0;
+}
+.work { padding: 0; overflow: hidden; }
+.tabs { display: flex; flex-wrap: nowrap; overflow-x: auto; gap: 4px; border-bottom: 1px solid var(--line); margin: 0 0 14px; padding: 0 8px; }
+.tabs button { flex: none; white-space: nowrap; min-height: 44px; padding: 0 12px; border: 0; background: transparent; font: inherit; font-weight: 700; color: var(--muted); cursor: pointer; border-bottom: 3px solid transparent; }
+.tabs button.tabOn { color: var(--blue); border-bottom-color: var(--blue); }
+.tabs button:focus-visible { outline: 3px solid #f59e0b; outline-offset: -3px; }
+.tabs em { font-style: normal; margin-left: 6px; font-size: 0.75rem; background: var(--soft); border-radius: 8px; padding: 1px 6px; }
+.panel { padding: 14px 16px; }
+.h3 { margin: 0 0 10px; font-size: 1rem; color: var(--ink); }
+.small { margin: 8px 0 0; font-size: 0.85rem; line-height: 1.5; color: var(--muted); }
+.srOnly { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+
+.split { display: grid; grid-template-columns: minmax(250px, 340px) minmax(0, 1fr); gap: 14px; align-items: start; }
+.taskCol { min-width: 0; }
+.rowHead { display: flex; justify-content: space-between; align-items: center; gap: 8px; margin-bottom: 6px; }
+.rowHead .h3 { margin: 0; font-size: 0.92rem; }
+.rowHead .small { margin: 0; font-size: 0.78rem; font-weight: 600; }
+.tasks { list-style: none; margin: 0; padding: 0; display: grid; gap: 4px; }
+.tasks li { display: grid; grid-template-columns: 20px 1fr; gap: 8px; align-items: start; padding: 6px 8px; border: 1px solid var(--line); border-radius: 9px; }
+.tasks strong { font-size: 0.84rem; line-height: 1.3; }
+.tasks p { margin: 1px 0 0; font-size: 0.75rem; line-height: 1.35; color: var(--muted); display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+.tick { width: 18px; height: 18px; margin-top: 1px; border-radius: 50%; border: 2px solid #b7c9e6; display: grid; place-items: center; font-size: 0.65rem; font-weight: 800; }
+.taskDone { background: #f0fdf4; border-color: #86efac !important; }
+.taskDone .tick { background: #16a34a; border-color: #16a34a; color: #fff; }
+.opt { margin-left: 6px; font-size: 0.68rem; font-weight: 700; color: var(--muted); }
+
+.quiz { border: 1px solid var(--line); border-radius: 12px; overflow: hidden; min-width: 0; }
+.quizHead { display: flex; justify-content: space-between; align-items: center; gap: 8px; padding: 8px 12px; background: var(--soft); border-bottom: 1px solid var(--line); }
+.quizHead h3 { margin: 0; font-size: 0.92rem; color: var(--ink); }
+.quizHead span { font-size: 0.75rem; font-weight: 700; color: var(--blue); background: #fff; border: 1px solid var(--line); border-radius: 999px; padding: 2px 9px; }
+.quizBody { padding: 10px 12px; }
+.quizBody > * { max-width: 100%; }
+.locked { margin: 0; padding: 10px 12px; background: var(--soft); border-radius: 8px; color: var(--muted); font-size: 0.85rem; }
+
+@media (max-width: 860px) { .split { grid-template-columns: minmax(0, 1fr); } }
+@media (max-width: 640px) { .panel { padding: 12px; } }

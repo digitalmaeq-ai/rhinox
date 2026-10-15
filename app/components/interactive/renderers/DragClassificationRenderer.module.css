@@ -1,0 +1,729 @@
+/* Styles for DragClassificationRenderer only. Uses the global Rhinox
+   design tokens (--rx-*) from app/globals.css; each zone supplies its own
+   --zone-* colour variables inline, so nothing here is experiment-specific. */
+
+.root {
+  margin: var(--rx-space-5) 0 var(--rx-space-6);
+}
+
+.board {
+  background:
+    radial-gradient(circle at 1px 1px, rgba(15, 111, 222, 0.09) 1px, transparent 0) 0 0 / 22px 22px,
+    linear-gradient(180deg, #f7fbff 0%, #ffffff 100%);
+  border: 1px solid var(--rx-border);
+  border-radius: var(--rx-radius-lg);
+  box-shadow: var(--rx-shadow-sm);
+  padding: var(--rx-space-5);
+}
+
+/* ---------- Header ---------- */
+
+.header {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--rx-space-3) var(--rx-space-4);
+  margin-bottom: var(--rx-space-4);
+}
+
+.headerText {
+  min-width: 0;
+}
+
+.eyebrow {
+  margin: 0;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--rx-blue);
+}
+
+.title {
+  margin: 2px 0 0;
+  font-family: var(--rx-font-display);
+  font-size: 22px;
+  font-weight: 800;
+  color: var(--rx-heading);
+}
+
+.headerAside {
+  display: flex;
+  align-items: center;
+  gap: var(--rx-space-3);
+  flex-wrap: wrap;
+}
+
+.progress {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--rx-text);
+}
+
+.dots {
+  display: flex;
+  gap: 5px;
+}
+
+.dot {
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  border: 2px solid var(--rx-border-strong);
+  background: var(--rx-white);
+  transition: background 0.25s var(--rx-ease), border-color 0.25s var(--rx-ease), transform 0.25s var(--rx-ease);
+}
+
+.dotFilled {
+  background: var(--dot-color);
+  border-color: var(--dot-color);
+  transform: scale(1.1);
+}
+
+.resetButton {
+  border-radius: var(--rx-radius-sm) !important;
+}
+
+/* ---------- Feedback ---------- */
+
+.feedback {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-height: 46px;
+  margin: 0 0 var(--rx-space-4);
+  padding: 10px 14px;
+  border-radius: var(--rx-radius-md);
+  border: 1px solid transparent;
+  font-weight: 600;
+  color: var(--rx-heading);
+}
+
+.feedbackIdle {
+  background: var(--rx-surface-blue);
+  border-color: var(--rx-border);
+  color: var(--rx-text-soft);
+  font-weight: 500;
+}
+
+.feedbackCorrect {
+  background: #e9f8f1;
+  border-color: #a7e0c6;
+  color: #0f6b4f;
+  animation: feedbackIn 0.3s var(--rx-ease);
+}
+
+.feedbackIncorrect {
+  background: #fff6e6;
+  border-color: #f5d39a;
+  color: #8a5a0b;
+  animation: feedbackIn 0.3s var(--rx-ease);
+}
+
+.feedbackIcon {
+  flex: 0 0 auto;
+  display: grid;
+  place-items: center;
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  background: currentColor;
+}
+
+.feedbackIcon svg {
+  color: #ffffff;
+}
+
+/* ---------- Zones ---------- */
+
+.zones {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 260px), 1fr));
+  gap: var(--rx-space-4);
+  margin-bottom: var(--rx-space-5);
+}
+
+.zone {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: var(--rx-space-3);
+  min-height: 210px;
+  padding: var(--rx-space-4);
+  text-align: left;
+  font: inherit;
+  color: var(--zone-ink);
+  background: var(--zone-tint);
+  border: 2px solid var(--zone-border);
+  border-radius: var(--rx-radius-lg);
+  box-shadow: 0 6px 18px rgba(25, 92, 135, 0.08), inset 0 1px 0 rgba(255, 255, 255, 0.9);
+  cursor: default;
+  overflow: hidden;
+  transition: transform 0.18s var(--rx-ease), box-shadow 0.18s var(--rx-ease), border-color 0.18s var(--rx-ease), background 0.18s var(--rx-ease);
+}
+
+.zone:focus-visible {
+  outline: 3px solid var(--zone-color);
+  outline-offset: 3px;
+}
+
+/* An object is being dragged over this zone. */
+.zoneHover {
+  border-color: var(--zone-color);
+  border-style: solid;
+  transform: translateY(-2px) scale(1.01);
+  box-shadow: 0 0 0 5px color-mix(in srgb, var(--zone-color) 22%, transparent), 0 14px 30px rgba(25, 92, 135, 0.16);
+}
+
+/* An object is selected (tap-to-place): every zone becomes a target. */
+.zoneArmed {
+  border-style: dashed;
+  border-color: var(--zone-color);
+  cursor: pointer;
+}
+
+.zoneArmed:hover {
+  box-shadow: 0 0 0 4px color-mix(in srgb, var(--zone-color) 18%, transparent), 0 10px 24px rgba(25, 92, 135, 0.12);
+}
+
+.zoneHeader {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.zoneBadge {
+  display: grid;
+  place-items: center;
+  flex: 0 0 auto;
+  width: 38px;
+  height: 38px;
+  border-radius: 12px;
+  color: #ffffff;
+  background: var(--zone-color);
+  box-shadow: 0 4px 10px color-mix(in srgb, var(--zone-color) 35%, transparent);
+}
+
+.zoneBadgeLetter {
+  font-family: var(--rx-font-display);
+  font-weight: 800;
+  font-size: 18px;
+}
+
+.zoneTitles {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.zoneLabel {
+  font-family: var(--rx-font-display);
+  font-size: 20px;
+  font-weight: 800;
+  line-height: 1.1;
+  color: var(--zone-ink);
+}
+
+.zoneDescription {
+  font-size: 13px;
+  line-height: 1.35;
+  color: var(--rx-text-soft);
+}
+
+.zoneCount {
+  margin-left: auto;
+  flex: 0 0 auto;
+  padding: 3px 10px;
+  border-radius: 999px;
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--zone-ink);
+  background: rgba(255, 255, 255, 0.8);
+  border: 1px solid var(--zone-border);
+}
+
+.zoneShelf {
+  flex: 1;
+  display: flex;
+  flex-wrap: wrap;
+  align-content: flex-start;
+  gap: 10px;
+  min-height: 104px;
+  padding: 10px;
+  border-radius: var(--rx-radius-md);
+  background: rgba(255, 255, 255, 0.72);
+  border: 1.5px dashed color-mix(in srgb, var(--zone-color) 35%, transparent);
+}
+
+.zoneHint {
+  margin: auto;
+  font-size: 13px;
+  font-weight: 600;
+  color: color-mix(in srgb, var(--zone-ink) 70%, transparent);
+  text-align: center;
+}
+
+/* Re-mounted with a new key on each landing to replay the glow. */
+.zonePulse {
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  pointer-events: none;
+  animation: zonePulse 0.7s var(--rx-ease) forwards;
+}
+
+/* ---------- Objects ---------- */
+
+.tray {
+  background: rgba(255, 255, 255, 0.9);
+  border: 1px solid var(--rx-border);
+  border-radius: var(--rx-radius-lg);
+  padding: var(--rx-space-4);
+}
+
+.trayTitle {
+  margin: 0 0 var(--rx-space-3);
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--rx-text-soft);
+}
+
+.trayItems {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+.trayHint {
+  margin: var(--rx-space-3) 0 0;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--rx-blue);
+}
+
+.object {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  width: 104px;
+  padding: 10px 6px 8px;
+  font: inherit;
+  background: var(--rx-white);
+  border: 1.5px solid var(--rx-border);
+  border-radius: 14px;
+  box-shadow: 0 3px 0 var(--rx-border), 0 6px 14px rgba(25, 92, 135, 0.08);
+  cursor: grab;
+  touch-action: none;
+  user-select: none;
+  -webkit-user-select: none;
+  -webkit-touch-callout: none;
+  transition: transform 0.16s var(--rx-ease), box-shadow 0.16s var(--rx-ease), border-color 0.16s var(--rx-ease), opacity 0.16s var(--rx-ease);
+}
+
+.object:hover {
+  transform: translateY(-3px);
+  border-color: var(--rx-blue-light);
+  box-shadow: 0 5px 0 var(--rx-border-strong), 0 12px 22px rgba(25, 92, 135, 0.14);
+}
+
+.object:focus-visible {
+  outline: 3px solid var(--rx-blue);
+  outline-offset: 2px;
+}
+
+.objectSelected {
+  border-color: var(--rx-blue);
+  background: var(--rx-surface-blue);
+  box-shadow: 0 0 0 4px rgba(15, 111, 222, 0.18), 0 8px 18px rgba(25, 92, 135, 0.14);
+  transform: translateY(-3px);
+}
+
+/* The original stays behind as a faint placeholder while its ghost moves. */
+.objectLifted {
+  opacity: 0.28;
+  border-style: dashed;
+  box-shadow: none;
+  transform: none;
+}
+
+.objectArt {
+  display: block;
+}
+
+.objectArtRejected {
+  animation: reject 0.5s ease-in-out;
+}
+
+.objectLabel {
+  font-size: 13px;
+  font-weight: 700;
+  line-height: 1.2;
+  color: var(--rx-heading);
+  text-align: center;
+}
+
+.grip {
+  display: flex;
+  gap: 3px;
+}
+
+.grip span {
+  width: 4px;
+  height: 4px;
+  border-radius: 50%;
+  background: var(--rx-border-strong);
+}
+
+/* A sorted object resting inside its zone. */
+.placed {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  width: 80px;
+  padding: 6px 4px;
+  border-radius: 12px;
+  background: var(--rx-white);
+  border: 1.5px solid var(--zone-border);
+  box-shadow: 0 3px 8px rgba(25, 92, 135, 0.1);
+}
+
+.placedLanding {
+  animation: land 0.55s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+.placedLabel {
+  font-size: 11.5px;
+  font-weight: 700;
+  line-height: 1.2;
+  color: var(--rx-heading);
+  text-align: center;
+}
+
+/* ---------- Drag ghost ---------- */
+
+.ghost {
+  position: fixed;
+  z-index: 1000;
+  pointer-events: none;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  width: 112px;
+  padding: 10px 6px 8px;
+  background: var(--rx-white);
+  border: 2px solid var(--rx-blue);
+  border-radius: 16px;
+  box-shadow: 0 22px 40px rgba(15, 42, 68, 0.28), 0 6px 12px rgba(15, 42, 68, 0.14);
+  transform: translate(-50%, -58%) scale(1.14) rotate(-4deg);
+}
+
+/* ---------- Completion ---------- */
+
+.complete {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: var(--rx-space-4);
+  flex-wrap: wrap;
+  margin-bottom: var(--rx-space-5);
+  padding: var(--rx-space-5);
+  border-radius: var(--rx-radius-lg);
+  background: linear-gradient(120deg, #eaf6ff 0%, #f0fbf5 55%, #fff7e6 100%);
+  border: 1px solid var(--rx-border-strong);
+  box-shadow: var(--rx-shadow-md);
+  overflow: hidden;
+  animation: completeIn 0.5s var(--rx-ease);
+}
+
+.completeBadge {
+  flex: 0 0 auto;
+  display: grid;
+  place-items: center;
+  width: 64px;
+  height: 64px;
+  border-radius: 50%;
+  background: linear-gradient(145deg, #ffd23f, #f5a623);
+  box-shadow: 0 8px 18px rgba(245, 166, 35, 0.35);
+  animation: badgePop 0.6s cubic-bezier(0.34, 1.56, 0.64, 1) 0.1s both;
+}
+
+.completeText {
+  flex: 1 1 220px;
+  min-width: 0;
+}
+
+.completeTitle {
+  margin: 0;
+  font-family: var(--rx-font-display);
+  font-size: 26px;
+  font-weight: 800;
+  color: var(--rx-heading);
+}
+
+.completeSummary {
+  margin: 4px 0 0;
+  font-size: 16px;
+  color: var(--rx-text);
+}
+
+.completeButton {
+  border-radius: var(--rx-radius-sm) !important;
+}
+
+.spark {
+  position: absolute;
+  width: 8px;
+  height: 8px;
+  border-radius: 2px;
+  opacity: 0;
+  animation: spark 1.2s var(--rx-ease) forwards;
+}
+
+.trayDone {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  min-height: 60px;
+  font-weight: 600;
+  color: var(--rx-success);
+}
+
+/* ---------- Keyframes ---------- */
+
+@keyframes land {
+  0% { transform: translateY(-18px) scale(0.6); opacity: 0; }
+  60% { transform: translateY(2px) scale(1.08); opacity: 1; }
+  100% { transform: translateY(0) scale(1); }
+}
+
+@keyframes reject {
+  0%, 100% { transform: translateX(0) rotate(0); }
+  20% { transform: translateX(-7px) rotate(-5deg); }
+  40% { transform: translateX(6px) rotate(4deg); }
+  60% { transform: translateX(-4px) rotate(-2deg); }
+  80% { transform: translateX(3px) rotate(1deg); }
+}
+
+@keyframes zonePulse {
+  0% { box-shadow: inset 0 0 0 0 color-mix(in srgb, var(--zone-color) 0%, transparent); background: color-mix(in srgb, var(--zone-color) 14%, transparent); }
+  100% { box-shadow: inset 0 0 0 10px transparent; background: transparent; }
+}
+
+@keyframes feedbackIn {
+  from { transform: translateY(-4px); opacity: 0.4; }
+  to { transform: translateY(0); opacity: 1; }
+}
+
+@keyframes completeIn {
+  from { transform: translateY(8px); opacity: 0; }
+  to { transform: translateY(0); opacity: 1; }
+}
+
+@keyframes badgePop {
+  from { transform: scale(0.4) rotate(-20deg); }
+  to { transform: scale(1) rotate(0); }
+}
+
+@keyframes spark {
+  0% { opacity: 0; transform: translate(0, 0) scale(0.4) rotate(0); }
+  20% { opacity: 1; }
+  100% { opacity: 0; transform: translate(var(--dx), var(--dy)) scale(1) rotate(160deg); }
+}
+
+/* ---------- Responsive ---------- */
+
+@media (max-width: 640px) {
+  /* Keep the zones and the objects on one screen so a learner can drag
+     without the page needing to scroll mid-gesture: zones sit side by
+     side, objects three to a row, everything a little more compact. */
+  .root {
+    margin: var(--rx-space-4) 0 var(--rx-space-5);
+  }
+
+  .board {
+    padding: 12px;
+    border-radius: var(--rx-radius-md);
+  }
+
+  .header {
+    gap: 8px 12px;
+    margin-bottom: 12px;
+  }
+
+  .title {
+    font-size: 18px;
+  }
+
+  .headerAside {
+    width: 100%;
+    justify-content: space-between;
+  }
+
+  .progress {
+    font-size: 13px;
+    gap: 8px;
+  }
+
+  .dot {
+    width: 10px;
+    height: 10px;
+  }
+
+  .feedback {
+    min-height: 40px;
+    padding: 8px 10px;
+    margin-bottom: 12px;
+    font-size: 14px;
+  }
+
+  .zones {
+    grid-template-columns: repeat(auto-fit, minmax(min(100%, 136px), 1fr));
+    gap: 10px;
+    margin-bottom: 12px;
+  }
+
+  .zone {
+    min-height: 0;
+    padding: 10px;
+    gap: 8px;
+    border-radius: var(--rx-radius-md);
+  }
+
+  .zoneHeader {
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+
+  .zoneBadge {
+    width: 32px;
+    height: 32px;
+    border-radius: 10px;
+  }
+
+  .zoneLabel {
+    font-size: 17px;
+  }
+
+  .zoneDescription {
+    display: none;
+  }
+
+  .zoneCount {
+    font-size: 12px;
+    padding: 2px 8px;
+  }
+
+  .zoneShelf {
+    min-height: 78px;
+    padding: 6px;
+    gap: 6px;
+    justify-content: center;
+  }
+
+  .zoneHint {
+    font-size: 12px;
+  }
+
+  .placed {
+    width: calc(50% - 3px);
+    min-width: 0;
+    padding: 4px 2px;
+  }
+
+  .placed svg {
+    width: 38px;
+    height: 38px;
+  }
+
+  .placedLabel {
+    font-size: 10.5px;
+  }
+
+  .tray {
+    padding: 10px;
+    border-radius: var(--rx-radius-md);
+  }
+
+  .trayTitle {
+    margin-bottom: 8px;
+    font-size: 12px;
+  }
+
+  .trayItems {
+    gap: 8px;
+  }
+
+  .object {
+    width: calc((100% - 16px) / 3);
+    min-width: 0;
+    padding: 8px 4px 6px;
+    border-radius: 12px;
+  }
+
+  .object svg {
+    width: 48px;
+    height: 48px;
+  }
+
+  .objectLabel {
+    font-size: 12px;
+  }
+
+  .trayHint {
+    font-size: 13px;
+    margin-top: 8px;
+  }
+
+  .complete {
+    padding: var(--rx-space-4);
+    gap: 12px;
+    margin-bottom: 12px;
+  }
+
+  .completeBadge {
+    width: 52px;
+    height: 52px;
+  }
+
+  .completeTitle {
+    font-size: 22px;
+  }
+
+  .completeSummary {
+    font-size: 15px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .placedLanding,
+  .objectArtRejected,
+  .zonePulse,
+  .feedbackCorrect,
+  .feedbackIncorrect,
+  .complete,
+  .completeBadge,
+  .spark {
+    animation: none;
+  }
+
+  .spark {
+    display: none;
+  }
+
+  .zone,
+  .object,
+  .dot {
+    transition: none;
+  }
+}

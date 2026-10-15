@@ -1,0 +1,51 @@
+/* Shared animation helpers for the drawn scenes. All motion stops for
+   people who prefer reduced motion. */
+.flow {
+  stroke-dasharray: 10 14;
+  animation: rx-flow 1s linear infinite;
+}
+
+.bubble {
+  animation: rx-rise 2.4s ease-in infinite;
+}
+
+.pulse {
+  animation: rx-pulse 2.4s ease-in-out infinite;
+}
+
+@keyframes rx-flow {
+  to {
+    stroke-dashoffset: -24;
+  }
+}
+
+@keyframes rx-rise {
+  0% {
+    transform: translateY(0);
+    opacity: 0;
+  }
+  15% {
+    opacity: 0.95;
+  }
+  100% {
+    transform: translateY(-120px);
+    opacity: 0;
+  }
+}
+
+@keyframes rx-pulse {
+  50% {
+    opacity: 0.55;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .flow,
+  .bubble,
+  .pulse {
+    animation: none;
+  }
+  .bubble {
+    opacity: 0.8;
+  }
+}

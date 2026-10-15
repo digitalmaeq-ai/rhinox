@@ -1,0 +1,53 @@
+/* Completion buttons shared by the interaction renderers. */
+
+.actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px;
+}
+
+.actions > * {
+  justify-content: center;
+  white-space: nowrap;
+}
+
+/* On phones the buttons sit two to a row instead of one tall stack. */
+@media (max-width: 640px) {
+  .actions {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    width: 100%;
+  }
+
+  .actions > * {
+    width: auto !important;
+  }
+}
+
+.libraryLink {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  white-space: nowrap;
+}
+
+.headerButtons {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+/* On phones the global .rx-button is full width; keep the two header
+   buttons side by side on their own row instead. */
+@media (max-width: 640px) {
+  .headerButtons {
+    width: 100%;
+  }
+
+  .headerButtons > * {
+    width: auto !important;
+    flex: 1 1 0;
+  }
+}

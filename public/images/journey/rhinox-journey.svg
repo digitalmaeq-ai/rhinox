@@ -1,0 +1,213 @@
+﻿<svg width="1600" height="1000" viewBox="0 0 1600 1000" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1600" y2="1000" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#EAF7FF"/>
+      <stop offset="0.5" stop-color="#D7EFFF"/>
+      <stop offset="1" stop-color="#C5E6FA"/>
+    </linearGradient>
+
+    <radialGradient id="glow" cx="0" cy="0" r="1" gradientUnits="userSpaceOnUse"
+      gradientTransform="translate(800 500) rotate(90) scale(410)">
+      <stop stop-color="#FFFFFF" stop-opacity="0.95"/>
+      <stop offset="1" stop-color="#FFFFFF" stop-opacity="0"/>
+    </radialGradient>
+
+    <filter id="shadow" x="-30%" y="-30%" width="160%" height="160%">
+      <feDropShadow dx="0" dy="18" stdDeviation="24" flood-color="#195C87" flood-opacity="0.12"/>
+    </filter>
+  </defs>
+
+  <!-- Background -->
+  <rect width="1600" height="1000" fill="url(#bg)"/>
+  <rect width="1600" height="1000" fill="url(#glow)"/>
+
+  <!-- Scientific grid -->
+  <g opacity="0.18" stroke="#168FE5" stroke-width="1">
+    <path d="M0 100H1600"/>
+    <path d="M0 200H1600"/>
+    <path d="M0 300H1600"/>
+    <path d="M0 400H1600"/>
+    <path d="M0 500H1600"/>
+    <path d="M0 600H1600"/>
+    <path d="M0 700H1600"/>
+    <path d="M0 800H1600"/>
+    <path d="M0 900H1600"/>
+
+    <path d="M100 0V1000"/>
+    <path d="M200 0V1000"/>
+    <path d="M300 0V1000"/>
+    <path d="M400 0V1000"/>
+    <path d="M500 0V1000"/>
+    <path d="M600 0V1000"/>
+    <path d="M700 0V1000"/>
+    <path d="M800 0V1000"/>
+    <path d="M900 0V1000"/>
+    <path d="M1000 0V1000"/>
+    <path d="M1100 0V1000"/>
+    <path d="M1200 0V1000"/>
+    <path d="M1300 0V1000"/>
+    <path d="M1400 0V1000"/>
+    <path d="M1500 0V1000"/>
+  </g>
+
+  <!-- Outer journey orbit -->
+  <circle
+    cx="800"
+    cy="500"
+    r="350"
+    stroke="#168FE5"
+    stroke-opacity="0.16"
+    stroke-width="2"
+  />
+
+  <circle
+    cx="800"
+    cy="500"
+    r="265"
+    stroke="#168FE5"
+    stroke-opacity="0.12"
+    stroke-width="2"
+  />
+
+  <circle
+    cx="800"
+    cy="500"
+    r="175"
+    stroke="#168FE5"
+    stroke-opacity="0.10"
+    stroke-width="2"
+  />
+
+  <!-- Continuous learning path -->
+  <path
+    d="M800 150
+       C990 150 1150 300 1150 500
+       C1150 690 990 850 800 850
+       C610 850 450 690 450 500
+       C450 300 610 150 800 150Z"
+    stroke="#168FE5"
+    stroke-opacity="0.30"
+    stroke-width="3"
+    stroke-dasharray="7 12"
+  />
+
+  <!-- Central glass element -->
+  <circle
+    cx="800"
+    cy="500"
+    r="108"
+    fill="white"
+    fill-opacity="0.78"
+    stroke="#168FE5"
+    stroke-opacity="0.20"
+    stroke-width="2"
+    filter="url(#shadow)"
+  />
+
+  <circle
+    cx="800"
+    cy="500"
+    r="78"
+    fill="#EEF8FF"
+    stroke="#168FE5"
+    stroke-opacity="0.16"
+  />
+
+  <!-- Central scientific symbol -->
+  <circle
+    cx="800"
+    cy="500"
+    r="28"
+    stroke="#168FE5"
+    stroke-width="4"
+  />
+
+  <circle
+    cx="800"
+    cy="500"
+    r="9"
+    fill="#168FE5"
+  />
+
+  <path
+    d="M800 458V430
+       M800 570V542
+       M758 500H730
+       M870 500H842"
+    stroke="#168FE5"
+    stroke-width="3"
+    stroke-linecap="round"
+  />
+
+  <!-- DISCOVER -->
+  <g transform="translate(800 150)" filter="url(#shadow)">
+    <circle r="48" fill="white" fill-opacity="0.92" stroke="#168FE5" stroke-opacity="0.25"/>
+    <circle cx="-5" cy="-5" r="15" stroke="#168FE5" stroke-width="3"/>
+    <path d="M6 6L20 20" stroke="#168FE5" stroke-width="3" stroke-linecap="round"/>
+    <circle cx="-5" cy="-5" r="5" fill="#168FE5"/>
+  </g>
+
+  <!-- LEARN -->
+  <g transform="translate(1130 500)" filter="url(#shadow)">
+    <circle r="48" fill="white" fill-opacity="0.92" stroke="#168FE5" stroke-opacity="0.25"/>
+    <path d="M-25 -19C-10 -26 0 -22 0 -13V25C-10 18 -18 18 -25 22Z"
+      fill="#EEF8FF" stroke="#168FE5" stroke-width="3"/>
+    <path d="M25 -19C10 -26 0 -22 0 -13V25C10 18 18 18 25 22Z"
+      fill="#EEF8FF" stroke="#168FE5" stroke-width="3"/>
+    <path d="M0 -13V25" stroke="#168FE5" stroke-width="3"/>
+  </g>
+
+  <!-- PRACTISE -->
+  <g transform="translate(1000 785)" filter="url(#shadow)">
+    <circle r="48" fill="white" fill-opacity="0.92" stroke="#168FE5" stroke-opacity="0.25"/>
+    <path d="M-10 -27H12" stroke="#168FE5" stroke-width="3" stroke-linecap="round"/>
+    <path d="M-6 -27V-12L-23 21C-27 29 -21 36 -12 36H12C21 36 27 29 23 21L6 -12V-27"
+      fill="#EEF8FF"
+      stroke="#168FE5"
+      stroke-width="3"
+      stroke-linejoin="round"
+    />
+    <path d="M-19 10H19" stroke="#168FE5" stroke-width="3"/>
+  </g>
+
+  <!-- BUILD -->
+  <g transform="translate(600 785)" filter="url(#shadow)">
+    <circle r="48" fill="white" fill-opacity="0.92" stroke="#168FE5" stroke-opacity="0.25"/>
+    <path d="M-2 -24C-16 -21 -24 -9 -21 5C-19 14 -12 20 -4 22L-22 40C-25 43 -21 48 -17 45L1 27C3 28 6 29 10 29C25 29 33 16 30 3"
+      fill="#EEF8FF"
+      stroke="#168FE5"
+      stroke-width="3"
+      stroke-linecap="round"
+      stroke-linejoin="round"
+    />
+    <path d="M14 -24L30 -8" stroke="#168FE5" stroke-width="3" stroke-linecap="round"/>
+  </g>
+
+  <!-- CREATE -->
+  <g transform="translate(470 500)" filter="url(#shadow)">
+    <circle r="48" fill="white" fill-opacity="0.92" stroke="#168FE5" stroke-opacity="0.25"/>
+    <circle r="13" stroke="#168FE5" stroke-width="3"/>
+    <path d="M0 -37V-25
+             M0 25V37
+             M-37 0H-25
+             M25 0H37
+             M-26 -26L-17 -17
+             M17 17L26 26
+             M26 -26L17 -17
+             M-17 17L-26 26"
+      stroke="#168FE5"
+      stroke-width="3"
+      stroke-linecap="round"
+    />
+  </g>
+
+  <!-- Small scientific particles -->
+  <g fill="#168FE5">
+    <circle cx="270" cy="250" r="5" opacity="0.35"/>
+    <circle cx="1320" cy="280" r="4" opacity="0.28"/>
+    <circle cx="1335" cy="720" r="6" opacity="0.25"/>
+    <circle cx="270" cy="730" r="4" opacity="0.3"/>
+    <circle cx="1210" cy="150" r="3" opacity="0.3"/>
+    <circle cx="390" cy="850" r="5" opacity="0.22"/>
+  </g>
+</svg>

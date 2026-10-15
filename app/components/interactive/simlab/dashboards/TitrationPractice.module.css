@@ -1,0 +1,65 @@
+.card {
+  background: #fff; border: 1px solid #dbe6f5; border-radius: 14px; padding: 12px 14px;
+  box-shadow: 0 6px 20px rgba(30, 64, 175, 0.06); min-width: 0; color: #0b1f4a;
+}
+.head { display: flex; justify-content: space-between; align-items: center; gap: 8px; margin-bottom: 8px; }
+.head h3 { margin: 0; font-size: 0.95rem; }
+.head span { font-size: 0.82rem; color: #475569; }
+.help, .note { margin: 6px 0 10px; font-size: 0.86rem; line-height: 1.55; color: #475569; }
+.srOnly { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+
+.live { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 10px; }
+.live > div { background: #f3f8ff; border-radius: 12px; padding: 10px; display: grid; gap: 2px; }
+.live span { font-size: 0.76rem; font-weight: 600; color: #475569; }
+.live strong { font-size: 1.05rem; color: #2563eb; }
+
+.actions { display: flex; flex-wrap: wrap; gap: 8px; margin: 10px 0; }
+.btn, .btnGhost {
+  min-height: 38px; padding: 0 14px; border-radius: 9px; font: inherit; font-weight: 700; font-size: 0.85rem; cursor: pointer;
+}
+.btn { border: 0; background: #2563eb; color: #fff; }
+.btn:hover:not(:disabled) { background: #1d4ed8; }
+.btn:disabled { background: #b9c8e3; cursor: not-allowed; }
+.btnGhost { border: 1px solid #b7c9e6; background: #fff; color: #0b1f4a; }
+.btnGhost:hover:not(:disabled) { background: #f3f8ff; }
+.btnGhost:disabled { opacity: 0.55; cursor: not-allowed; }
+.link { border: 0; background: none; color: #2563eb; font: inherit; font-weight: 600; font-size: 0.84rem; text-decoration: underline; cursor: pointer; min-height: 36px; padding: 0; }
+.btn:focus-visible, .btnGhost:focus-visible, .link:focus-visible, .tabs button:focus-visible, .field select:focus-visible, .answerRow input:focus-visible { outline: 3px solid #f59e0b; outline-offset: 2px; }
+
+.tableWrap { overflow-x: auto; }
+.table { width: 100%; border-collapse: collapse; font-size: 0.88rem; }
+.table th, .table td { padding: 8px; text-align: left; border-bottom: 1px solid #dbe6f5; white-space: nowrap; }
+.table th { color: #475569; font-size: 0.78rem; }
+.empty { color: #64748b; font-style: italic; white-space: normal !important; }
+.rowGood { background: #f0fdf4; }
+
+.status { margin: 12px 0 4px; padding: 10px 12px; background: #eff6ff; border-left: 4px solid #2563eb; border-radius: 8px; font-size: 0.9rem; line-height: 1.5; }
+.statusGood { background: #f0fdf4; border-left-color: #16a34a; font-weight: 600; }
+
+.toolbar { display: flex; flex-wrap: wrap; align-items: flex-end; gap: 10px; margin-bottom: 8px; }
+.tabs { display: flex; gap: 3px; padding: 3px; background: #f3f8ff; border-radius: 10px; flex: 0 0 auto; }
+.tabs button { min-height: 32px; padding: 0 12px; border: 0; border-radius: 8px; background: transparent; font: inherit; font-weight: 600; font-size: 0.83rem; color: #475569; cursor: pointer; white-space: nowrap; }
+.tabs button:disabled { opacity: 0.5; cursor: not-allowed; }
+.tabs button.tabOn, .tabOn { background: #2563eb; color: #fff; }
+
+.field { display: grid; gap: 2px; margin: 0; font-size: 0.72rem; font-weight: 600; color: #475569; flex: 1 1 180px; max-width: 280px; min-width: 0; }
+.field select { font: inherit; font-size: 0.85rem; font-weight: 500; color: #0b1f4a; border: 1px solid #c3d4ec; border-radius: 9px; padding: 0 8px; min-height: 34px; background: #fff; }
+.problem { margin: 4px 0 10px; padding: 8px 10px; background: #f8fbff; border-radius: 9px; font-size: 0.92rem; line-height: 1.5; }
+.answerRow { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+.sep { width: 1px; height: 22px; background: #dbe6f5; margin: 0 2px; }
+.answerRow input { flex: 0 1 150px; width: 150px; min-width: 0; min-height: 38px; border: 1px solid #c3d4ec; border-radius: 9px; padding: 0 10px; font: inherit; }
+.answerRow span { font-size: 0.88rem; color: #475569; }
+.verdict { margin: 8px 0 0; padding: 8px 10px; border-radius: 10px; font-size: 0.9rem; line-height: 1.5; font-weight: 600; }
+.vGood { background: #dcfce7; color: #166534; }
+.vClose { background: #fef3c7; color: #92400e; }
+.vBad { background: #fee2e2; color: #991b1b; }
+.working { margin: 8px 0 0; padding-left: 20px; display: grid; gap: 6px; font-size: 0.9rem; line-height: 1.55; }
+
+@media (max-width: 520px) {
+  .field { max-width: none; flex-basis: 100%; }
+  .tabs { width: 100%; }
+  .tabs button { flex: 1; }
+  .sep { display: none; }
+  .answerRow input { flex: 1 1 100px; width: auto; }
+  .live { grid-template-columns: 1fr; }
+}

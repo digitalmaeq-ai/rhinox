@@ -1,0 +1,196 @@
+.root {
+  margin: var(--rx-space-5) 0 var(--rx-space-6);
+  /* The play area is a fixed 2:1 box (580 x 290 on desktop) on every level. */
+}
+
+.shell {
+  background: linear-gradient(180deg, #f7fbff 0%, #ffffff 100%);
+  border: 1px solid var(--rx-border);
+  border-radius: var(--rx-radius-lg);
+  box-shadow: var(--rx-shadow-sm);
+  padding: var(--rx-space-5);
+}
+
+.header { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 14px; }
+.eyebrow { margin: 0; font-size: 12px; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; color: var(--rx-blue); }
+.title { margin: 2px 0 0; font-family: var(--rx-font-display); font-size: 24px; font-weight: 800; color: var(--rx-heading); }
+.headerAside { display: flex; gap: 10px; }
+.headerButton { border-radius: var(--rx-radius-sm) !important; }
+
+.levels { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 14px; }
+.levelPill {
+  display: inline-flex; align-items: center; gap: 6px; height: 34px; padding: 0 14px;
+  border-radius: 999px; border: 1px solid var(--rx-border); background: #fff;
+  font-weight: 700; font-size: 14px; color: var(--rx-heading); cursor: pointer;
+}
+.levelPill em { font-style: normal; font-size: 11px; color: var(--rx-accent); letter-spacing: 1px; }
+.levelPill:disabled { opacity: 0.6; cursor: default; }
+.levelActive { background: var(--rx-blue); border-color: var(--rx-blue); color: #fff; }
+.levelDone:not(.levelActive) { background: var(--rx-surface-blue); border-color: var(--rx-border-strong); }
+
+.navDivider { width: 1px; align-self: stretch; margin: 4px 4px; background: var(--rx-border-strong); }
+.challengePill { border-style: dashed; }
+.helpers { display: flex; flex-wrap: wrap; gap: 8px; }
+.helper { padding: 7px 12px; border-radius: 999px; border: 1px dashed var(--rx-border-strong); background: var(--rx-surface-blue); color: var(--rx-heading); font-weight: 700; font-size: 13px; cursor: pointer; }
+.helper[aria-pressed="true"] { background: #fff4d6; border-color: #e5a100; }
+.helper:disabled { opacity: 0.5; cursor: default; }
+.helper:focus-visible { outline: 3px solid #f59e0b; outline-offset: 2px; }
+.custom { margin: 0; padding: 10px 12px 12px; display: grid; gap: 10px; border: 1px dashed var(--rx-border-strong); border-radius: 12px; background: var(--rx-surface-blue); min-width: 0; }
+.custom legend { padding: 0 6px; font-size: 12px; font-weight: 800; letter-spacing: 0.08em; text-transform: uppercase; color: var(--rx-blue); }
+.customRow { display: grid; grid-template-columns: minmax(110px, 0.9fr) minmax(0, 1.4fr) 28px; align-items: center; gap: 10px; font-size: 13px; font-weight: 700; color: var(--rx-heading); }
+.customRow input[type="range"] { width: 100%; accent-color: var(--rx-blue); }
+.customRow output { font-weight: 800; text-align: right; }
+.custom > button { justify-self: start; }
+.seg { grid-column: span 2; display: inline-flex; border: 1px solid var(--rx-border-strong); border-radius: 999px; overflow: hidden; background: #fff; }
+.seg button { flex: 1; padding: 6px 10px; border: 0; background: none; font: inherit; font-size: 12.5px; font-weight: 700; color: var(--rx-heading); cursor: pointer; }
+.seg button.segOn { background: var(--rx-blue); color: #fff; }
+.seg button:focus-visible, .customRow input:focus-visible { outline: 3px solid #f59e0b; outline-offset: 2px; }
+.customNote { margin: 0; font-size: 12.5px; color: #7a4300; }
+.challengeNote { margin: 0; font-size: 12.5px; color: var(--rx-text); }
+
+.status {
+  display: flex; align-items: center; justify-content: space-between; gap: 12px;
+  min-height: 46px; margin: 0 0 14px; padding: 10px 14px;
+  border-radius: var(--rx-radius-md); border: 1px solid var(--rx-border); background: var(--rx-surface-blue);
+  color: var(--rx-heading); font-weight: 600;
+}
+
+.complete {
+  display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 14px;
+  margin-bottom: 14px; padding: 16px 18px; border-radius: var(--rx-radius-md);
+  background: linear-gradient(150deg, #3b9bff, #0f6fde 60%, #0a56b8); color: #fff;
+}
+.complete h3 { margin: 0 0 4px; font-size: 20px; color: #fff; }
+.complete p { margin: 0; opacity: 0.92; }
+
+.workspace { display: grid; grid-template-columns: minmax(0, 1.15fr) minmax(300px, 0.85fr); gap: 18px; align-items: start; }
+
+.stage {
+  /* Stays in view while the learner scrolls down to Run, so the robot is always visible. */
+  position: sticky; top: 92px; z-index: 2;
+  padding: 16px; border-radius: 18px;
+  background: linear-gradient(160deg, #0b2a52, #071a33);
+  border: 1px solid rgba(111, 180, 255, 0.25);
+  box-shadow: 0 18px 40px -22px rgba(7, 26, 51, 0.8);
+}
+/* The play area is always the same square, whatever the maze. Only the tile size changes. */
+.arenaWrap { position: relative; width: min(100%, 580px); margin: 0 auto; }
+.arena { border-radius: 16px; background: rgba(3, 14, 30, 0.55); border: 1px solid rgba(111, 180, 255, 0.14); container-type: size; width: 100%; aspect-ratio: 2 / 1; margin: 0 auto; display: grid; place-items: center; }
+.stageFoot { min-height: 40px; align-content: flex-start; display: flex; flex-wrap: wrap; justify-content: space-between; gap: 6px 16px; margin-top: 12px; font-size: 13px; color: #b9d6f5; }
+
+.panel { display: grid; gap: 12px; }
+.panelTitle { margin: 0; font-size: 12px; font-weight: 800; letter-spacing: 0.08em; text-transform: uppercase; color: var(--rx-blue); }
+.palette { display: flex; flex-wrap: wrap; gap: 8px; }
+.paletteBlock {
+  display: inline-flex; align-items: center; gap: 8px; padding: 9px 14px; border-radius: 10px;
+  border: 1px solid transparent; font-weight: 700; font-size: 14px; cursor: pointer; color: #fff;
+  transition: transform 0.12s ease, filter 0.12s ease;
+}
+.paletteBlock:hover:not(:disabled) { transform: translateY(-1px); filter: brightness(1.06); }
+.paletteBlock:disabled { opacity: 0.45; cursor: default; }
+.kind_forward { background: linear-gradient(135deg, #2e8bff, #0a5fd0); }  /* blue   */
+.kind_left { background: linear-gradient(135deg, #a46bff, #6d3ae0); }     /* violet */
+.kind_right { background: linear-gradient(135deg, #ff6aa8, #d62c78); }    /* pink   */
+.kind_repeat { background: linear-gradient(135deg, #ffb53d, #e08000); }   /* orange */
+.paletteBlock { box-shadow: 0 6px 14px -8px rgba(20, 30, 70, 0.55), inset 0 1px 0 rgba(255, 255, 255, 0.28); }
+
+.programHead { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+.count { font-size: 12px; font-weight: 600; color: var(--rx-text); }
+.programBox {
+  min-height: 150px; max-height: 340px; overflow: auto; padding: 10px;
+  border: 1px dashed var(--rx-border-strong); border-radius: 14px; background: #fff;
+}
+.empty { margin: 0; padding: 24px 0; text-align: center; color: #6b7f95; font-size: 14px; }
+.program, .nested { list-style: none; margin: 0; padding: 0; display: grid; gap: 6px; }
+.nested { gap: 5px; }
+
+.block { border-radius: 10px; color: #fff; }
+.blockRow { display: flex; align-items: center; gap: 8px; padding: 7px 8px 7px 12px; font-weight: 700; font-size: 14px; }
+.blockText { flex: 1; }
+.blockLabel { flex: 1; text-align: left; background: none; border: 0; color: inherit; font: inherit; cursor: pointer; padding: 0; }
+.glyph { width: 20px; text-align: center; font-size: 16px; }
+.remove { width: 24px; height: 24px; border-radius: 6px; border: 0; background: rgba(255, 255, 255, 0.2); color: #fff; font-size: 16px; line-height: 1; cursor: pointer; }
+.remove:disabled { opacity: 0.4; }
+.stepper { display: inline-flex; align-items: center; gap: 4px; }
+.stepper button { width: 22px; height: 22px; border-radius: 6px; border: 0; background: rgba(255, 255, 255, 0.25); color: #fff; font-weight: 800; cursor: pointer; }
+.stepper strong { min-width: 28px; text-align: center; }
+.loopBody { margin: 0 8px 8px 22px; padding: 6px; border-radius: 8px; background: rgba(0, 0, 0, 0.14); }
+.loopEmpty { margin: 0; padding: 8px; font-size: 12px; opacity: 0.85; }
+.blockTarget { outline: 3px solid #ffe08a; outline-offset: 1px; }
+.blockActive { outline: 3px solid #3ddc97; outline-offset: 1px; filter: brightness(1.15); }
+.blockBump { outline: 3px solid #ff5d5d; outline-offset: 1px; }
+
+.controls { display: flex; flex-wrap: wrap; gap: 8px; }
+.run {
+  padding: 10px 22px; border-radius: 10px; border: 0; background: var(--rx-blue); color: #fff;
+  font-weight: 800; font-size: 15px; cursor: pointer;
+}
+.run:disabled { opacity: 0.5; cursor: default; }
+.ghost {
+  padding: 10px 14px; border-radius: 10px; border: 1px solid var(--rx-border-strong); background: #fff;
+  color: var(--rx-heading); font-weight: 700; font-size: 14px; cursor: pointer;
+}
+.ghost:disabled { opacity: 0.5; cursor: default; }
+
+@media (max-width: 700px) { .arena { aspect-ratio: 4 / 3; } }
+@media (max-width: 520px) { .stage { padding: 8px; } }
+@media (max-width: 900px) {
+  .workspace { grid-template-columns: minmax(0, 1fr); }
+  /* Stacked layout: keep the board pinned only if the screen is tall enough to leave room for the controls. */
+  .stage { position: static; }
+  @media (min-height: 760px) { .stage { position: sticky; top: 76px; } }
+}
+
+/* ---- Compact program view: small numbered chips in reading order ---- */
+.viewToggle { padding: 3px 10px; border-radius: 999px; border: 1px solid var(--rx-border-strong); background: #fff; color: var(--rx-heading); font-size: 12px; font-weight: 700; cursor: pointer; }
+.viewToggle[aria-pressed="true"] { background: var(--rx-surface-blue); border-color: var(--rx-blue); color: var(--rx-blue); }
+.viewToggle:focus-visible { outline: 3px solid #f59e0b; outline-offset: 2px; }
+.programHead { flex-wrap: wrap; }
+
+.chipsRow, .chipsNested { list-style: none; margin: 0; padding: 0; display: flex; flex-wrap: wrap; align-items: flex-start; gap: 8px 6px; }
+.chipsNested { padding: 5px; border-radius: 9px; background: rgba(0, 0, 0, 0.18); gap: 6px 5px; }
+.chip { position: relative; display: inline-flex; align-items: center; justify-content: center; width: 40px; height: 40px; border-radius: 10px; color: #fff; font-weight: 800; }
+.chip .glyph { width: auto; font-size: 18px; line-height: 1; }
+.chipNum { position: absolute; left: 4px; bottom: 1px; font-size: 9px; font-weight: 800; line-height: 1; opacity: 0.8; }
+.chipRemove, .removeInline { border: 0; cursor: pointer; color: #fff; line-height: 1; }
+.chipRemove { position: absolute; top: -6px; right: -6px; width: 18px; height: 18px; border-radius: 50%; background: #1b2f4d; font-size: 12px; box-shadow: 0 0 0 2px #fff; }
+.chipRemove:disabled, .removeInline:disabled { opacity: 0.4; cursor: default; }
+.removeInline { width: 22px; height: 22px; border-radius: 6px; background: rgba(255, 255, 255, 0.22); font-size: 15px; }
+.chipRemove:focus-visible, .removeInline:focus-visible, .repeatToggle:focus-visible { outline: 3px solid #f59e0b; outline-offset: 1px; }
+
+.repeatChip { display: flex; flex-direction: column; gap: 5px; padding: 6px; border-radius: 12px; color: #fff; max-width: 100%; }
+.repeatHead { display: flex; align-items: center; gap: 6px; }
+.repeatToggle { display: inline-flex; align-items: center; gap: 5px; padding: 0 2px; border: 0; background: none; color: inherit; font: inherit; font-size: 13px; font-weight: 800; cursor: pointer; }
+.srOnly { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+.programBox:has(.chipsRow) { min-height: 96px; }
+
+/* ---- Result message on the play area: grows step by step ---- */
+.toast {
+  position: absolute; left: 50%; bottom: 8px; transform: translateX(-50%); z-index: 3;
+  width: max-content; max-width: min(94%, 420px); display: grid; grid-template-columns: 1fr auto;
+  align-items: center; column-gap: 12px; row-gap: 3px; padding: 7px 8px 7px 12px; border-radius: 14px;
+  backdrop-filter: blur(10px); box-shadow: 0 12px 30px -10px rgba(0, 0, 0, 0.75), inset 0 1px 0 rgba(255, 255, 255, 0.08);
+  animation: toastIn 0.35s cubic-bezier(0.2, 0.8, 0.3, 1) both;
+}
+.toastGood { background: linear-gradient(135deg, rgba(8, 52, 36, 0.94), rgba(10, 36, 52, 0.94)); border: 1px solid rgba(61, 220, 151, 0.7); color: #d8ffee; }
+.toastBad { background: rgba(60, 34, 8, 0.94); border: 1px solid rgba(255, 176, 32, 0.75); color: #ffe9c4; }
+.toastHead { display: flex; align-items: center; gap: 8px; grid-column: 1; }
+.toastBad .toastHead, .toastBad .toastLine, .toastActions { display: flex; flex-wrap: wrap; gap: 6px; }
+.toastHead strong { white-space: nowrap; font-size: 14px; font-weight: 800; color: #fff; }
+.toastStars { display: inline-flex; gap: 0; font-size: 14px; line-height: 1; }
+.toastStars i { font-style: normal; animation: starPop 0.45s cubic-bezier(0.3, 1.6, 0.4, 1) both; }
+.starOn { color: #ffd25e; text-shadow: 0 0 8px rgba(255, 210, 94, 0.7); }
+.starOff { color: rgba(255, 255, 255, 0.25); }
+.toastLine { margin: 0; grid-column: 1; display: flex; flex-wrap: nowrap; white-space: nowrap; gap: 2px 6px; font-size: 11.5px; line-height: 1.4; opacity: 0.92; animation: fadeUp 0.4s ease both; }
+.toastLine b { color: #7dffc2; font-weight: 800; }
+.toastLine span { padding: 0 6px; border-radius: 999px; background: rgba(255, 255, 255, 0.1); }
+.toastActions { grid-column: 1 / -1; display: flex; flex-wrap: wrap; gap: 6px; }
+.toastButton { grid-column: 2; grid-row: 1 / span 2; justify-self: end; padding: 7px 14px; border: 0; border-radius: 999px; background: #1f9d55; color: #fff; font-weight: 800; font-size: 13px; white-space: nowrap; cursor: pointer; animation: fadeUp 0.4s ease both; }
+.toastActions .toastButton { grid-column: auto; grid-row: auto; justify-self: start; }
+.toastBad .toastButton { background: #e08a00; }
+.toastGhost { padding: 6px 12px; border-radius: 999px; border: 1px solid rgba(255, 233, 196, 0.6); background: none; color: #ffe9c4; font-weight: 700; font-size: 12px; cursor: pointer; }
+.toastButton:focus-visible, .toastGhost:focus-visible { outline: 3px solid #fff; outline-offset: 2px; }
+@keyframes toastIn { from { opacity: 0; transform: translate(-50%, 12px); } to { opacity: 1; transform: translate(-50%, 0); } }
+@keyframes fadeUp { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: none; } }
+@keyframes starPop { from { opacity: 0; transform: scale(0.2) rotate(-40deg); } to { opacity: 1; transform: none; } }
+@media (prefers-reduced-motion: reduce) { .toast, .toastStars i, .toastLine, .toastButton { animation: none; } }

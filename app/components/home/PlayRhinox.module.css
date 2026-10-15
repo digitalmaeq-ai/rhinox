@@ -1,0 +1,82 @@
+/* The global .rx-container adds 48px of vertical padding for the Explore
+   section; these sections manage their own spacing. */
+.play .inner { padding-top: var(--rx-home-top, 64px); padding-bottom: 0; }
+.play { padding: 0 0 clamp(20px, 3vw, 32px); background: linear-gradient(180deg, #f4f9ff 0%, #ffffff 100%); }
+
+.head { display: flex; align-items: flex-end; justify-content: space-between; gap: 28px; margin-bottom: 18px; }
+.title { margin: 0; max-width: 560px; color: var(--rx-heading); font-family: var(--rx-font-display); font-size: clamp(28px, 3.4vw, 42px); font-weight: 800; letter-spacing: -0.03em; line-height: 1.08; }
+.title span { display: block; color: var(--rx-blue); }
+.intro { margin: 0; max-width: 440px; color: var(--rx-text-soft); font-size: 15px; line-height: 1.65; }
+.soon { display: grid; place-items: center; min-height: 220px; border: 1px dashed var(--rx-border-strong); border-radius: 20px; color: var(--rx-text-muted); }
+
+/* ---- one stage: categories on top, "now playing" and "up next" below ---- */
+.window { display: grid; gap: 14px; }
+
+.chips { display: flex; flex-wrap: wrap; gap: 8px; }
+.chip { display: inline-flex; align-items: center; gap: 8px; padding: 9px 15px; border: 1px solid var(--rx-border); border-radius: 999px; background: #fff; color: var(--rx-text-soft); font: inherit; font-size: 13.5px; font-weight: 700; cursor: pointer; transition: border-color 0.2s, color 0.2s, background 0.2s, transform 0.2s ease-out, box-shadow 0.2s; }
+.chip:hover { border-color: var(--rx-blue); color: var(--rx-blue); transform: translateY(-1px); }
+.chip:focus-visible, .railItem:focus-visible, .play_btn:focus-visible, .seeAll:focus-visible { outline: 3px solid #f59e0b; outline-offset: 3px; }
+.chipActive, .chipActive:hover { border-color: var(--rx-heading); background: var(--rx-heading); color: #fff; box-shadow: 0 12px 22px -14px rgba(10, 30, 60, 0.7); }
+.grid { display: grid; grid-template-columns: minmax(0, 1.9fr) minmax(280px, 1fr); gap: 14px; align-items: stretch; }
+
+/* ---- now playing ---- */
+.stage { position: relative; isolation: isolate; display: grid; grid-template-columns: minmax(0, 0.85fr) minmax(0, 1.15fr); align-items: center; gap: clamp(20px, 2.4vw, 32px); min-height: 430px; overflow: hidden; padding: clamp(24px, 3vw, 40px); border-radius: 28px; background: linear-gradient(150deg, #3b9bff 0%, #0f6fde 52%, #0a56b8 100%); color: #fff; box-shadow: 0 34px 60px -38px rgba(15, 111, 222, 0.8); animation: stageIn 0.55s ease-out; }
+.stage::before { content: ""; position: absolute; z-index: -1; inset: 0; background: radial-gradient(60% 70% at 85% 0%, rgba(255, 255, 255, 0.25), transparent 62%), radial-gradient(rgba(255, 255, 255, 0.16) 1px, transparent 1.4px) 0 0 / 22px 22px; mask-image: linear-gradient(120deg, #000, transparent 85%); }
+.stage::after { content: ""; position: absolute; z-index: -1; width: 420px; height: 420px; left: -160px; bottom: -220px; border-radius: 50%; border: 1px solid rgba(255, 255, 255, 0.24); box-shadow: 0 0 0 44px rgba(255, 255, 255, 0.05), 0 0 0 94px rgba(255, 255, 255, 0.035); }
+@keyframes stageIn { from { opacity: 0.4; transform: translateY(6px); } to { opacity: 1; transform: none; } }
+
+.stageCopy { display: flex; flex-direction: column; align-items: flex-start; gap: 12px; }
+.badge { display: inline-flex; align-items: center; gap: 8px; padding: 6px 12px; border: 1px solid rgba(255, 255, 255, 0.35); border-radius: 999px; background: rgba(255, 255, 255, 0.14); font-size: 10.5px; font-weight: 800; letter-spacing: 0.14em; text-transform: uppercase; backdrop-filter: blur(6px); }
+.badge i { width: 7px; height: 7px; border-radius: 50%; background: #ffb020; box-shadow: 0 0 0 4px rgba(255, 176, 32, 0.28); }
+.stageTitle { margin: 0; color: #fff; font-family: var(--rx-font-display); font-size: clamp(26px, 2.8vw, 38px); font-weight: 800; letter-spacing: -0.03em; line-height: 1.08; }
+.stageText { margin: 0; max-width: 400px; color: rgba(255, 255, 255, 0.92); font-size: 14.5px; line-height: 1.6; display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; }
+.pills { list-style: none; margin: 0; padding: 0; display: flex; flex-wrap: wrap; gap: 6px; }
+.pills li { padding: 5px 10px; border-radius: 999px; background: rgba(255, 255, 255, 0.16); font-size: 12px; font-weight: 600; }
+.play_btn { display: inline-flex; align-items: center; gap: 10px; margin-top: 6px; padding: 13px 24px; border-radius: 999px; background: #fff; color: var(--rx-blue); font-size: 14px; font-weight: 800; text-decoration: none; box-shadow: 0 18px 30px -16px rgba(5, 40, 90, 0.8); transition: transform 0.2s ease-out, box-shadow 0.2s; }
+.play_btn:hover { transform: translateY(-2px); box-shadow: 0 22px 34px -16px rgba(5, 40, 90, 0.9); }
+
+/* the screenshot sits whole in a plain rectangular frame (same 1200:760 shape as the pictures) */
+.device { position: relative; align-self: center; overflow: hidden; border: 1px solid rgba(255, 255, 255, 0.85); border-radius: 16px; background: #fff; box-shadow: 0 30px 56px -30px rgba(3, 30, 80, 0.7), 0 0 0 6px rgba(255, 255, 255, 0.16); }
+.deviceScreen { display: block; aspect-ratio: 1200 / 760; width: 100%; }
+
+.picture { position: relative; display: block; overflow: hidden; background: linear-gradient(145deg, #eaf3ff, #cfe3fb); }
+.photo { object-fit: contain; background: #fff; }
+.shot { object-position: center; }
+.fallback { position: absolute; inset: 0; display: grid; place-items: center; color: var(--rx-blue); }
+.fallback svg { width: 38%; max-width: 64px; height: auto; }
+
+/* ---- up next ---- */
+.rail { display: flex; flex-direction: column; gap: 10px; padding: 18px; border: 1px solid var(--rx-border); border-radius: 28px; background: #fff; box-shadow: 0 24px 44px -34px rgba(15, 111, 222, 0.4); }
+.railHead { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; padding: 2px 4px 4px; }
+.railHead strong { font-family: var(--rx-font-display); font-size: 17px; font-weight: 800; letter-spacing: -0.02em; color: var(--rx-heading); }
+.railHead span { font-size: 12px; font-weight: 700; color: var(--rx-text-muted); }
+.railList { list-style: none; margin: 0; padding: 0; display: grid; gap: 8px; flex: 1; align-content: start; }
+.railItem { position: relative; overflow: hidden; display: grid; grid-template-columns: 76px minmax(0, 1fr); align-items: center; gap: 12px; width: 100%; padding: 9px; border: 1px solid transparent; border-radius: 16px; background: transparent; color: var(--rx-heading); font: inherit; text-align: left; cursor: pointer; transition: background 0.2s, border-color 0.2s, transform 0.2s ease-out; }
+.railItem:hover { background: #f4f8fe; transform: translateX(3px); }
+.railItemOn, .railItemOn:hover { border-color: var(--rx-border); background: #eaf3ff; transform: none; }
+.thumb { width: 76px; height: 54px; border-radius: 11px; box-shadow: 0 8px 16px -10px rgba(15, 111, 222, 0.6); }
+.railBody { display: grid; gap: 3px; min-width: 0; }
+.railBody strong { font-size: 14px; line-height: 1.25; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+.railBody small { color: var(--rx-text-soft); font-size: 12px; line-height: 1.3; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.timer { position: absolute; left: 0; bottom: 0; height: 3px; width: 100%; background: var(--rx-blue); transform-origin: left; animation-name: fill; animation-timing-function: linear; animation-fill-mode: forwards; }
+@keyframes fill { from { transform: scaleX(0); } to { transform: scaleX(1); } }
+.seeAll { display: inline-flex; align-items: center; gap: 8px; align-self: flex-start; margin: 4px 4px 2px; color: var(--rx-blue); font-size: 13.5px; font-weight: 700; text-decoration: none; transition: gap 0.2s; }
+.seeAll:hover { gap: 12px; }
+
+@media (max-width: 1100px) {
+  .grid { grid-template-columns: minmax(0, 1fr); }
+  .railList { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+@media (max-width: 760px) {
+  .head { flex-direction: column; align-items: flex-start; gap: 12px; }
+  .stage { grid-template-columns: minmax(0, 1fr); min-height: 0; padding: 22px; gap: 22px; }
+  .railList { grid-template-columns: minmax(0, 1fr); }
+  .chips { flex-wrap: nowrap; overflow-x: auto; margin: 0 -24px; padding: 2px 24px 6px; scrollbar-width: none; }
+  .chips::-webkit-scrollbar { display: none; }
+  .chip { flex: none; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .stage { animation: none; }
+  .chip, .railItem, .play_btn { transition: none; }
+  .chip:hover, .railItem:hover, .play_btn:hover { transform: none; }
+}

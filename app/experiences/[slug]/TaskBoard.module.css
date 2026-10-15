@@ -1,0 +1,177 @@
+.board {
+  display: grid;
+  grid-template-columns: minmax(0, 1.05fr) minmax(0, 1.1fr) minmax(0, 0.85fr);
+  background: var(--rx-surface);
+  border: 1px solid var(--rx-border);
+  border-radius: var(--rx-radius-lg);
+  overflow: hidden;
+}
+
+.two { grid-template-columns: minmax(0, 1fr) minmax(0, 1.2fr); }
+
+.col { display: flex; flex-direction: column; min-width: 0; }
+.col + .col { border-left: 1px solid var(--rx-border); }
+
+.list { background: linear-gradient(180deg, #eaf3ff, #f7fbfe); }
+.awards { background: var(--rx-surface-soft); }
+
+.head { padding: 20px 22px 14px; }
+
+.eyebrow {
+  margin: 0 0 6px;
+  font-size: 11.5px;
+  font-weight: 800;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--rx-text-muted);
+}
+
+.heading {
+  margin: 0;
+  font-size: 18px;
+  line-height: 1.3;
+  color: var(--rx-heading);
+}
+
+/* task list */
+.rows {
+  display: flex;
+  flex-direction: column;
+  max-height: 520px;
+  overflow-y: auto;
+  border-top: 1px solid var(--rx-border);
+}
+
+.row {
+  display: grid;
+  grid-template-columns: 30px 1fr;
+  gap: 12px;
+  align-items: center;
+  padding: 11px 22px;
+  text-align: left;
+  font: inherit;
+  background: transparent;
+  border: 0;
+  border-left: 3px solid transparent;
+  cursor: pointer;
+  transition: background 0.15s;
+}
+
+.row:hover { background: rgba(214, 238, 255, 0.5); }
+.on, .on:hover { background: var(--rx-blue-pale); border-left-color: var(--rx-blue); }
+
+.row:focus-visible,
+.btn:focus-visible { outline: 3px solid var(--rx-blue-light); outline-offset: -3px; }
+
+.badge {
+  display: grid;
+  place-items: center;
+  width: 28px;
+  height: 28px;
+  font: 800 13px var(--rx-font-display);
+  color: var(--rx-blue);
+  background: #fff;
+  border: 1px solid var(--rx-border-strong);
+  border-radius: 8px;
+}
+
+.on .badge { color: #fff; background: var(--rx-blue); border-color: var(--rx-blue); }
+
+.rowText { display: grid; gap: 2px; min-width: 0; }
+.rowTitle { font-size: 15px; font-weight: 700; color: var(--rx-text); }
+.on .rowTitle { color: var(--rx-heading); }
+
+
+/* selected task */
+.body { flex: 1; padding: 0 22px; }
+
+.text {
+  margin: 0;
+  font-size: 14.5px;
+  line-height: 1.6;
+  color: var(--rx-text-soft);
+}
+
+.steps {
+  list-style: decimal;
+  margin: 16px 0 0;
+  padding: 0 0 0 20px;
+  font-size: 14.5px;
+  line-height: 1.55;
+  color: var(--rx-text);
+}
+
+.steps li { padding-left: 4px; margin-top: 8px; }
+.steps li::marker { font-weight: 800; color: var(--rx-blue); }
+
+.nav {
+  display: flex;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 20px 22px 22px;
+}
+
+.btn {
+  padding: 9px 16px;
+  font: 700 13.5px var(--rx-font-body);
+  color: var(--rx-heading);
+  background: #fff;
+  border: 1px solid var(--rx-border-strong);
+  border-radius: 999px;
+  cursor: pointer;
+}
+
+.btn:disabled { opacity: 0.4; cursor: default; }
+.primary { color: #fff; background: var(--rx-blue); border-color: var(--rx-blue); }
+
+/* achievements */
+.awardList {
+  display: grid;
+  gap: 12px;
+  margin: 0;
+  padding: 0 22px 22px;
+  list-style: none;
+}
+
+.award {
+  display: grid;
+  grid-template-columns: 34px 1fr;
+  gap: 12px;
+  padding: 14px;
+  background: #fff;
+  border: 1px solid var(--rx-border);
+  border-radius: var(--rx-radius-md);
+}
+
+.medal {
+  display: grid;
+  place-items: center;
+  width: 34px;
+  height: 34px;
+  font-size: 17px;
+  color: var(--rx-warning);
+  background: #fff6e5;
+  border: 1px solid #f6dfb5;
+  border-radius: 10px;
+}
+
+.awardTitle { display: block; font-size: 15px; font-weight: 700; color: var(--rx-heading); }
+.awardDesc { display: block; margin-top: 3px; font-size: 13px; line-height: 1.45; color: var(--rx-text-soft); }
+
+.points {
+  display: inline-block;
+  margin-top: 8px;
+  padding: 3px 10px;
+  font-size: 12px;
+  font-weight: 800;
+  color: var(--rx-success);
+  background: #e6f6f0;
+  border-radius: 999px;
+}
+
+@media (max-width: 960px) {
+  .board,
+  .two { grid-template-columns: 1fr; }
+  .col + .col { border-left: 0; border-top: 1px solid var(--rx-border); }
+  .rows { max-height: 300px; }
+}

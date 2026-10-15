@@ -1,0 +1,90 @@
+.field { display: grid; gap: 6px; }
+
+.label {
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--rx-heading, #0b1f4a);
+}
+
+.row { display: flex; align-items: center; gap: 14px; }
+
+.range {
+  flex: 1;
+  min-width: 0;
+  height: 6px;
+  margin: 10px 0;
+  appearance: none;
+  -webkit-appearance: none;
+  border-radius: 999px;
+  cursor: pointer;
+  background: linear-gradient(90deg, var(--rx-blue, #0f6fde) var(--fill, 50%), #dbe9f6 var(--fill, 50%));
+}
+
+.range::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  background: #fff;
+  border: 3px solid var(--rx-blue, #0f6fde);
+  box-shadow: 0 2px 8px rgba(15, 111, 222, 0.35);
+}
+
+.range::-moz-range-thumb {
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  background: #fff;
+  border: 3px solid var(--rx-blue, #0f6fde);
+  box-shadow: 0 2px 8px rgba(15, 111, 222, 0.35);
+}
+
+.range:focus-visible { outline: 3px solid #bfe3fb; outline-offset: 6px; }
+.range:disabled { opacity: 0.5; cursor: default; }
+
+.box {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 4px;
+  flex: 0 0 auto;
+  padding: 0 10px;
+  background: #fff;
+  border: 1px solid var(--rx-border-strong, #bfd6f0);
+  border-radius: 10px;
+  transition: border-color 0.15s, box-shadow 0.15s;
+}
+
+.box:focus-within {
+  border-color: var(--rx-blue, #0f6fde);
+  box-shadow: 0 0 0 3px #dbeaff;
+}
+
+.number {
+  width: 3.4ch;
+  min-width: 0;
+  padding: 7px 0;
+  font: 800 16px var(--rx-font-display, inherit);
+  font-variant-numeric: tabular-nums;
+  text-align: right;
+  color: var(--rx-blue, #0f6fde);
+  background: transparent;
+  border: 0;
+  outline: none;
+  appearance: textfield;
+  -moz-appearance: textfield;
+}
+
+.number::-webkit-outer-spin-button,
+.number::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
+.number:disabled { opacity: 0.6; }
+
+.unit { font-size: 12.5px; font-weight: 700; color: var(--rx-text-soft, #64748b); }
+
+.bounds {
+  display: flex;
+  justify-content: space-between;
+  margin-top: -6px;
+  padding-right: 96px;
+  font-size: 11px;
+  color: var(--rx-text-muted, #94a3b8);
+}

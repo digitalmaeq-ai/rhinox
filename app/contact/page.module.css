@@ -1,0 +1,842 @@
+/* Contact page — layout after the supplied template, styled with the
+   homepage system: light Rhinox blues, navy Manrope headings, Inter body,
+   white glass cards, global .rx-eyebrow / .rx-button. */
+
+.page {
+  background: var(--rx-bg);
+  color: var(--rx-text);
+}
+
+/* Second line of the two-line headlines. */
+.muted {
+  color: var(--rx-blue);
+}
+
+.eyebrow {
+  margin-bottom: 16px;
+}
+
+.heroTitle,
+.sectionTitle,
+.sectionTitleSmall,
+.closingTitle,
+.heroCardTitle {
+  margin: 0;
+  font-family: var(--rx-font-display);
+  font-weight: 700;
+  color: var(--rx-heading);
+}
+
+.heroTitle span,
+.sectionTitle span,
+.sectionTitleSmall span,
+.closingTitle span,
+.heroCardTitle span {
+  display: block;
+}
+
+/* ---------- Hero (matches the homepage hero) ---------- */
+
+.hero {
+  position: relative;
+  overflow: hidden;
+  padding: clamp(40px, 4.5vw, 60px) 0 0;
+  isolation: isolate;
+  background: linear-gradient(180deg, #edf8ff 0%, #f4fafe 100%);
+}
+
+.heroBackdrop {
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  background:
+    linear-gradient(
+      90deg,
+      rgba(237, 248, 255, 0.995) 0%,
+      rgba(237, 248, 255, 0.96) 30%,
+      rgba(237, 248, 255, 0.86) 55%,
+      rgba(237, 248, 255, 0.66) 100%
+    ),
+    url("/images/journey/journey-robotics.jpg") center 30% / cover no-repeat;
+}
+
+.heroBackdrop::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  opacity: 0.24;
+  background-image:
+    linear-gradient(rgba(15, 111, 222, 0.08) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(15, 111, 222, 0.08) 1px, transparent 1px);
+  background-size: 48px 48px;
+  mask-image: linear-gradient(90deg, rgba(0, 0, 0, 0.9), rgba(0, 0, 0, 0.4), transparent);
+}
+
+.heroInner {
+  display: grid;
+  grid-template-columns: minmax(0, 1.2fr) minmax(300px, 0.62fr);
+  gap: clamp(28px, 4.5vw, 56px);
+  align-items: center;
+}
+
+.heroMain {
+  min-width: 0;
+}
+
+.heroTitle {
+  font-size: clamp(44px, 5.6vw, 80px);
+  line-height: 0.98;
+  letter-spacing: -0.055em;
+}
+
+.heroLead {
+  max-width: 640px;
+  margin: 20px 0 0;
+  font-size: 17px;
+  line-height: 1.75;
+  color: var(--rx-text);
+}
+
+.heroMeta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 14px 40px;
+  margin-top: 26px;
+  padding-top: 20px;
+  border-top: 1px solid var(--rx-border);
+}
+
+.metaLabel {
+  margin: 0 0 8px;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.13em;
+  text-transform: uppercase;
+  color: var(--rx-blue);
+}
+
+.metaValue {
+  margin: 0;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--rx-heading);
+}
+
+/* Glass card, as the homepage hero panel. */
+.heroCard {
+  overflow: hidden;
+  border: 1px solid rgba(255, 255, 255, 0.82);
+  border-radius: var(--rx-radius-lg);
+  background: rgba(255, 255, 255, 0.78);
+  box-shadow: var(--rx-shadow-lg);
+  backdrop-filter: blur(18px);
+}
+
+.heroCardTop {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin: 0;
+  padding: 14px 24px;
+  border-bottom: 1px solid var(--rx-border);
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.13em;
+  text-transform: uppercase;
+  color: var(--rx-blue);
+}
+
+.dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--rx-blue);
+  box-shadow: 0 0 0 4px rgba(15, 111, 222, 0.14);
+}
+
+.heroCardBody {
+  padding: 22px 24px 18px;
+}
+
+.badge {
+  display: inline-grid;
+  place-items: center;
+  width: 44px;
+  height: 44px;
+  margin-bottom: 14px;
+  border-radius: 12px;
+  font-family: var(--rx-font-display);
+  font-size: 20px;
+  font-weight: 800;
+  color: var(--rx-white);
+  background: var(--rx-blue);
+  box-shadow: 0 10px 22px rgba(15, 111, 222, 0.25);
+}
+
+.heroCardTitle {
+  font-size: 30px;
+  line-height: 1.12;
+  letter-spacing: -0.035em;
+}
+
+.heroCardBody p {
+  margin: 14px 0 0;
+  font-size: 14px;
+  line-height: 1.7;
+  color: var(--rx-text-soft);
+}
+
+.cardLink {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 22px;
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--rx-heading);
+  text-decoration: none;
+  transition: color 0.15s ease;
+}
+
+.cardLink svg {
+  color: var(--rx-blue);
+}
+
+.cardLink:hover {
+  color: var(--rx-blue);
+}
+
+.heroCardFoot {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  margin: 0;
+  padding: 0 24px 16px;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--rx-text-muted);
+}
+
+.heroCardFoot span {
+  flex: 1;
+  height: 1px;
+  background: var(--rx-border);
+}
+
+.heroStrip {
+  display: flex;
+  align-items: center;
+  gap: 24px;
+  width: min(calc(100% - 48px), var(--rx-container));
+  margin: clamp(28px, 3.5vw, 44px) auto 0;
+  padding-bottom: 24px;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--rx-text-soft);
+  white-space: nowrap;
+}
+
+.heroStrip span {
+  flex: 1;
+  height: 1px;
+  background: var(--rx-border-strong);
+}
+
+/* ---------- Details + form ---------- */
+
+.connect {
+  padding: clamp(40px, 4.5vw, 64px) 0;
+  background: var(--rx-white);
+  scroll-margin-top: 80px;
+}
+
+.connectInner {
+  display: grid;
+  grid-template-columns: minmax(0, 0.9fr) minmax(0, 1.1fr);
+  gap: clamp(28px, 4.5vw, 56px);
+  align-items: start;
+}
+
+.sectionTitle {
+  font-size: clamp(38px, 4vw, 56px);
+  line-height: 1;
+  letter-spacing: -0.05em;
+}
+
+.sectionLead {
+  max-width: 540px;
+  margin: 16px 0 0;
+  font-size: 16px;
+  line-height: 1.75;
+  color: var(--rx-text-soft);
+}
+
+.channels {
+  display: grid;
+  gap: 16px;
+  margin: 26px 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.channels li {
+  display: flex;
+  gap: 16px;
+  align-items: flex-start;
+}
+
+.channelIcon {
+  display: grid;
+  place-items: center;
+  flex: 0 0 auto;
+  width: 48px;
+  height: 48px;
+  border: 1px solid var(--rx-border);
+  border-radius: 12px;
+  color: var(--rx-blue);
+  background: var(--rx-surface-blue);
+}
+
+.channelLabel {
+  margin: 2px 0 4px;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.13em;
+  text-transform: uppercase;
+  color: var(--rx-blue);
+}
+
+.channels a {
+  display: block;
+  font-size: 16px;
+  font-weight: 600;
+  line-height: 1.6;
+  color: var(--rx-heading);
+  text-decoration: none;
+  transition: color 0.15s ease;
+}
+
+.channels a:hover {
+  color: var(--rx-blue);
+}
+
+.channelText {
+  margin: 0;
+  max-width: 420px;
+  font-size: 16px;
+  line-height: 1.6;
+  color: var(--rx-heading);
+}
+
+.formPanel {
+  padding: clamp(20px, 3vw, 30px);
+  border: 1px solid var(--rx-border);
+  border-radius: var(--rx-radius-xl);
+  background: var(--rx-white);
+  box-shadow: var(--rx-shadow-md);
+}
+
+/* ---------- Form ---------- */
+
+.formHead h3 {
+  margin: 0;
+  font-family: var(--rx-font-display);
+  font-size: 26px;
+  font-weight: 700;
+  letter-spacing: -0.03em;
+  color: var(--rx-heading);
+}
+
+.formHead p {
+  margin: 8px 0 0;
+  font-size: 15px;
+  color: var(--rx-text-soft);
+}
+
+.formGrid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 14px 16px;
+  margin-top: 20px;
+}
+
+.field {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.fieldWide {
+  grid-column: 1 / -1;
+}
+
+.field label {
+  margin-bottom: 6px;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--rx-heading);
+}
+
+.field label span {
+  color: var(--rx-blue);
+}
+
+.field input,
+.field select,
+.field textarea {
+  width: 100%;
+  min-height: 48px;
+  padding: 0 14px;
+  font: inherit;
+  font-size: 15px;
+  color: var(--rx-heading);
+  background: var(--rx-surface-soft);
+  border: 1px solid var(--rx-border-strong);
+  border-radius: var(--rx-radius-md);
+  outline: none;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease, background-color 0.15s ease;
+}
+
+.field textarea {
+  min-height: 140px;
+  padding: 12px 14px;
+  line-height: 1.6;
+  resize: vertical;
+}
+
+.field select {
+  appearance: none;
+  -webkit-appearance: none;
+  padding-right: 40px;
+  background:
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' fill='none' stroke='%2364748b' stroke-width='1.6' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m1 1.5 5 5 5-5'/%3E%3C/svg%3E") right 14px center / 12px 8px no-repeat,
+    var(--rx-surface-soft);
+  cursor: pointer;
+}
+
+.selectEmpty {
+  color: var(--rx-text-muted) !important;
+}
+
+.field input::placeholder,
+.field textarea::placeholder {
+  color: var(--rx-text-muted);
+}
+
+.field input:focus,
+.field select:focus,
+.field textarea:focus {
+  border-color: var(--rx-blue);
+  background-color: var(--rx-white);
+  box-shadow: 0 0 0 3px rgba(15, 111, 222, 0.14);
+}
+
+.fieldError input,
+.fieldError textarea {
+  border-color: var(--rx-danger);
+}
+
+.errorText {
+  margin: 6px 0 0;
+  font-size: 13px;
+  color: var(--rx-danger);
+}
+
+.submit {
+  width: 100%;
+  min-height: 52px;
+  margin-top: 20px;
+  font-size: 15px;
+}
+
+.formSent {
+  padding: 12px 0;
+}
+
+.formSentIcon {
+  display: grid;
+  place-items: center;
+  width: 52px;
+  height: 52px;
+  margin-bottom: 20px;
+  border-radius: 50%;
+  color: var(--rx-white);
+  background: var(--rx-success);
+}
+
+.formSent h3 {
+  margin: 0;
+  font-family: var(--rx-font-display);
+  font-size: 26px;
+  font-weight: 700;
+  letter-spacing: -0.03em;
+  color: var(--rx-heading);
+}
+
+.formSent p {
+  margin: 12px 0 0;
+  font-size: 15px;
+  line-height: 1.7;
+  color: var(--rx-text-soft);
+}
+
+.formSent a {
+  color: var(--rx-blue);
+  font-weight: 600;
+}
+
+.textButton {
+  margin-top: 22px;
+  padding: 0;
+  font: inherit;
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--rx-blue);
+  background: none;
+  border: 0;
+  cursor: pointer;
+}
+
+/* ---------- Find us ---------- */
+
+.findUs {
+  padding: clamp(40px, 4.5vw, 64px) 0;
+  background: var(--rx-bg-soft);
+}
+
+.mapCard {
+  display: grid;
+  grid-template-columns: minmax(0, 0.75fr) minmax(0, 1fr);
+  overflow: hidden;
+  border: 1px solid var(--rx-border);
+  border-radius: var(--rx-radius-xl);
+  background: var(--rx-white);
+  box-shadow: var(--rx-shadow-md);
+}
+
+.mapInfo {
+  padding: clamp(24px, 3.5vw, 40px);
+}
+
+.sectionTitleSmall {
+  font-size: clamp(36px, 3.6vw, 52px);
+  line-height: 1;
+  letter-spacing: -0.05em;
+}
+
+.address {
+  display: flex;
+  flex-direction: column;
+  margin: 16px 0 22px;
+  font-size: 16px;
+  font-style: normal;
+  line-height: 1.75;
+  color: var(--rx-text-soft);
+}
+
+.outlineButton svg,
+.primaryButton svg {
+  flex: 0 0 auto;
+}
+
+.mapFrame {
+  position: relative;
+  min-height: 380px;
+  background: var(--rx-surface-blue);
+}
+
+.mapFrame iframe {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  border: 0;
+}
+
+/* ---------- Closing call to action ---------- */
+
+.closing {
+  padding: 0 0 clamp(40px, 4.5vw, 64px);
+  background: var(--rx-bg-soft);
+}
+
+.closingCard {
+  position: relative;
+  overflow: hidden;
+  padding: clamp(32px, 4vw, 48px) clamp(20px, 5vw, 48px) 22px;
+  text-align: center;
+  border: 1px solid var(--rx-border);
+  border-radius: var(--rx-radius-xl);
+  background:
+    radial-gradient(circle at 50% 0%, rgba(255, 255, 255, 0.9) 0%, rgba(255, 255, 255, 0) 60%),
+    linear-gradient(145deg, #dff2ff 0%, #dbeaff 48%, #c9e8fb 100%);
+  box-shadow: var(--rx-shadow-md);
+}
+
+.closingCard::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 50%;
+  width: 180px;
+  height: 3px;
+  transform: translateX(-50%);
+  border-radius: 0 0 3px 3px;
+  background: var(--rx-blue);
+}
+
+.closingKicker {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 14px;
+  margin: 0;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--rx-text-soft);
+}
+
+.closingKicker span {
+  width: 40px;
+  height: 1px;
+  background: var(--rx-border-strong);
+}
+
+.closingEyebrow {
+  margin: 8px 0 14px;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--rx-blue);
+}
+
+.closingTitle {
+  font-size: clamp(34px, 4vw, 56px);
+  line-height: 1;
+  letter-spacing: -0.05em;
+}
+
+.closingLead {
+  max-width: 680px;
+  margin: 16px auto 0;
+  font-size: 17px;
+  line-height: 1.75;
+  color: var(--rx-text);
+}
+
+.primaryButton {
+  margin-top: 22px;
+}
+
+.closingFoot {
+  display: flex;
+  align-items: center;
+  gap: 24px;
+  margin-top: 24px;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--rx-text-soft);
+  white-space: nowrap;
+}
+
+.closingRule {
+  flex: 1;
+  height: 1px;
+  background: var(--rx-border-strong);
+}
+
+/* ---------- Responsive ---------- */
+
+@media (max-width: 1024px) {
+  .heroInner,
+  .connectInner {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .heroCard {
+    max-width: 520px;
+  }
+
+  .mapCard {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .mapFrame {
+    min-height: 360px;
+  }
+}
+
+@media (max-width: 640px) {
+  .heroLead,
+  .sectionLead,
+  .closingLead {
+    font-size: 16px;
+  }
+
+  .heroStrip {
+    white-space: normal;
+    text-align: center;
+    justify-content: center;
+  }
+
+  .heroStrip span {
+    display: none;
+  }
+
+  .formGrid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .mapFrame {
+    min-height: 300px;
+  }
+
+  .primaryButton {
+    width: 100%;
+  }
+
+  .closingFoot {
+    flex-direction: column;
+    gap: 10px;
+    white-space: normal;
+  }
+
+  .closingRule {
+    display: none;
+  }
+}
+
+
+/* ---------- Motion ---------- */
+/* Entrance on load, scroll reveals where the browser supports scroll-driven
+   animations (content simply shows normally elsewhere), and gentle hovers.
+   All of it is switched off for people who prefer reduced motion. */
+
+@keyframes rxRise {
+  from { opacity: 0; translate: 0 18px; }
+  to { opacity: 1; translate: none; }
+}
+
+@keyframes rxSlideIn {
+  from { opacity: 0; translate: 26px 0; }
+  to { opacity: 1; translate: none; }
+}
+
+@keyframes rxPulse {
+  0%, 100% { box-shadow: 0 0 0 4px rgba(15, 111, 222, 0.14); }
+  50% { box-shadow: 0 0 0 8px rgba(15, 111, 222, 0.04); }
+}
+
+@keyframes rxGrow {
+  from { transform: scaleX(0); }
+  to { transform: scaleX(1); }
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .eyebrow,
+  .heroTitle,
+  .heroLead,
+  .heroActions,
+  .heroMeta {
+    animation: rxRise 0.7s cubic-bezier(0.22, 1, 0.36, 1) both;
+  }
+
+  .heroTitle { animation-delay: 0.08s; }
+  .heroLead { animation-delay: 0.18s; }
+  .heroActions,
+  .heroMeta { animation-delay: 0.28s; }
+
+  .heroCard {
+    animation: rxSlideIn 0.8s cubic-bezier(0.22, 1, 0.36, 1) 0.2s both;
+  }
+
+  .dot {
+    animation: rxPulse 2.4s ease-in-out infinite;
+  }
+
+  .badge {
+    transition: transform 0.25s ease;
+  }
+
+  .heroCard:hover .badge {
+    transform: rotate(-6deg) scale(1.06);
+  }
+
+  .channels li {
+    transition: transform 0.2s ease;
+  }
+
+  .channels li:hover {
+    transform: translateX(4px);
+  }
+
+  .channelIcon {
+    transition: transform 0.25s ease, background-color 0.2s ease, color 0.2s ease;
+  }
+
+  .channels li:hover .channelIcon {
+    color: var(--rx-white);
+    background: var(--rx-blue);
+    transform: rotate(-6deg) scale(1.06);
+  }
+
+  .formPanel,
+  .mapCard {
+    transition: box-shadow 0.25s ease, transform 0.25s ease;
+  }
+
+  .formPanel:hover,
+  .mapCard:hover {
+    box-shadow: var(--rx-shadow-lg);
+  }
+
+  .field input,
+  .field select,
+  .field textarea {
+    transition: border-color 0.15s ease, box-shadow 0.15s ease, background-color 0.15s ease, transform 0.15s ease;
+  }
+
+  .field input:focus,
+  .field select:focus,
+  .field textarea:focus {
+    transform: translateY(-1px);
+  }
+
+  :global(.rx-button) svg,
+  .cardLink svg,
+  .textLink svg {
+    transition: transform 0.2s ease;
+  }
+
+  :global(.rx-button):hover svg,
+  .cardLink:hover svg,
+  .textLink:hover svg {
+    transform: translateX(3px);
+  }
+
+  .closingCard::before {
+    transform-origin: center;
+  }
+}
+
+@supports (animation-timeline: view()) {
+  @media (prefers-reduced-motion: no-preference) {
+    .connectInfo > *,
+    .formPanel,
+    .mapCard,
+    .closingCard {
+      animation: rxRise linear both;
+      animation-timeline: view();
+      animation-range: entry 0% entry 45%;
+    }
+  }
+}

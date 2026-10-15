@@ -1,0 +1,190 @@
+/* Menu <-> Explore reconciliation: live counts and the Explore deep link. */
+
+.rx-mega-count {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 22px;
+  margin-left: 8px;
+  padding: 2px 7px;
+  border-radius: 999px;
+  background: var(--rx-surface-blue, #eef6fd);
+  color: var(--rx-blue, #0f6fde);
+  font-size: 11px;
+  font-weight: 700;
+  line-height: 1.4;
+  font-variant-numeric: tabular-nums;
+}
+
+.rx-mega-explore-link {
+  display: inline-block;
+  margin-top: 10px;
+  color: var(--rx-blue, #0f6fde);
+  font-size: 12px;
+  font-weight: 600;
+  text-decoration: none;
+}
+
+.rx-mega-explore-link::after {
+  content: " \2192";
+}
+
+.rx-mega-explore-link:hover {
+  text-decoration: underline;
+}
+
+.rx-explore3-open-page {
+  margin-left: auto;
+  color: var(--rx-blue, #0f6fde);
+  font-size: 12px;
+  font-weight: 600;
+  text-decoration: none;
+  white-space: nowrap;
+}
+
+.rx-explore3-open-page::after {
+  content: " \2192";
+}
+
+.rx-explore3-open-page:hover {
+  text-decoration: underline;
+}
+
+.rx-explore3-rail-label {
+  margin: 14px 4px 6px;
+  color: var(--rx-text-soft, #5b6b7d);
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+}
+
+/* ---- Explore section: view switch, empty branches, anchor offset ---- */
+
+#explore {
+  scroll-margin-top: 96px;
+}
+
+.rx-explore3-view-switch {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 4px;
+  margin: 0 0 12px;
+  padding: 4px;
+  border: 1px solid var(--rx-border, #dbe7f3);
+  border-radius: 12px;
+  background: var(--rx-bg-soft, #f4f9fe);
+}
+
+.rx-explore3-view-switch button {
+  padding: 8px 10px;
+  border: 0;
+  border-radius: 9px;
+  background: transparent;
+  color: var(--rx-text-soft, #5b6b7d);
+  font: inherit;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.2s ease, color 0.2s ease;
+}
+
+.rx-explore3-view-switch button.is-active {
+  background: #fff;
+  color: var(--rx-blue, #0f6fde);
+  box-shadow: 0 1px 4px rgba(15, 111, 222, 0.15);
+}
+
+.rx-explore3-ecosystem-item.is-empty,
+.rx-explore3-group.is-empty .rx-explore3-group-trigger {
+  opacity: 0.55;
+  cursor: default;
+  background: transparent;
+  box-shadow: none;
+}
+
+.rx-explore3-ecosystem-item.is-empty:hover,
+.rx-explore3-group.is-empty .rx-explore3-group-trigger:hover {
+  transform: none;
+  background: transparent;
+  border-color: var(--rx-border, #dbe7f3);
+}
+
+.rx-explore3-group.is-empty .rx-explore3-group-trigger::before {
+  display: none;
+}
+
+.rx-explore3-ecosystem-item.is-empty .rx-explore3-count,
+.rx-explore3-group.is-empty .rx-explore3-group-count {
+  background: transparent;
+  color: var(--rx-text-soft, #5b6b7d);
+  font-size: 11px;
+  font-weight: 600;
+}
+
+/* ---- Compact mega menu ---- */
+
+.rx-mega-menu .rx-mega-menu-inner {
+  grid-template-columns: minmax(0, 1fr) 236px;
+  gap: 22px;
+  padding: 20px 22px;
+}
+
+.rx-mega-menu .rx-mega-columns {
+  gap: 18px;
+  align-items: start;
+}
+
+.rx-mega-menu .rx-mega-column-title {
+  margin: 0 0 8px;
+  padding: 0 10px;
+}
+
+.rx-mega-menu .rx-mega-items {
+  gap: 1px;
+}
+
+.rx-mega-menu .rx-mega-item {
+  gap: 10px;
+  padding: 8px 10px;
+}
+
+.rx-mega-menu .rx-mega-item-description {
+  max-width: none;
+  margin-top: 1px;
+  font-size: 11px;
+  line-height: 1.4;
+}
+
+.rx-mega-menu .rx-mega-count {
+  flex: none;
+  margin-left: 0;
+}
+
+.rx-mega-menu .rx-mega-featured {
+  justify-content: center;
+  padding: 18px 20px;
+}
+
+.rx-mega-menu .rx-mega-featured-eyebrow {
+  margin-bottom: 6px;
+}
+
+.rx-mega-menu .rx-mega-featured h3 {
+  margin: 0 0 6px;
+  font-size: 18px;
+  line-height: 1.2;
+}
+
+.rx-mega-menu .rx-mega-featured p {
+  margin: 0 0 12px;
+  font-size: 12px;
+  line-height: 1.5;
+}
+
+.rx-mega-menu .rx-mega-featured-link {
+  font-size: 15px;
+}
+
+.rx-mega-menu .rx-mega-explore-link {
+  margin-top: 6px;
+}

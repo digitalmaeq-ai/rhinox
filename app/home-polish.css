@@ -1,0 +1,246 @@
+/* Homepage polish — tighter rhythm plus restrained motion.
+   Scoped to the homepage sections (.rx-hero, .rx-journey, .rx-explore) so
+   the shared site styles are untouched. Imported by app/page.tsx. */
+
+/* ---------- Compact spacing ---------- */
+
+main .rx-hero {
+  min-height: 0;
+  padding: 0;
+}
+
+main .rx-hero-inner {
+  min-height: 0;
+  gap: clamp(28px, 4.5vw, 56px);
+  padding-top: clamp(40px, 5vw, 64px);
+  padding-bottom: clamp(104px, 11vw, 124px);
+}
+
+main .rx-hero-description {
+  margin-top: 20px;
+}
+
+main .rx-hero-actions {
+  margin-top: 26px;
+}
+
+main .rx-hero-panel {
+  padding: 24px;
+}
+
+main .rx-journey {
+  padding: clamp(36px, 4.5vw, 56px) 0 clamp(32px, 4vw, 44px);
+}
+
+main .rx-journey-shell {
+  min-height: 0;
+}
+
+main .rx-journey-copy {
+  padding: 28px 34px 24px;
+}
+
+main .rx-journey-visual {
+  min-height: 0;
+  padding: 36px 36px 64px;
+}
+
+main .rx-journey-cycle {
+  margin-top: 40px;
+}
+
+main .rx-journey-bottom {
+  padding: 14px 3px 0;
+}
+
+main .rx-explore {
+  padding-bottom: 8px;
+}
+
+main .rx-explore-intro {
+  gap: 28px;
+  margin-bottom: 16px;
+}
+
+main .rx-explore3-frame {
+  min-height: 0;
+}
+
+/* ---------- Motion ---------- */
+
+@keyframes rxHomeRise {
+  from { opacity: 0; translate: 0 18px; }
+  to { opacity: 1; translate: none; }
+}
+
+@keyframes rxHomeSlide {
+  from { opacity: 0; translate: 28px 0; }
+  to { opacity: 1; translate: none; }
+}
+
+@keyframes rxHomeFade {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes rxHomePulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.55; }
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  /* Hero: staggered entrance on load. */
+  main .rx-hero-content > * {
+    animation: rxHomeRise 0.7s cubic-bezier(0.22, 1, 0.36, 1) both;
+  }
+
+  main .rx-hero-content > :nth-child(2) { animation-delay: 0.08s; }
+  main .rx-hero-content > :nth-child(3) { animation-delay: 0.18s; }
+  main .rx-hero-content > :nth-child(4) { animation-delay: 0.28s; }
+
+  main .rx-hero-panel {
+    animation: rxHomeSlide 0.8s cubic-bezier(0.22, 1, 0.36, 1) 0.25s both;
+  }
+
+  main .rx-hero-bottom {
+    animation: rxHomeFade 0.9s ease 0.5s both;
+  }
+
+  /* Small, useful hover feedback. */
+  main .rx-hero-panel {
+    transition: box-shadow 0.25s ease, background-color 0.25s ease;
+  }
+
+  main .rx-hero-panel:hover {
+    box-shadow: var(--rx-shadow-lg);
+    background-color: rgba(255, 255, 255, 0.9);
+  }
+
+  main .rx-hero-panel-link,
+  main .rx-journey-link {
+    transition: letter-spacing 0.2s ease, color 0.2s ease;
+  }
+
+  main .rx-hero-panel-link:hover,
+  main .rx-journey-link:hover {
+    letter-spacing: 0.02em;
+  }
+
+  main .rx-journey-image-element {
+    transition: transform 1.2s cubic-bezier(0.22, 1, 0.36, 1);
+  }
+
+  main .rx-journey-shell:hover .rx-journey-image-element {
+    transform: scale(1.035);
+  }
+
+  main .rx-journey-active-marker-icon,
+  main .rx-journey-cycle-centre {
+    transition: transform 0.3s ease;
+  }
+
+  main .rx-journey-cycle-centre:hover {
+    transform: scale(1.04);
+  }
+}
+
+/* Scroll reveals: only where scroll-driven animations exist, so the page
+   simply renders normally everywhere else. */
+@supports (animation-timeline: view()) {
+  @media (prefers-reduced-motion: no-preference) {
+    main .rx-journey-shell,
+    main .rx-journey-bottom,
+    main .rx-explore-intro,
+    main .rx-explore-tools,
+    main .rx-explore3-frame {
+      animation: rxHomeRise linear both;
+      animation-timeline: view();
+      animation-range: entry 0% entry 40%;
+    }
+  }
+}
+
+/* ---------- Small screens ---------- */
+
+@media (max-width: 640px) {
+  main .rx-hero-inner {
+    padding-top: 28px;
+    padding-bottom: 120px;
+    gap: 22px;
+  }
+
+  main .rx-hero-actions {
+    margin-top: 20px;
+  }
+
+  main .rx-journey {
+    padding: 28px 0 24px;
+  }
+
+  main .rx-journey-copy {
+    padding: 22px 20px 20px;
+  }
+
+  main .rx-journey-visual {
+    padding: 28px 22px 84px;
+  }
+
+  main .rx-journey-cycle {
+    margin-top: 28px;
+  }
+}
+
+/* ---------- Stacked layout below desktop ---------- */
+/* The hero and the journey card keep their two columns only when there is
+   room; otherwise they stack so nothing is squeezed or clipped. */
+
+@media (max-width: 900px) {
+  main .rx-hero-inner {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  main .rx-hero-content,
+  main .rx-hero-panel {
+    min-width: 0;
+    max-width: 100%;
+  }
+
+  main .rx-hero .rx-eyebrow {
+    flex-wrap: wrap;
+    white-space: normal;
+    line-height: 1.6;
+  }
+
+  main .rx-journey-shell {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  main .rx-journey-visual {
+    padding-bottom: 84px;
+  }
+}
+
+/* Keep the slide tabs above the content block so they stay clickable. */
+main .rx-hero-bottom {
+  z-index: 3;
+}
+
+/* One top spacing for every homepage section, equal to the hero's. */
+main {
+  --rx-home-top: clamp(40px, 5vw, 64px);
+}
+
+@media (max-width: 640px) {
+  main {
+    --rx-home-top: 28px;
+  }
+}
+
+main .rx-journey {
+  padding-top: 0;
+}
+
+main .rx-journey > .rx-container,
+main .rx-explore > .rx-container {
+  padding-top: var(--rx-home-top);
+}

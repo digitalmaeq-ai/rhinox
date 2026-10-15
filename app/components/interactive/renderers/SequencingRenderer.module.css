@@ -1,0 +1,581 @@
+/* Styles for SequencingRenderer only. Built on the global Rhinox tokens
+   (--rx-*) from app/globals.css; nothing here is experiment-specific. */
+
+.root {
+  margin: var(--rx-space-5) 0 var(--rx-space-6);
+}
+
+.board {
+  background:
+    radial-gradient(circle at 1px 1px, rgba(15, 111, 222, 0.09) 1px, transparent 0) 0 0 / 22px 22px,
+    linear-gradient(180deg, #f7fbff 0%, #ffffff 100%);
+  border: 1px solid var(--rx-border);
+  border-radius: var(--rx-radius-lg);
+  box-shadow: var(--rx-shadow-sm);
+  padding: var(--rx-space-5);
+}
+
+/* ---------- Header ---------- */
+
+.header {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--rx-space-3) var(--rx-space-4);
+  margin-bottom: var(--rx-space-4);
+}
+
+.headerText {
+  min-width: 0;
+}
+
+.eyebrow {
+  margin: 0;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: #9b59d0;
+}
+
+.title {
+  margin: 2px 0 0;
+  font-family: var(--rx-font-display);
+  font-size: 22px;
+  font-weight: 800;
+  color: var(--rx-heading);
+}
+
+.headerAside {
+  display: flex;
+  align-items: center;
+  gap: var(--rx-space-3);
+  flex-wrap: wrap;
+}
+
+.progress {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--rx-text);
+}
+
+.pips {
+  display: flex;
+  gap: 4px;
+}
+
+/* One numbered pip per step, filled when that step is in place. */
+.pip {
+  display: grid;
+  place-items: center;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  border: 2px solid var(--rx-border-strong);
+  background: var(--rx-white);
+  font-size: 11px;
+  font-weight: 800;
+  color: var(--rx-text-muted);
+  transition: background 0.25s var(--rx-ease), border-color 0.25s var(--rx-ease), color 0.25s var(--rx-ease);
+}
+
+.pipDone {
+  background: #9b59d0;
+  border-color: #9b59d0;
+  color: #ffffff;
+}
+
+.resetButton,
+.completeButton {
+  border-radius: var(--rx-radius-sm) !important;
+}
+
+/* ---------- Feedback ---------- */
+
+.feedback {
+  display: flex;
+  align-items: center;
+  min-height: 46px;
+  margin: 0 0 var(--rx-space-4);
+  padding: 10px 14px;
+  border-radius: var(--rx-radius-md);
+  border: 1px solid transparent;
+  font-weight: 600;
+}
+
+.feedbackIdle {
+  background: var(--rx-surface-blue);
+  border-color: var(--rx-border);
+  color: var(--rx-text-soft);
+  font-weight: 500;
+}
+
+.feedbackCorrect {
+  background: #e9f8f1;
+  border-color: #a7e0c6;
+  color: #0f6b4f;
+  animation: feedbackIn 0.3s var(--rx-ease);
+}
+
+.feedbackIncorrect {
+  background: #fff6e6;
+  border-color: #f5d39a;
+  color: #8a5a0b;
+  animation: feedbackIn 0.3s var(--rx-ease);
+}
+
+/* ---------- Numbered slots ---------- */
+
+.slots {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 170px), 1fr));
+  gap: var(--rx-space-3);
+  margin: 0 0 var(--rx-space-5);
+  padding: 0;
+  list-style: none;
+  counter-reset: none;
+}
+
+.slotItem {
+  display: flex;
+  min-width: 0;
+}
+
+.slot {
+  display: flex;
+  align-items: stretch;
+  gap: 10px;
+  width: 100%;
+  min-height: 88px;
+  padding: 10px;
+  font: inherit;
+  text-align: left;
+  color: var(--rx-heading);
+  background: var(--rx-white);
+  border: 2px solid var(--rx-border);
+  border-radius: var(--rx-radius-lg);
+  box-shadow: 0 6px 16px rgba(25, 92, 135, 0.08);
+  cursor: default;
+  transition: transform 0.18s var(--rx-ease), box-shadow 0.18s var(--rx-ease), border-color 0.18s var(--rx-ease);
+}
+
+.slot:disabled {
+  opacity: 1;
+  color: var(--rx-heading);
+}
+
+.slot:focus-visible {
+  outline: 3px solid var(--rx-blue);
+  outline-offset: 3px;
+}
+
+.slotHover {
+  border-color: #9b59d0;
+  transform: translateY(-3px) scale(1.015);
+  box-shadow: 0 0 0 5px rgba(155, 89, 208, 0.18), 0 14px 28px rgba(25, 92, 135, 0.16);
+}
+
+.slotArmed {
+  border-style: dashed;
+  border-color: #9b59d0;
+  cursor: pointer;
+}
+
+.slotFilled {
+  border-color: #cfb3ea;
+  background: #faf5ff;
+}
+
+.slotNumber {
+  flex: 0 0 auto;
+  display: grid;
+  place-items: center;
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  background: #9b59d0;
+  color: #ffffff;
+  font-family: var(--rx-font-display);
+  font-size: 18px;
+  font-weight: 800;
+  box-shadow: 0 4px 10px rgba(155, 89, 208, 0.3);
+}
+
+.slotBody {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 0;
+  padding: 4px 6px;
+  border-radius: var(--rx-radius-md);
+  border: 1.5px dashed var(--rx-border-strong);
+  background: var(--rx-surface-soft);
+}
+
+.slotFilled .slotBody {
+  border-style: solid;
+  border-color: #cfb3ea;
+  background: #ffffff;
+}
+
+.slotRejected {
+  animation: slotNo 0.55s ease-in-out;
+}
+
+.slotHint {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--rx-text-muted);
+  text-align: center;
+}
+
+.slotArmed .slotHint {
+  color: #9b59d0;
+}
+
+.placed {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+}
+
+.placedJoining {
+  animation: join 0.55s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+.placedLabel {
+  font-size: 14px;
+  font-weight: 700;
+  line-height: 1.25;
+  color: #6b3a99;
+}
+
+/* ---------- Steps ---------- */
+
+.tray {
+  background: rgba(255, 255, 255, 0.9);
+  border: 1px solid var(--rx-border);
+  border-radius: var(--rx-radius-lg);
+  padding: var(--rx-space-4);
+}
+
+.trayTitle {
+  margin: 0 0 var(--rx-space-3);
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--rx-text-soft);
+}
+
+.trayItems {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.step {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 210px;
+  padding: 8px 12px 8px 8px;
+  font: inherit;
+  text-align: left;
+  background: var(--rx-white);
+  border: 1.5px solid var(--rx-border);
+  border-radius: 14px;
+  box-shadow: 0 3px 0 var(--rx-border), 0 6px 14px rgba(25, 92, 135, 0.08);
+  cursor: grab;
+  touch-action: none;
+  user-select: none;
+  -webkit-user-select: none;
+  -webkit-touch-callout: none;
+  transition: transform 0.16s var(--rx-ease), box-shadow 0.16s var(--rx-ease), border-color 0.16s var(--rx-ease), opacity 0.16s var(--rx-ease);
+}
+
+.step:hover {
+  transform: translateY(-3px);
+  border-color: #c9a6ec;
+  box-shadow: 0 5px 0 var(--rx-border-strong), 0 12px 22px rgba(25, 92, 135, 0.14);
+}
+
+.step:focus-visible {
+  outline: 3px solid var(--rx-blue);
+  outline-offset: 2px;
+}
+
+.stepSelected {
+  border-color: #9b59d0;
+  background: #faf5ff;
+  box-shadow: 0 0 0 4px rgba(155, 89, 208, 0.18), 0 8px 18px rgba(25, 92, 135, 0.14);
+  transform: translateY(-3px);
+}
+
+.stepLifted {
+  opacity: 0.28;
+  border-style: dashed;
+  box-shadow: none;
+  transform: none;
+}
+
+.stepArt {
+  display: block;
+  flex: 0 0 auto;
+}
+
+.stepArtRejected {
+  animation: reject 0.5s ease-in-out;
+}
+
+.stepLabel {
+  font-size: 14px;
+  font-weight: 700;
+  line-height: 1.25;
+  color: var(--rx-heading);
+}
+
+/* ---------- Drag ghost ---------- */
+
+.ghost {
+  position: fixed;
+  z-index: 1000;
+  pointer-events: none;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 220px;
+  padding: 8px 12px 8px 8px;
+  background: var(--rx-white);
+  border: 2px solid #9b59d0;
+  border-radius: 14px;
+  box-shadow: 0 22px 40px rgba(15, 42, 68, 0.28), 0 6px 12px rgba(15, 42, 68, 0.14);
+  transform: translate(-50%, -58%) scale(1.08) rotate(-3deg);
+}
+
+/* ---------- Completion ---------- */
+
+.complete {
+  display: flex;
+  align-items: center;
+  gap: var(--rx-space-4);
+  flex-wrap: wrap;
+  margin-bottom: var(--rx-space-5);
+  padding: var(--rx-space-5);
+  border-radius: var(--rx-radius-lg);
+  background: linear-gradient(120deg, #eafaf2 0%, #eaf6ff 100%);
+  border: 1px solid #a7e0c6;
+  box-shadow: var(--rx-shadow-md);
+  animation: feedbackIn 0.45s var(--rx-ease);
+}
+
+.completeBadge {
+  flex: 0 0 auto;
+  display: grid;
+  place-items: center;
+  width: 60px;
+  height: 60px;
+  border-radius: 50%;
+  background: linear-gradient(145deg, #b57be0, #7e3fb8);
+  box-shadow: 0 8px 18px rgba(126, 63, 184, 0.35);
+  animation: pop 0.6s cubic-bezier(0.34, 1.56, 0.64, 1) 0.1s both;
+}
+
+.completeText {
+  flex: 1 1 220px;
+  min-width: 0;
+}
+
+.completeTitle {
+  margin: 0;
+  font-family: var(--rx-font-display);
+  font-size: 26px;
+  font-weight: 800;
+  color: var(--rx-heading);
+}
+
+.completeSummary {
+  margin: 4px 0 0;
+  font-size: 16px;
+  color: var(--rx-text);
+}
+
+/* ---------- Keyframes ---------- */
+
+@keyframes join {
+  0% { transform: translateY(-14px) scale(0.6); opacity: 0; }
+  60% { transform: translateY(2px) scale(1.08); opacity: 1; }
+  100% { transform: translateY(0) scale(1); }
+}
+
+@keyframes reject {
+  0%, 100% { transform: translateX(0) rotate(0); }
+  20% { transform: translateX(-7px) rotate(-5deg); }
+  40% { transform: translateX(6px) rotate(4deg); }
+  60% { transform: translateX(-4px) rotate(-2deg); }
+  80% { transform: translateX(3px) rotate(1deg); }
+}
+
+@keyframes slotNo {
+  0%, 100% { border-color: var(--rx-border-strong); background: var(--rx-surface-soft); }
+  25%, 60% { border-color: #f0b35b; background: #fff6e6; }
+}
+
+@keyframes pop {
+  from { transform: scale(0.4); }
+  to { transform: scale(1); }
+}
+
+@keyframes feedbackIn {
+  from { transform: translateY(-4px); opacity: 0.4; }
+  to { transform: translateY(0); opacity: 1; }
+}
+
+/* ---------- Responsive ---------- */
+
+@media (max-width: 640px) {
+  .root {
+    margin: var(--rx-space-4) 0 var(--rx-space-5);
+  }
+
+  .board {
+    padding: 12px;
+    border-radius: var(--rx-radius-md);
+  }
+
+  .header {
+    gap: 8px 12px;
+    margin-bottom: 12px;
+  }
+
+  .title {
+    font-size: 18px;
+  }
+
+  .headerAside {
+    width: 100%;
+    justify-content: space-between;
+  }
+
+  .progress {
+    font-size: 13px;
+    gap: 8px;
+  }
+
+  .pip {
+    width: 18px;
+    height: 18px;
+    font-size: 10px;
+  }
+
+  .feedback {
+    min-height: 40px;
+    padding: 8px 10px;
+    margin-bottom: 12px;
+    font-size: 14px;
+  }
+
+  .slots {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 8px;
+    margin-bottom: 12px;
+  }
+
+  .slot {
+    min-height: 64px;
+    padding: 6px;
+    gap: 6px;
+    border-radius: var(--rx-radius-md);
+  }
+
+  .slotNumber {
+    width: 26px;
+    height: 26px;
+    font-size: 14px;
+  }
+
+  .slotHint {
+    font-size: 11px;
+  }
+
+  .placed {
+    gap: 4px;
+  }
+
+  .placed svg {
+    width: 26px;
+    height: 26px;
+  }
+
+  .placedLabel {
+    font-size: 12px;
+  }
+
+  .tray {
+    padding: 10px;
+    border-radius: var(--rx-radius-md);
+  }
+
+  .trayTitle {
+    margin-bottom: 8px;
+    font-size: 12px;
+  }
+
+  .trayItems {
+    gap: 8px;
+  }
+
+  .step {
+    width: calc((100% - 8px) / 2);
+    padding: 6px;
+    gap: 6px;
+  }
+
+  .step svg {
+    width: 32px;
+    height: 32px;
+  }
+
+  .stepLabel {
+    font-size: 12px;
+  }
+
+  .complete {
+    padding: var(--rx-space-4);
+    gap: 12px;
+    margin-bottom: 12px;
+  }
+
+  .completeBadge {
+    width: 50px;
+    height: 50px;
+  }
+
+  .completeTitle {
+    font-size: 22px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .placedJoining,
+  .stepArtRejected,
+  .slotRejected,
+  .feedbackCorrect,
+  .feedbackIncorrect,
+  .complete,
+  .completeBadge {
+    animation: none;
+  }
+
+  .slot,
+  .step,
+  .pip {
+    transition: none;
+  }
+}
