@@ -3,6 +3,7 @@ import type { ComponentType } from "react";
 import DragClassificationRenderer from "@/app/components/interactive/renderers/DragClassificationRenderer";
 import MatchingRenderer from "@/app/components/interactive/renderers/MatchingRenderer";
 import LabellingRenderer from "@/app/components/interactive/renderers/LabellingRenderer";
+import CircuitBuilder from "@/app/components/interactive/circuit-builder/CircuitBuilder";
 import SequencingRenderer from "@/app/components/interactive/renderers/SequencingRenderer";
 import RuntimePlaceholderRenderer from "./RuntimePlaceholderRenderer";
 
@@ -23,6 +24,7 @@ const twoDInteractionRenderers: Record<
   matching: MatchingRenderer,
   sequencing: SequencingRenderer,
   labelling: LabellingRenderer,
+  "circuit-builder": CircuitBuilder,
 };
 
 // Selection is explicit on purpose. This used to infer the renderer from

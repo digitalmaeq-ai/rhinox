@@ -1,5 +1,3 @@
-@import url("https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Manrope:wght@500;600;700;800&display=swap");
-
 /* =========================================================
    RHINOX SCIENTIFICA
    GLOBAL DESIGN SYSTEM
@@ -38,8 +36,8 @@
   --rx-warning: #d98b18;
   --rx-danger: #d9534f;
 
-  --rx-font-display: "Manrope", sans-serif;
-  --rx-font-body: "Inter", sans-serif;
+  --rx-font-display: var(--font-manrope), "Manrope", system-ui, sans-serif;
+  --rx-font-body: var(--font-inter), "Inter", system-ui, sans-serif;
 
   --rx-radius-sm: 5px;
   --rx-radius-md: 10px;

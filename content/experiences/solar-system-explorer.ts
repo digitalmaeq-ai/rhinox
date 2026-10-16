@@ -12,7 +12,7 @@ export const solarSystemExplorerExperience: InteractiveExperienceDefinition = {
     "Fly through the Solar System in 2D or 3D. Select any planet to see real NASA data, watch the planets orbit at your chosen speed, and compare worlds from Mercury to Neptune.",
   status: "active",
 
-  taxonomy: [{ category: "interactive", path: ["experiences", "earth-and-space"] }],
+  taxonomy: [{ category: "interactive", path: ["virtual-labs", "earth-space"] }],
 
   runtime: "3d",
   component: "solar-system",

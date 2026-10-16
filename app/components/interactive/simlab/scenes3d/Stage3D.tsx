@@ -41,7 +41,7 @@ export default function Stage3D({
 
   return (
     <Canvas
-      shadows
+      shadows="percentage"
       dpr={[1, 2]}
       gl={{ antialias: true, toneMapping: THREE.ACESFilmicToneMapping, toneMappingExposure: 1.05 }}
       camera={{ position: camera, fov: 40, near: 0.1, far: 220 }}

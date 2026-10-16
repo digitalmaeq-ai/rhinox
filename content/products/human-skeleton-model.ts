@@ -8,7 +8,7 @@ export const humanSkeletonModelProduct: ProductContent = {
   taxonomy: [
     {
       category: "commerce",
-      path: ["laboratory-equipment", "anatomy-models"],
+      path: ["laboratory-equipment", "biology-life-science", "life-science-equipment"],
     },
   ],
   status: "published",

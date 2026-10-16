@@ -8,7 +8,7 @@ export const glassBlockPrismProduct: ProductContent = {
   taxonomy: [
     {
       category: "commerce",
-      path: ["laboratory-equipment", "optics"],
+      path: ["laboratory-equipment", "physics-equipment", "optics-equipment"],
     },
   ],
   status: "published",

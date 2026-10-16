@@ -131,7 +131,7 @@ export default function MazeCoder({ experience, runtimeState, actions }: Interac
       const earned = solutionUsed ? 1 : starsFor(used, level.par);
       setStars((current) => ({ ...current, [level.id]: Math.max(current[level.id] ?? 0, earned) }));
       if (mode === "challenge") {
-        setChallengeWins((count) => count + 1);
+        if (!solutionUsed) setChallengeWins((count) => count + 1);
         setFails(0);
         return;
       }
@@ -615,9 +615,15 @@ export default function MazeCoder({ experience, runtimeState, actions }: Interac
             </div>
 
             <div className={styles.controls}>
-              <button type="button" className={styles.run} onClick={run} disabled={playing || program.length === 0}>
-                ▶ Run
-              </button>
+              {playing ? (
+                <button type="button" className={styles.run} onClick={resetRun}>
+                  ■ Stop
+                </button>
+              ) : (
+                <button type="button" className={styles.run} onClick={run} disabled={program.length === 0}>
+                  ▶ Run
+                </button>
+              )}
               <button type="button" className={styles.ghost} onClick={stepOnce} disabled={playing || program.length === 0}>
                 Step
               </button>
