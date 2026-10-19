@@ -1,3 +1,4 @@
+import ClockRoundsRenderer from "@/app/components/interactive/renderers/ClockRoundsRenderer";
 import type { ComponentType } from "react";
 
 import DragClassificationRenderer from "@/app/components/interactive/renderers/DragClassificationRenderer";
@@ -5,6 +6,7 @@ import MatchingRenderer from "@/app/components/interactive/renderers/MatchingRen
 import LabellingRenderer from "@/app/components/interactive/renderers/LabellingRenderer";
 import CircuitBuilder from "@/app/components/interactive/circuit-builder/CircuitBuilder";
 import SequencingRenderer from "@/app/components/interactive/renderers/SequencingRenderer";
+import ShapeRoundsRenderer from "@/app/components/interactive/renderers/ShapeRoundsRenderer";
 import RuntimePlaceholderRenderer from "./RuntimePlaceholderRenderer";
 
 import type {
@@ -23,6 +25,8 @@ const twoDInteractionRenderers: Record<
   "drag-classification": DragClassificationRenderer,
   matching: MatchingRenderer,
   sequencing: SequencingRenderer,
+  "shape-rounds": ShapeRoundsRenderer,
+  "clock-rounds": ClockRoundsRenderer,
   labelling: LabellingRenderer,
   "circuit-builder": CircuitBuilder,
 };

@@ -1,7 +1,10 @@
 import type { ContentItem } from "./content";
 import { getContentHref } from "./content-registry";
 import { getExperienceLibrary } from "./interactive-experiences";
+import { STUDIO_ROUTES } from "./studio-routes";
 import { yearsFromAgeGroups } from "./year-groups";
+
+export { STUDIO_ROUTES };
 
 /**
  * The order students move through the Experiences library: easiest first.
@@ -62,9 +65,8 @@ export function getExperienceSequence(): ContentItem[] {
 
 /** Where an item in the library opens. */
 export function getExperienceHref(item: ContentItem): string {
-  return item.contentType === "experience"
-    ? `/experiences/${item.slug}`
-    : getContentHref(item);
+  if (item.contentType !== "experience") return getContentHref(item);
+  return STUDIO_ROUTES[item.slug] ?? `/experiences/${item.slug}`;
 }
 
 export interface ExperienceNeighbours {

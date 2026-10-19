@@ -21,8 +21,13 @@ const formatLabels: Record<string, string> = {
   "drag-classification": "Sorting",
   matching: "Matching",
   sequencing: "Sequencing",
+  "shape-rounds": "Sorting & quiz",
+  "clock-rounds": "Clock quiz",
+  "rhinobot-adventure": "Platform game",
   labelling: "Labelling",
   "grid-path": "Coding puzzle",
+  "charger-levels": "Coding levels",
+  "rhinobot-lab": "Block coding",
 };
 
 // Other content types that can sit in the Experiences branch.

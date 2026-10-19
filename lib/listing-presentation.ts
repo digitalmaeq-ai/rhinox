@@ -70,6 +70,12 @@ const map: Record<string, ListingPresentation> = {
     lineTwo: "that teach as you play.",
     chips: ["Play", "Sort", "Match"],
   },
+  "/coding-robotics/challenges": {
+    image: "/images/hero/coding.jpg",
+    alt: "A learner coding at a laptop",
+    lineTwo: "to solve with code.",
+    chips: ["Puzzles", "Missions", "Robots"],
+  },
   "/explore/stem-quizzes": {
     image: "/images/journey/journey-pixabay.jpg",
     alt: "Blue liquid being poured in a laboratory",

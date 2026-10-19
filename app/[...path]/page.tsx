@@ -1,3 +1,4 @@
+import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 
 import ContentNotFoundCard from "@/app/components/ContentNotFoundCard";
@@ -14,6 +15,22 @@ interface CatchAllPageProps {
   params: Promise<{
     path: string[];
   }>;
+}
+
+// Titles end with the site name once, matching the other pages.
+const plain = (text: string) => `${text.replace(/\s*\|\s*Rhinox Scientifica\s*$/, "")} | Rhinox Scientifica`;
+
+// Page title and description come from the section (listing) or the item (detail).
+export async function generateMetadata({ params }: CatchAllPageProps): Promise<Metadata> {
+  const { path } = await params;
+  const section = getSectionByPath(`/${path.join("/")}`);
+  if (section) return { title: plain(section.heading), description: section.description };
+  if (path.length >= 2) {
+    const parent = getSectionByPath(`/${path.slice(0, -1).join("/")}`);
+    const item = parent ? getSectionItemBySlug(parent, path[path.length - 1]) : null;
+    if (item) return { title: plain(item.title), description: item.description };
+  }
+  return {};
 }
 
 // GENERIC CONTENT ENGINE — the locked architecture diagram's
@@ -54,6 +71,7 @@ export default async function CatchAllPage({ params }: CatchAllPageProps) {
         description={exactSection.description}
         items={items}
         path={fullPath}
+        notice={exactSection.notice}
       />
     );
   }

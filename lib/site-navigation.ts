@@ -23,6 +23,11 @@ export const menuTaxonomy: Record<string, MenuTaxonomyTarget> = {
   "/explore/stem-quizzes": { category: "interactive", path: ["experiences", "stem-quizzes"] },
   "/explore/stem-challenges": { category: "interactive", path: ["competitions"] },
 
+  // RhinoCode landing page. Only this one page is mapped: the studios are
+  // tools, and Game Challenges lists the same branch, so mapping more pages
+  // would make "which page matches this branch" ambiguous.
+  "/coding-robotics": { category: "interactive", path: ["experiences", "games", "coding-games"] },
+
   "/shop/books": { category: "commerce", path: ["books"] },
   "/shop/kits": { category: "commerce", path: ["kits"] },
   "/shop/laboratory-equipment": { category: "commerce", path: ["laboratory-equipment"] },
@@ -42,6 +47,7 @@ export const menuTaxonomy: Record<string, MenuTaxonomyTarget> = {
 export const EXPLORE_MENUS = [
   "EDUCATION",
   "EXPLORE",
+  "CODING & ROBOTICS",
   "SHOP",
   "SCHOOLS & INSTITUTIONS",
   "RESOURCES",
@@ -244,6 +250,57 @@ export const navigation: NavigationItem[] = [
   },
 
   {
+    label: "CODING & ROBOTICS",
+    href: "/coding-robotics",
+    megaMenu: {
+      columns: [
+        {
+          title: "RHINOCODE STUDIOS",
+          items: [
+            {
+              label: "RhinoBot: Robot Programming Lab",
+              href: "/coding-robotics/robot-lab",
+              description:
+                "Program a robot with blocks, solve missions and save your programmes.",
+            },
+            {
+              label: "RhinoCode Game Creator",
+              href: "/coding-robotics/game-creator",
+              description:
+                "Design a maze game, choose its rules, play it and save it.",
+            },
+          ],
+        },
+        {
+          title: "PRACTISE & SHARE",
+          items: [
+            {
+              label: "Game Challenges",
+              href: "/coding-robotics/challenges",
+              description:
+                "Coding puzzles and missions that turn instructions into action.",
+            },
+            {
+              label: "My Projects",
+              href: "/coding-robotics/my-projects",
+              description:
+                "The programmes and games you have made, kept together.",
+            },
+          ],
+        },
+      ],
+      featured: {
+        eyebrow: "RHINOCODE",
+        title: "Code it. Build it. Play it.",
+        description:
+          "One home for learning to code: program a robot, solve game challenges and build your own games.",
+        href: "/coding-robotics",
+        label: "Explore RhinoCode",
+      },
+    },
+  },
+
+  {
     label: "SHOP",
     // A plain link, no dropdown: the /shop page itself lists every category.
     href: "/shop",
@@ -291,6 +348,13 @@ export const navigation: NavigationItem[] = [
               href: "/schools/teacher-training",
               description:
                 "Practical professional development for STEM educators.",
+            },
+            {
+              label: "STEM Clubs",
+              href: "/schools/stem-clubs",
+              description:
+                "Hands-on clubs for schools. Express interest in the pilot.",
+              badge: "New",
             },
             {
               label: "Request a Quote",
@@ -402,6 +466,12 @@ export const navigation: NavigationItem[] = [
               description:
                 "Find help and information about using Rhinox resources.",
             },
+            {
+              label: "Contact",
+              href: "/contact",
+              description:
+                "Talk to the Rhinox team about orders, schools and partnerships.",
+            },
           ],
         },
       ],
@@ -414,11 +484,6 @@ export const navigation: NavigationItem[] = [
         label: "About Rhinox",
       },
     },
-  },
-
-  {
-    label: "CONTACT",
-    href: "/contact",
   },
 ];
 

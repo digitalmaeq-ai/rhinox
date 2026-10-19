@@ -133,7 +133,8 @@ export default function StemGamesPage() {
         ))}
         <p className={styles.note}>
           More games are on the way. New releases appear here first. Looking for sorting, matching and short lessons?{" "}
-          <Link href="/explore/experiences">Explore STEM Experiences</Link>.
+          <Link href="/explore/experiences">Explore STEM Experiences</Link>. Coding games have moved to{" "}
+          <Link href="/coding-robotics/challenges">RhinoCode Game Challenges</Link>.
         </p>
       </div>
     </main>

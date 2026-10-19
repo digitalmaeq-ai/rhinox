@@ -1,6 +1,8 @@
 import type { ComponentType } from "react";
 
+import ChargerLevelsRenderer from "@/app/components/interactive/renderers/ChargerLevelsRenderer";
 import GridPathRenderer from "@/app/components/interactive/renderers/GridPathRenderer";
+import RhinoBotLab from "@/app/components/interactive/rhinobot/RhinoBotLab";
 import MazeCoder from "@/app/components/interactive/maze-coder/MazeCoder";
 import RuntimePlaceholderRenderer from "./RuntimePlaceholderRenderer";
 
@@ -17,7 +19,9 @@ const codingInteractionRenderers: Record<
   ComponentType<InteractiveRuntimeRendererProps>
 > = {
   "grid-path": GridPathRenderer,
+  "charger-levels": ChargerLevelsRenderer,
   "maze-coder": MazeCoder,
+  "rhinobot-lab": RhinoBotLab,
 };
 
 export default function CodingRenderer(

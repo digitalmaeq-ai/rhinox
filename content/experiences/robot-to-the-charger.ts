@@ -1,17 +1,12 @@
 import type { InteractiveExperienceDefinition } from "@/types/interactive-experiences";
 
-// Code the Robot: Reach the Charger (Primary 2, Think, Move, Code!).
-// runtime "coding" + component "grid-path" selects GridPathRenderer.
+// Code the Robot: Reach the Charger (Think, Move, Code!).
+// runtime "coding" + component "charger-levels" selects ChargerLevelsRenderer.
 //
-// Grid-path data contract (no schema changes):
-//   - the GRID is the "environment" asset: properties.columns / rows /
-//     maxCommands;
-//   - the ROBOT is the "character" asset; x / y is its start cell
-//     (0-based column / row, row 0 at the top);
-//   - the GOAL has properties.role "goal"; WALLS have properties.role "wall";
-//   - one required task, task id === goal asset id;
-//   - "code-success" / "code-blocked" / "code-short" feedback interactions.
-// Several programs work (e.g. up 3, right 4 — or right 2, up 3, right 2).
+// Ten missions. The maps, rules and solver live in lib/robot-charger/levels.ts;
+// this file only describes the experience and its required tasks, one per
+// mission ("level-1" ... "level-10"). The robot, charger and field assets are
+// kept for previews and cards; the renderer draws the board from the level data.
 // Companion activity: content/activities/robot-to-the-charger.ts.
 export const robotToTheChargerExperience: InteractiveExperienceDefinition = {
   id: "exp-robot-to-the-charger",
@@ -19,13 +14,13 @@ export const robotToTheChargerExperience: InteractiveExperienceDefinition = {
   title: "Code the Robot: Reach the Charger",
   contentType: "experience",
   description:
-    "The robot's battery is low! Build a program of arrow commands to move it to the charger without bumping into the rocks.",
+    "The robot's battery is low! Program it through ten missions: dodge rocks, collect bolts, use repeat blocks and reach the charger before the battery runs out.",
   status: "active",
 
   taxonomy: [{ category: "interactive", path: ["experiences", "games", "coding-games"] }],
 
   runtime: "coding",
-  component: "grid-path",
+  component: "charger-levels",
   modes: ["interactive", "game", "learning-tool"],
 
   assets: [
@@ -39,27 +34,31 @@ export const robotToTheChargerExperience: InteractiveExperienceDefinition = {
   ],
 
   tasks: [
-    { id: "goal-charger", title: "Guide the robot to the charger", points: 50, required: true },
-  ],
-
-  interactions: [
-    { id: "code-success", assetId: "robot-rhinobit", trigger: "submit", actions: [{ id: "code-success-feedback", type: "show-feedback", message: "Your program works! The robot reached the charger." }] },
-    { id: "code-blocked", assetId: "robot-rhinobit", trigger: "submit", actions: [{ id: "code-blocked-feedback", type: "show-feedback", message: "Bump! The robot hit something. Find the step shown in red and change it." }] },
-    { id: "code-short", assetId: "robot-rhinobit", trigger: "submit", actions: [{ id: "code-short-feedback", type: "show-feedback", message: "The program ended before the robot reached the charger. Add more steps." }] },
+    { id: "level-1", title: "Mission 1: First steps", points: 20, required: true },
+    { id: "level-2", title: "Mission 2: Around the rocks", points: 20, required: true },
+    { id: "level-3", title: "Mission 3: Grab a bolt", points: 30, required: true },
+    { id: "level-4", title: "Mission 4: Two bolts", points: 30, required: true },
+    { id: "level-5", title: "Mission 5: Repeat blocks", points: 40, required: true },
+    { id: "level-6", title: "Mission 6: Zig-zag lane", points: 40, required: true },
+    { id: "level-7", title: "Mission 7: Bolt maze", points: 50, required: true },
+    { id: "level-8", title: "Mission 8: Long corridors", points: 60, required: true },
+    { id: "level-9", title: "Mission 9: Power plant", points: 70, required: true },
+    { id: "level-10", title: "Mission 10: Grand charge", points: 100, required: true },
   ],
 
   subjects: ["coding"],
-  ageGroups: ["6-7"],
+  ageGroups: ["6-7", "7-8", "8-9"],
   difficulty: "beginner",
-  durationMinutes: 10,
+  durationMinutes: 25,
   featured: true,
   learningObjectives: [
     "Give a robot step-by-step instructions using direction commands.",
+    "Use repeat blocks to make a program shorter.",
     "Test a program and find the step that went wrong (debugging).",
-    "Understand that there can be more than one program that works.",
+    "Plan a route that is efficient and stays within a battery limit.",
   ],
-  skills: ["Sequencing", "Debugging", "Directional language", "Computational thinking"],
-  achievements: [{ id: "robot-to-the-charger-complete", title: "Robot Programmer", description: "Wrote a program that guided the robot to the charger.", points: 50 }],
+  skills: ["Sequencing", "Loops", "Debugging", "Planning"],
+  achievements: [{ id: "robot-to-the-charger-complete", title: "Robot Programmer", description: "Programmed the robot through all ten charger missions.", points: 100 }],
   createdAt: "2026-09-27",
-  updatedAt: "2026-09-27",
+  updatedAt: "2026-10-17",
 };

@@ -28,7 +28,7 @@ export const showcaseEntries: ShowcaseEntry[] = [
     slug: "robot-maze-coder",
     preview: "maze-coder",
     kicker: "Block coding · Robotics",
-    highlights: ["Snap-together blocks", "Loops and nested loops", "Collect energy chips", "6 levels"],
+    highlights: ["Snap-together blocks", "Loops and nested loops", "Collect energy chips", "10 levels"],
   },
 ];
 

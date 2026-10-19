@@ -1,7 +1,7 @@
 // Rhinox Scientifica contact details — the single place to update them.
 // Used by the contact page and its enquiry form.
 export const contactDetails = {
-  email: "himaeq@gmail.com",
+  email: "rhinoxscientifica@gmail.com",
   phones: ["08038384183", "08032924659"],
   addressLines: [
     "Block 45A, Flat 5,",

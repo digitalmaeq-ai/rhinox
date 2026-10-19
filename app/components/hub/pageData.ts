@@ -476,6 +476,48 @@ export const pages = {
     steps: schoolSteps,
     closing: { kicker: "Training your staff?", lineOne: "Tell us how many teachers", lineTwo: "and what they teach.", lead: "We will shape a programme to match.", actions: [quote, contact2], image: "/images/hero/classroom.jpg" },
   },
+
+  // ------------------------------------------------------- RHINOCODE
+  "rhinocode-home": {
+    title: "RhinoCode: Coding & Robotics",
+    description: "RhinoCode is where learners program a robot, solve game challenges and build their own games.",
+    eyebrow: "RhinoCode · Coding & Robotics",
+    lineOne: "Learn to code by",
+    lineTwo: "building and playing.",
+    lead: "Program a robot with blocks, take on game challenges and build your own games. Everything runs in the browser.",
+    image: "/images/hero/coding.jpg",
+    alt: "A learner coding at a laptop",
+    chips: ["Block coding", "Robots", "Games"],
+    actions: [
+      { label: "Open the Robot Lab", href: "/coding-robotics/robot-lab" },
+      { label: "Game Challenges", href: "/coding-robotics/challenges", secondary: true },
+    ],
+    intro: {
+      eyebrow: "Two studios, one platform",
+      lineOne: "Pick a studio",
+      lineTwo: "and start making.",
+      text: "RhinoCode brings Rhinox coding learning together. Work in a studio, practise with challenges and keep what you make.",
+      items: [
+        { title: "RhinoBot: Robot Programming Lab", text: "Snap blocks together to guide a robot through missions, from first steps to loops and decisions." },
+        { title: "RhinoCode Game Creator", text: "Design a maze, choose the rules, then play the game you built." },
+        { title: "Game Challenges", text: "Short coding puzzles and missions to practise one idea at a time." },
+        { title: "My Projects", text: "Your saved programmes and games, kept together and ready to reopen." },
+      ],
+    },
+    catalog: { path: "/coding-robotics/challenges", eyebrow: "Game Challenges", lineOne: "Challenges you can", lineTwo: "play right now.", empty: "Challenges are being added. Try the Robot Lab in the meantime." },
+    steps: {
+      eyebrow: "How it works",
+      lineOne: "Think it through,",
+      lineTwo: "then make it work.",
+      items: [
+        { title: "Think", text: "Look at the goal and plan the steps before you start." },
+        { title: "Code", text: "Build your instructions with blocks and clear steps." },
+        { title: "Run", text: "Watch your code play out and see where it goes wrong." },
+        { title: "Improve", text: "Fix, simplify and try again until it works well." },
+      ],
+    },
+    closing: { kicker: "Teaching coding at school?", lineOne: "See our coding and robotics", lineTwo: "programmes for schools.", lead: "Rhinox runs coding and robotics clubs and classes for schools and institutions.", actions: [{ label: "School programmes", href: "/schools/coding-robotics" }, contact2], image: "/images/journey/journey-robotics.jpg" },
+  },
 } satisfies Record<string, SectionConfig>;
 
 export type SectionKey = keyof typeof pages;

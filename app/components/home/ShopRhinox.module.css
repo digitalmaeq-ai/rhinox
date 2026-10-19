@@ -275,6 +275,8 @@
 
 .dots {
   display: flex;
+  flex-wrap: wrap; /* many dots wrap instead of widening the page on phones */
+  min-width: 0;
   gap: 7px;
   padding: 0 6px;
 }
@@ -376,6 +378,7 @@
 }
 
 .rowNav {
+  flex-wrap: wrap;
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -717,7 +720,9 @@
 
 @media (max-width: 1024px) {
   .grid {
-    grid-template-columns: 1fr;
+    /* minmax(0, 1fr) lets the column shrink to the screen; plain 1fr would
+       grow to the cards' content width and push the page sideways on phones. */
+    grid-template-columns: minmax(0, 1fr);
   }
 
   .chips {
