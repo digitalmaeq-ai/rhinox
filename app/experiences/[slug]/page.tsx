@@ -1,5 +1,6 @@
+import type { Metadata } from "next";
 import Link from "next/link";
-import { notFound } from "next/navigation";
+import { notFound, redirect } from "next/navigation";
 
 import {
   getInteractiveExperienceBySlug,
@@ -8,6 +9,7 @@ import {
 import {
   getExperienceHref,
   getExperienceNeighbours,
+  STUDIO_ROUTES,
 } from "@/lib/experience-sequence";
 
 import InteractiveRuntimeWorkspace from "@/app/components/interactive/InteractiveRuntimeWorkspace";
@@ -21,10 +23,20 @@ interface PageProps {
   }>;
 }
 
+export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
+  const { slug } = await params;
+  const experience = getInteractiveExperienceBySlug(slug);
+  if (!experience) return { title: "Experience not found | Rhinox Scientifica" };
+  return { title: `${experience.title} | Rhinox Scientifica`, description: experience.description };
+}
+
 export default async function ExperiencePage({
   params,
 }: PageProps) {
   const { slug } = await params;
+
+  // Experiences with a studio page open there.
+  if (STUDIO_ROUTES[slug]) redirect(STUDIO_ROUTES[slug]);
 
   const experience =
     getInteractiveExperienceBySlug(slug);

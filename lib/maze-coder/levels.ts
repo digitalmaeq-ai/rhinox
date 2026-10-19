@@ -1,7 +1,8 @@
 import type { MazeLevel } from "./engine";
 
-// Six levels, each teaching one idea: sequence, turning, loops, loops with
-// turns, collecting, and loops inside loops. `par` is the size of the tidy
+// Ten levels. The first six each teach one idea: sequence, turning, loops, loops
+// with turns, collecting, and loops inside loops. Levels 7-10 combine them on
+// longer routes. `par` is the size of the tidy
 // reference solution (a repeat counts as 1 + the blocks inside it).
 export const mazeLevels: MazeLevel[] = [
   {
@@ -65,7 +66,7 @@ export const mazeLevels: MazeLevel[] = [
     ],
     heading: 1,
     allowed: ["forward", "left", "right", "repeat"],
-    maxBlocks: 10,
+    maxBlocks: 14,
     par: 6,
     points: 25,
   },
@@ -98,8 +99,77 @@ export const mazeLevels: MazeLevel[] = [
     ],
     heading: 1,
     allowed: ["forward", "left", "right", "repeat"],
-    maxBlocks: 10,
+    maxBlocks: 12,
     par: 6,
     points: 40,
+  },
+  {
+    id: "level-7",
+    title: "The long way round",
+    goal: "Follow the path along, down and back the other way.",
+    hint: "Two long straight runs joined by a short drop. Use a loop for each long run.",
+    map: [
+      "S.....#",
+      "#####.#",
+      "G.....#",
+    ],
+    heading: 1,
+    allowed: ["forward", "left", "right", "repeat"],
+    maxBlocks: 12,
+    par: 8,
+    points: 45,
+  },
+  {
+    id: "level-8",
+    title: "Chip staircase",
+    goal: "Pick up every chip on the stairs, then reach the charger.",
+    hint: "Each stair is the same: forward, turn, forward, turn back. Put that pattern in a loop.",
+    map: [
+      "Sc######",
+      "#.c.####",
+      "###.c.##",
+      "#####.cG",
+    ],
+    heading: 1,
+    allowed: ["forward", "left", "right", "repeat"],
+    maxBlocks: 12,
+    par: 7,
+    points: 50,
+  },
+  {
+    id: "level-9",
+    title: "Spiral in",
+    goal: "Spiral around the walls to the charger in the middle.",
+    hint: "The first three sides are the same: four forwards, then a turn. Loop inside a loop.",
+    map: [
+      "S....",
+      "####.",
+      ".G.#.",
+      ".###.",
+      ".....",
+    ],
+    heading: 1,
+    allowed: ["forward", "left", "right", "repeat"],
+    maxBlocks: 13,
+    par: 8,
+    points: 55,
+  },
+  {
+    id: "level-10",
+    title: "Grand finale",
+    goal: "Collect all three chips and reach the charger.",
+    hint: "Look for the repeating shape: two forwards, a turn, two forwards, a turn the other way.",
+    map: [
+      "S..c#####",
+      "###.#####",
+      "###.c.###",
+      "#####.###",
+      "#####..cG",
+    ],
+    heading: 1,
+    allowed: ["forward", "left", "right", "repeat"],
+    maxBlocks: 14,
+    par: 10,
+    points: 60,
   },
 ];

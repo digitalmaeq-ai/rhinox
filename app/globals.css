@@ -1,5 +1,3 @@
-@import url("https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Manrope:wght@500;600;700;800&display=swap");
-
 /* =========================================================
    RHINOX SCIENTIFICA
    GLOBAL DESIGN SYSTEM
@@ -38,8 +36,8 @@
   --rx-warning: #d98b18;
   --rx-danger: #d9534f;
 
-  --rx-font-display: "Manrope", sans-serif;
-  --rx-font-body: "Inter", sans-serif;
+  --rx-font-display: var(--font-manrope), "Manrope", system-ui, sans-serif;
+  --rx-font-body: var(--font-inter), "Inter", system-ui, sans-serif;
 
   --rx-radius-sm: 5px;
   --rx-radius-md: 10px;
@@ -1533,8 +1531,13 @@ h6 {
    ========================================================= */
 
 @media (max-width: 980px) {
-  .rx-desktop-nav,
-  .rx-header-actions {
+  .rx-desktop-nav {
+    display: none;
+  }
+
+  /* The menu button lives inside the actions group, so keep the group and
+     hide only the desktop GET STARTED (the mobile menu has its own). */
+  .rx-header-cta {
     display: none;
   }
 
@@ -4061,6 +4064,20 @@ h6 {
 
 .rx-hero-slides {
   z-index: -4;
+  overflow: hidden; /* the slides zoom in slightly; keep that inside the hero */
+}
+
+/* Heading for screen readers only (kept in the page outline, not shown). */
+.rx-sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  margin: -1px;
+  padding: 0;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+  border: 0;
 }
 
 .rx-hero-slide {
@@ -6532,3 +6549,65 @@ h6 {
   }
 
 }
+
+
+/* =========================================================
+   MOBILE MENU: button bars and section toggles
+   The menu button and the expand arrows had no styling of their own,
+   so they showed as an empty box and a default grey button.
+   ========================================================= */
+
+.rx-menu-toggle {
+  align-content: center;
+  gap: 4px;
+  cursor: pointer;
+}
+
+.rx-menu-toggle span {
+  display: block;
+  width: 18px;
+  height: 2px;
+  border-radius: 2px;
+  background: currentColor;
+  transition: transform var(--rx-fast), opacity var(--rx-fast);
+}
+
+.rx-menu-toggle.is-open span:nth-child(1) {
+  transform: translateY(6px) rotate(45deg);
+}
+
+.rx-menu-toggle.is-open span:nth-child(2) {
+  opacity: 0;
+}
+
+.rx-menu-toggle.is-open span:nth-child(3) {
+  transform: translateY(-6px) rotate(-45deg);
+}
+
+.rx-mobile-section-header {
+  padding: 0;
+}
+
+.rx-mobile-section-header .rx-mobile-link {
+  flex: 1;
+  border-bottom: 0;
+}
+
+.rx-mobile-expand {
+  display: grid;
+  place-items: center;
+  flex-shrink: 0;
+  width: 36px;
+  height: 36px;
+  padding: 0;
+  border: 0;
+  border-radius: 8px;
+  background: transparent;
+  cursor: pointer;
+}
+
+.rx-mobile-expand:hover {
+  background: var(--rx-surface-blue);
+  color: var(--rx-blue);
+}
+

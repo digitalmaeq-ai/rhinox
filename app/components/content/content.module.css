@@ -246,3 +246,30 @@
   .pills::-webkit-scrollbar { display: none; }
   .pill { flex: none; white-space: nowrap; }
 }
+
+/* Pointer to a newer home for the topic, above a listing. */
+.notice {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px 18px;
+  margin: 0 0 22px;
+  padding: 14px 18px;
+  border: 1px solid #cfe0f5;
+  border-radius: 12px;
+  background: #f1f7ff;
+  color: #123b73;
+  font-size: 0.95rem;
+}
+
+.notice a {
+  color: #0b57c9;
+  font-weight: 700;
+  text-decoration: none;
+  white-space: nowrap;
+}
+
+.notice a:hover {
+  text-decoration: underline;
+}

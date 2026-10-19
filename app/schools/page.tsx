@@ -36,6 +36,14 @@ const items: ShowcaseItem[] = [
     tag: "Training",
   },
   {
+    title: "STEM Clubs",
+    text: "Hands-on school clubs. Express interest in the pilot.",
+    href: "/schools/stem-clubs",
+    image: "/images/journey/journey-science.jpg",
+    alt: "Learners carrying out a science activity",
+    tag: "Pilot",
+  },
+  {
     title: "Teacher Training",
     text: "Practical professional development for educators.",
     href: "/schools/teacher-training",

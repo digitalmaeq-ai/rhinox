@@ -8,7 +8,7 @@ export const ammeterProduct: ProductContent = {
   taxonomy: [
     {
       category: "commerce",
-      path: ["laboratory-equipment", "electrical-meters"],
+      path: ["laboratory-equipment", "physics-equipment", "electricity-magnetism"],
     },
   ],
   status: "published",

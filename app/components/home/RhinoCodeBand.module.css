@@ -1,0 +1,27 @@
+.band { padding: 0 0 clamp(28px, 3.5vw, 48px); background: #fff; }
+.inner { display: grid; grid-template-columns: minmax(0, 1.1fr) minmax(0, 0.9fr); align-items: center; gap: clamp(20px, 4vw, 56px); padding: clamp(24px, 3vw, 40px); border-radius: 28px; background: linear-gradient(155deg, #0e2a52 0%, #0a4a9c 60%, #0f6fde 100%); color: #fff; }
+.kind { margin: 0 0 8px; font-size: 11px; font-weight: 800; letter-spacing: 0.16em; text-transform: uppercase; color: rgba(255, 255, 255, 0.85); }
+.title { margin: 0 0 12px; color: #fff; font-family: var(--rx-font-display); font-size: clamp(26px, 3.2vw, 40px); font-weight: 800; letter-spacing: -0.03em; line-height: 1.08; }
+.title span { display: block; color: #9fd0ff; }
+.text { margin: 0 0 20px; max-width: 480px; color: rgba(255, 255, 255, 0.88); font-size: 15px; line-height: 1.65; }
+.actions { display: flex; flex-wrap: wrap; gap: 10px; }
+.primary, .secondary { display: inline-flex; align-items: center; padding: 11px 20px; border-radius: 999px; font-size: 14px; font-weight: 700; text-decoration: none; }
+.primary { background: #fff; color: #0a56b8; }
+.secondary { border: 1px solid rgba(255, 255, 255, 0.6); color: #fff; }
+.primary:hover, .secondary:hover { transform: translateY(-2px); }
+.primary:focus-visible, .secondary:focus-visible { outline: 3px solid #f59e0b; outline-offset: 3px; }
+
+.maze { display: grid; grid-template-columns: repeat(9, 1fr); gap: 3px; padding: 10px; border-radius: 18px; background: rgba(255, 255, 255, 0.1); max-width: 420px; width: 100%; justify-self: end; }
+.maze i { aspect-ratio: 1; border-radius: 5px; background: rgba(255, 255, 255, 0.92); }
+.maze .wall { background: #0a2347; }
+.maze .start { background: #4fb0f0; }
+.maze .goal { background: #34c76b; }
+.maze .coin { background: radial-gradient(circle, #ffb020 0 38%, #fff 40%); }
+.maze .enemy { background: radial-gradient(circle, #e5484d 0 42%, #fff 44%); }
+.maze .key { background: radial-gradient(circle, #f2c744 0 30%, #fff 32%); }
+.maze .door { background: #8a5a2b; }
+
+@media (max-width: 800px) {
+  .inner { grid-template-columns: 1fr; border-radius: 22px; }
+  .maze { justify-self: stretch; max-width: none; }
+}

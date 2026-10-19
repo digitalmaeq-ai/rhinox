@@ -1,0 +1,139 @@
+.page {
+  background: var(--rx-white);
+  padding: 12px 0 48px;
+}
+
+/* The site gives every .rx-container 48px of vertical padding; the studio
+   wants the lab as high up the screen as possible. */
+.page .wrap {
+  padding-block: 0;
+}
+
+.crumbs {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  min-width: 0;
+  font-size: 0.86rem;
+  color: #5b6b82;
+}
+
+.crumbs a {
+  color: #0b57c9;
+  font-weight: 600;
+  text-decoration: none;
+}
+
+.crumbs a:hover {
+  text-decoration: underline;
+}
+
+.bar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px 18px;
+  margin-bottom: 8px;
+}
+
+.crumbs h1 {
+  margin: 0;
+  font-size: 1.05rem;
+  line-height: 1.2;
+  font-weight: 700;
+  color: #0e2a52;
+}
+
+.links {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.links a {
+  padding: 7px 13px;
+  border: 1px solid #c4d6ee;
+  border-radius: 999px;
+  background: #fff;
+  color: #123b73;
+  font-size: 0.88rem;
+  font-weight: 600;
+  text-decoration: none;
+}
+
+.links a:hover {
+  background: #f1f7ff;
+}
+
+.links a:focus-visible,
+.about summary:focus-visible {
+  outline: 3px solid #7fb1f5;
+  outline-offset: 2px;
+}
+
+.about {
+  margin-bottom: 12px;
+  border: 1px solid #d7e4f5;
+  border-radius: 12px;
+  background: #f7faff;
+  color: #2c4064;
+}
+
+.about summary {
+  padding: 9px 14px;
+  font-size: 0.9rem;
+  font-weight: 700;
+  color: #123b73;
+  cursor: pointer;
+}
+
+.about > p {
+  margin: 0;
+  padding: 0 14px 10px;
+  color: #4b5d78;
+}
+
+.cols {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  gap: 16px;
+  padding: 0 14px 14px;
+}
+
+.cols h2 {
+  margin: 0 0 6px;
+  font-size: 0.85rem;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: #0b57c9;
+}
+
+.cols ul {
+  margin: 0;
+  padding-left: 18px;
+  display: grid;
+  gap: 4px;
+  font-size: 0.92rem;
+}
+
+.cols .chips {
+  list-style: none;
+  padding: 0;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.chips li {
+  padding: 4px 10px;
+  border-radius: 999px;
+  background: #eaf3ff;
+  color: #123b73;
+  font-size: 0.82rem;
+  font-weight: 600;
+}
+
+.lab {
+  scroll-margin-top: 96px;
+}

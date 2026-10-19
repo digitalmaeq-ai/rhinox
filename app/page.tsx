@@ -5,6 +5,7 @@ import Link from "next/link";
 import RhinoxJourney from "./components/home/RhinoxJourney";
 import PlayRhinox from "./components/home/PlayRhinox";
 import PlayLabs from "./components/home/PlayLabs";
+import RhinoCodeBand from "./components/home/RhinoCodeBand";
 import ExploreRhinox from "./components/home/ExploreRhinox";
 import ShopRhinox from "./components/home/ShopRhinox";
 import SchoolsRhinox from "./components/home/SchoolsRhinox";
@@ -174,6 +175,8 @@ export default function Home() {
       <PlayRhinox />
 
       <PlayLabs />
+
+      <RhinoCodeBand />
 
       <ExploreRhinox />
 

@@ -435,7 +435,8 @@ function build(seed: number, setting: Setting, config: Config): GeneratedMaze | 
   if (!solved.actions || solved.actions.length < 8) return null;
   const solution = compressActions(solved.actions);
   if (solution.blocks > config.maxPar) return null; // keep it a fair puzzle
-  const level: MazeLevel = { ...draft, par: solution.blocks, maxBlocks: Math.max(12, solution.blocks + 4) };
+  // The limit always leaves room for the plain step-by-step route, so a maze can be solved without loops (loops just earn more stars).
+  const level: MazeLevel = { ...draft, par: solution.blocks, maxBlocks: Math.max(12, solution.blocks + 4, solved.actions.length) };
 
   // Self-check: the engine must accept the reference program.
   let counter = 0;

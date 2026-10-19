@@ -30,6 +30,7 @@ import type { InteractiveRuntimeRendererProps } from "@/types/interactive-runtim
 import CompletionActions, { ActivityHeaderButtons } from "@/app/components/interactive/shared/CompletionActions";
 
 import MazeBoard from "./MazeBoard";
+import { playSound, readMuted, setMuted, type SoundName } from "./sounds";
 import styles from "./MazeCoder.module.css";
 
 // Robot Maze Coder — "coding" runtime, component "maze-coder".
@@ -115,8 +116,34 @@ export default function MazeCoder({ experience, runtimeState, actions }: Interac
   const [fast, setFast] = useState(false);
   const [stars, setStars] = useState<Record<string, number>>({});
   const finished = useRef(false);
+  // Sound is on by default, the choice is remembered, and nothing plays until the first tap.
+  const [soundOn, setSoundOn] = useState(true);
+  useEffect(() => {
+    const off = readMuted();
+    setMuted(off);
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    if (off) setSoundOn(false);
+  }, []);
+
+  function toggleSound() {
+    const next = !soundOn;
+    setSoundOn(next);
+    setMuted(!next);
+    if (next) playSound("add");
+  }
+
+  // One sound per robot step (move, turn, bump, chip pickup), whether running or stepping.
+  useEffect(() => {
+    if (!result || playhead < 0) return;
+    const current = result.steps[Math.min(playhead, result.steps.length - 1)];
+    playSound((current.kind === "bump" ? "bump" : current.chip !== null ? "chip" : current.kind === "turn" ? "turn" : "move") satisfies SoundName);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [playhead]);
 
   const used = countBlocks(program);
+  // New blocks go inside the selected Repeat, if there is one. This is shown on screen so
+  // a block never lands in a loop by surprise (the robot would then stop before the end).
+  const loopTarget = target && containsId(program, target) ? target : null;
 
   useEffect(() => {
     if (allDone && !runtimeState.completed) actions.completeExperience();
@@ -126,12 +153,13 @@ export default function MazeCoder({ experience, runtimeState, actions }: Interac
   function settle(done: RunResult) {
     if (finished.current) return;
     finished.current = true;
+    playSound(done.outcome === "success" ? "win" : "fail");
     if (done.outcome === "success") {
       // Using "Show solution" still counts as finishing, but caps the stars at one.
       const earned = solutionUsed ? 1 : starsFor(used, level.par);
       setStars((current) => ({ ...current, [level.id]: Math.max(current[level.id] ?? 0, earned) }));
       if (mode === "challenge") {
-        setChallengeWins((count) => count + 1);
+        if (!solutionUsed) setChallengeWins((count) => count + 1);
         setFails(0);
         return;
       }
@@ -177,6 +205,7 @@ export default function MazeCoder({ experience, runtimeState, actions }: Interac
     if (playing || used >= level.maxBlocks) return;
     const container = target && containsId(program, target) ? target : null;
     const block = makeBlock(kind);
+    playSound("add");
     edit(addTo(program, container, block));
     if (kind === "repeat") setTarget(block.id);
   }
@@ -184,6 +213,7 @@ export default function MazeCoder({ experience, runtimeState, actions }: Interac
   function remove(id: string) {
     if (playing) return;
     if (target === id) setTarget(null);
+    playSound("remove");
     edit(mapBlocks(program, (block) => (block.id === id ? null : block)));
   }
 
@@ -199,6 +229,7 @@ export default function MazeCoder({ experience, runtimeState, actions }: Interac
   function run() {
     if (playing || program.length === 0) return;
     finished.current = false;
+    playSound("run");
     setResult(runProgram(level, program));
     setPlayhead(-1);
     setPlaying(true);
@@ -610,14 +641,28 @@ export default function MazeCoder({ experience, runtimeState, actions }: Interac
                 {compact ? "Compact" : "Detailed"}
               </button>
             </div>
+            <p className={`${styles.addingTo} ${loopTarget ? styles.addingToLoop : ""}`} role="status">
+              <span>{loopTarget ? "New blocks go inside the selected Repeat." : "New blocks go at the end of your program."}</span>
+              {loopTarget && (
+                <button type="button" className={styles.addingBtn} onClick={() => setTarget(null)} disabled={playing}>
+                  Done with the loop
+                </button>
+              )}
+            </p>
             <div className={styles.programBox}>
               {program.length === 0 ? <p className={styles.empty}>Tap a block above to add it.</p> : (compact ? renderCompact(program, { n: 0 }) : renderBlocks(program))}
             </div>
 
             <div className={styles.controls}>
-              <button type="button" className={styles.run} onClick={run} disabled={playing || program.length === 0}>
-                ▶ Run
-              </button>
+              {playing ? (
+                <button type="button" className={styles.run} onClick={resetRun}>
+                  ■ Stop
+                </button>
+              ) : (
+                <button type="button" className={styles.run} onClick={run} disabled={program.length === 0}>
+                  ▶ Run
+                </button>
+              )}
               <button type="button" className={styles.ghost} onClick={stepOnce} disabled={playing || program.length === 0}>
                 Step
               </button>
@@ -629,6 +674,9 @@ export default function MazeCoder({ experience, runtimeState, actions }: Interac
               </button>
               <button type="button" className={styles.ghost} onClick={() => setFast(!fast)} aria-pressed={fast}>
                 {fast ? "Fast" : "Normal"}
+              </button>
+              <button type="button" className={styles.ghost} onClick={toggleSound} aria-pressed={soundOn} title={soundOn ? "Turn sound off" : "Turn sound on"}>
+                {soundOn ? "🔊 Sound on" : "🔇 Sound off"}
               </button>
             </div>
 

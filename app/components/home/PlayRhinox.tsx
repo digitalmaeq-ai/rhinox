@@ -18,15 +18,6 @@ import styles from "./PlayRhinox.module.css";
  * category, and pauses while the visitor is pointing at or focused on it.
  */
 
-type Kind = {
-  type: string; // group id
-  label: string; // tab and "See all" wording
-  single: string; // badge
-  cta: string;
-  seeAll: string;
-  icon: string; // 24x24 stroke path
-};
-
 const SPOTLIGHT_COUNT = 5;
 const ITEM_MS = 7000;
 const RAIL_MAX = 5;

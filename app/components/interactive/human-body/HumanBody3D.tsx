@@ -2,10 +2,11 @@
 
 import { useEffect, useMemo, useRef, useState } from "react";
 import { Canvas, useFrame, useThree, type ThreeEvent } from "@react-three/fiber";
-import { Html, OrbitControls } from "@react-three/drei";
+import { Environment, Html, Lightformer, OrbitControls } from "@react-three/drei";
 import * as THREE from "three";
 import type { OrbitControls as OrbitControlsImpl } from "three-stdlib";
 
+import { realisticGeometry } from "@/lib/human-body/geometry";
 import { BODY_PARTS, focusOf, LAYERS, shapesOf, type BodyPart, type LayerId, type Shape } from "@/lib/human-body/body-data";
 
 import type { BodyViewApi } from "./view-types";
@@ -20,6 +21,14 @@ const HOME_POSITION = new THREE.Vector3(0, 0.15, 6.6);
 const HOME_TARGET = new THREE.Vector3(0, -0.02, 0);
 const FOCUS_SECONDS = 1.6;
 const noRaycast = () => undefined;
+
+// How glossy each layer is: skin and bone are satin, muscle and organs look wet.
+const LAYER_FINISH: Record<LayerId, { roughness: number; clearcoat: number; clearcoatRoughness: number }> = {
+  skin: { roughness: 0.55, clearcoat: 0.25, clearcoatRoughness: 0.4 },
+  muscle: { roughness: 0.42, clearcoat: 0.55, clearcoatRoughness: 0.3 },
+  organs: { roughness: 0.3, clearcoat: 0.85, clearcoatRoughness: 0.18 },
+  skeleton: { roughness: 0.45, clearcoat: 0.3, clearcoatRoughness: 0.35 },
+};
 
 interface Props {
   layer: LayerId;
@@ -37,9 +46,9 @@ interface Props {
 }
 
 /** How visible a layer should be when `focus` is the layer being studied. */
-function targetAlpha(index: number, focusIndex: number, layerId: LayerId): number {
+function targetAlpha(index: number, focusIndex: number): number {
   if (index < focusIndex) return 0; // peeled away
-  if (index === focusIndex) return layerId === "skin" ? 0.9 : 1;
+  if (index === focusIndex) return 1;
   // Under the skin nothing shows through; deeper down, a faint ghost remains.
   if (focusIndex === 0) return 0;
   return index === focusIndex + 1 ? 0.1 : 0.04; // ghost of what lies beneath
@@ -91,10 +100,23 @@ function PartMesh({ part, alphaRef, hovered, selected, studied, snap, onSelect, 
   onSelect: (id: string) => void;
   onHover: (id: string | null) => void;
 }) {
-  const material = useMemo(
-    () => new THREE.MeshStandardMaterial({ color: part.color, roughness: part.layer === "skin" ? 0.7 : 0.5, metalness: 0.04, transparent: true, emissive: new THREE.Color("#2d8cff"), emissiveIntensity: 0 }),
-    [part.color, part.layer],
-  );
+  // Organs, muscles, the skull and the long bones have detailed painted meshes.
+  // Anything else draws from its simple shapes.
+  const geometry = useMemo(() => realisticGeometry(part), [part]);
+  const material = useMemo(() => {
+    const finish = LAYER_FINISH[part.layer];
+    return new THREE.MeshPhysicalMaterial({
+      color: geometry ? "#ffffff" : part.color,
+      vertexColors: Boolean(geometry),
+      roughness: finish.roughness,
+      clearcoat: finish.clearcoat,
+      clearcoatRoughness: finish.clearcoatRoughness,
+      metalness: 0,
+      transparent: true,
+      emissive: new THREE.Color("#2d8cff"),
+      emissiveIntensity: 0,
+    });
+  }, [part.color, part.layer, geometry]);
   // The frame loop reaches the material through a ref (it changes it every frame).
   const materialRef = useRef(material);
   useEffect(() => {
@@ -132,9 +154,13 @@ function PartMesh({ part, alphaRef, hovered, selected, studied, snap, onSelect, 
 
   return (
     <group renderOrder={LAYER_ORDER.indexOf(part.layer)}>
-      {shapes.map((shape, index) => (
-        <ShapeMesh key={index} shape={shape} material={material} active={studied} onClick={handleClick} onOver={handleOver} onOut={() => onHover(null)} />
-      ))}
+      {geometry ? (
+        <mesh geometry={geometry} material={material} {...(studied ? { onClick: handleClick, onPointerOver: handleOver, onPointerOut: () => onHover(null) } : { raycast: noRaycast })} />
+      ) : (
+        shapes.map((shape, index) => (
+          <ShapeMesh key={index} shape={shape} material={material} active={studied} onClick={handleClick} onOver={handleOver} onOut={() => onHover(null)} />
+        ))
+      )}
     </group>
   );
 }
@@ -216,12 +242,12 @@ function Scene({ layer, selectedId, onSelect, spin, onUserMove, reducedMotion, a
   const [hovered, setHovered] = useState<string | null>(null);
   const focusIndex = LAYER_ORDER.indexOf(layer);
 
-  const alphaRef = useRef<Record<LayerId, number>>({ skin: 0.9, muscle: 0, organs: 0, skeleton: 0 });
+  const alphaRef = useRef<Record<LayerId, number>>({ skin: 1, muscle: 0, organs: 0, skeleton: 0 });
   // Ease each layer's opacity toward its target (instant if motion is reduced).
   useFrame((_, delta) => {
     const k = reducedMotion ? 1 : 1 - Math.exp(-7 * delta);
     LAYER_ORDER.forEach((id, index) => {
-      const goal = targetAlpha(index, focusIndex, id);
+      const goal = targetAlpha(index, focusIndex);
       alphaRef.current[id] += (goal - alphaRef.current[id]) * k;
     });
     // Negative priority: runs before the parts read these values in the same frame
@@ -241,7 +267,13 @@ function Scene({ layer, selectedId, onSelect, spin, onUserMove, reducedMotion, a
 
   return (
     <>
-      <ambientLight intensity={0.85} />
+      {/* A small studio made of light panels, so glossy surfaces have something to reflect. */}
+      <Environment resolution={128} frames={1}>
+        <Lightformer form="rect" intensity={3} position={[0, 4, 4]} scale={[8, 3, 1]} />
+        <Lightformer form="rect" intensity={1.6} color="#9ec8ff" position={[-5, 1, 2]} scale={[3, 6, 1]} />
+        <Lightformer form="rect" intensity={1.2} color="#ffffff" position={[5, 0, -3]} scale={[3, 6, 1]} />
+      </Environment>
+      <ambientLight intensity={0.55} />
       <directionalLight position={[3, 5, 5]} intensity={1.6} />
       <directionalLight position={[-4, 2, -3]} intensity={0.8} color="#7fb4ff" />
       <pointLight position={[0, 0.4, 3]} intensity={0.9} color="#bcd9ff" distance={9} />

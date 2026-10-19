@@ -71,7 +71,7 @@
   .head { flex-direction: column; align-items: flex-start; gap: 12px; }
   .stage { grid-template-columns: minmax(0, 1fr); min-height: 0; padding: 22px; gap: 22px; }
   .railList { grid-template-columns: minmax(0, 1fr); }
-  .chips { flex-wrap: nowrap; overflow-x: auto; margin: 0 -24px; padding: 2px 24px 6px; scrollbar-width: none; }
+  .chips { flex-wrap: nowrap; overflow-x: auto; margin: 0 calc(50% - 50vw); padding: 2px calc(50vw - 50%) 6px; scrollbar-width: none; }
   .chips::-webkit-scrollbar { display: none; }
   .chip { flex: none; }
 }

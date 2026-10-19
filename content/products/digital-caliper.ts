@@ -8,7 +8,7 @@ export const digitalCaliperProduct: ProductContent = {
   taxonomy: [
     {
       category: "commerce",
-      path: ["laboratory-equipment", "measuring-instruments"],
+      path: ["laboratory-equipment", "measuring-analytical", "measuring-instruments"],
     },
   ],
   status: "published",

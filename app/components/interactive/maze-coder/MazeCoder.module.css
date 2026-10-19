@@ -115,6 +115,10 @@
 .stepper button { width: 22px; height: 22px; border-radius: 6px; border: 0; background: rgba(255, 255, 255, 0.25); color: #fff; font-weight: 800; cursor: pointer; }
 .stepper strong { min-width: 28px; text-align: center; }
 .loopBody { margin: 0 8px 8px 22px; padding: 6px; border-radius: 8px; background: rgba(0, 0, 0, 0.14); }
+.addingTo { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 6px 10px; margin: 6px 0 8px; padding: 6px 10px; border-radius: 10px; background: #eef4ff; color: #1b3d7a; font-size: 12.5px; line-height: 1.35; }
+.addingToLoop { background: #fff4d6; color: #7a4a00; }
+.addingBtn { border: 1px solid currentColor; background: #fff; color: inherit; border-radius: 999px; padding: 4px 12px; font: inherit; font-weight: 700; cursor: pointer; }
+.addingBtn:disabled { opacity: 0.5; cursor: default; }
 .loopEmpty { margin: 0; padding: 8px; font-size: 12px; opacity: 0.85; }
 .blockTarget { outline: 3px solid #ffe08a; outline-offset: 1px; }
 .blockActive { outline: 3px solid #3ddc97; outline-offset: 1px; filter: brightness(1.15); }

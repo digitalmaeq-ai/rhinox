@@ -38,6 +38,9 @@ export interface ContentSection {
   // Types whose detail pages open under this path without being listed
   // (their registry route points here).
   alsoResolve?: ContentType[];
+  // A short pointer shown above the listing, for pages whose topic has a
+  // newer home elsewhere on the site.
+  notice?: { text: string; href: string; label: string };
   notFoundLabel: string;
 }
 
@@ -45,6 +48,9 @@ export interface ExperienceFacts {
   subjects: string[];
   runtime: string;
   taxonomyBranch: string;
+  /** The full interactive branch, e.g. "experiences/games/coding-games". */
+  taxonomyPath: string;
+  component: string;
 }
 
 const CODING = ["coding", "robotics"];
@@ -53,11 +59,17 @@ function factsOf(item: ContentItem): ExperienceFacts {
   const e = item as ContentItem & {
     subjects?: string[];
     runtime?: string;
+    component?: string;
     taxonomy?: { category: string; path: string[] }[];
   };
-  const branch =
-    e.taxonomy?.find((t) => t.category === "interactive")?.path.slice(0, 2).join("/") ?? "";
-  return { subjects: e.subjects ?? [], runtime: e.runtime ?? "", taxonomyBranch: branch };
+  const path = e.taxonomy?.find((t) => t.category === "interactive")?.path ?? [];
+  return {
+    subjects: e.subjects ?? [],
+    runtime: e.runtime ?? "",
+    taxonomyBranch: path.slice(0, 2).join("/"),
+    taxonomyPath: path.join("/"),
+    component: e.component ?? "",
+  };
 }
 
 const isCoding = (e: ExperienceFacts) => e.subjects.some((x) => CODING.includes(x));
@@ -65,9 +77,14 @@ const isNotCoding = (e: ExperienceFacts) => !isCoding(e);
 const isScienceLab = (e: ExperienceFacts) => e.runtime === "simulation" || e.runtime === "virtual-lab";
 // Engineering virtual labs (gears, bridges, solar) live on the Virtual Labs page, not here.
 const isEngineering = (e: ExperienceFacts) => e.subjects.includes("engineering") && !isScienceLab(e);
-// STEM Games lists real games only (filed under experiences/games). Sorting and matching
-// activities live on the Experiences page, so no item is listed on both.
-const isPlayable = (e: ExperienceFacts) => e.taxonomyBranch === "experiences/games";
+// Coding games belong to RhinoCode (/coding-robotics), so each is listed on exactly one
+// games page: Game Challenges, or the Robot Lab studio for the lab itself.
+const isCodingGame = (e: ExperienceFacts) => e.taxonomyPath === "experiences/games/coding-games";
+const isChallenge = (e: ExperienceFacts) => isCodingGame(e) && e.component !== "rhinobot-lab";
+// STEM Games lists real games only (filed under experiences/games), except coding games.
+// Sorting and matching activities live on the Experiences page, so no item is listed on both.
+const isPlayable = (e: ExperienceFacts) =>
+  e.taxonomyBranch === "experiences/games" && !isCodingGame(e);
 
 export const contentSections: ContentSection[] = [
   {
@@ -89,6 +106,11 @@ export const contentSections: ContentSection[] = [
       "Discover coding, robotics, computational thinking and practical technology learning.",
     contentTypes: ["project"],
     includeExperiences: isCoding,
+    notice: {
+      text: "Looking to practise? RhinoCode brings the Robot Lab and coding game challenges together.",
+      href: "/coding-robotics",
+      label: "Open RhinoCode",
+    },
     notFoundLabel: "Coding or Robotics Content Not Found",
   },
   {
@@ -162,6 +184,16 @@ export const contentSections: ContentSection[] = [
     contentTypes: ["game"],
     includeExperiences: isPlayable,
     notFoundLabel: "Game Not Found",
+  },
+  {
+    path: "/coding-robotics/challenges",
+    eyebrow: "RhinoCode",
+    heading: "Game Challenges",
+    description:
+      "Coding puzzles and missions where you plan the steps, run your code and watch it work.",
+    contentTypes: [],
+    includeExperiences: isChallenge,
+    notFoundLabel: "Game Challenge Not Found",
   },
   {
     path: "/explore/stem-quizzes",

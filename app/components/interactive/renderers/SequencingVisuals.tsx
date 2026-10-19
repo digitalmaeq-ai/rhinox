@@ -9,10 +9,13 @@ export function StepVisual({
   visualKey,
   label,
   size = 44,
+  glyph,
 }: {
   visualKey: string;
   label: string;
   size?: number;
+  /** Optional emoji used when there is no hand-drawn art for the step. */
+  glyph?: string;
 }) {
   const Art = stepArt[visualKey] as (() => JSX.Element) | undefined;
 
@@ -25,8 +28,19 @@ export function StepVisual({
       focusable="false"
       style={{ display: "block", overflow: "visible" }}
     >
-      {Art ? <Art /> : <FallbackTile label={label} />}
+      {Art ? <Art /> : glyph ? <GlyphTile glyph={glyph} /> : <FallbackTile label={label} />}
     </svg>
+  );
+}
+
+function GlyphTile({ glyph }: { glyph: string }) {
+  return (
+    <>
+      <rect width={48} height={48} rx={10} fill="#eef5ff" />
+      <text x={24} y={25} textAnchor="middle" dominantBaseline="central" fontSize={28}>
+        {glyph}
+      </text>
+    </>
   );
 }
 

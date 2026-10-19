@@ -15,6 +15,8 @@ interface GenericListingRendererProps {
   items: ContentItem[];
   /** The section's URL path, used to choose its photograph and tagline. */
   path?: string;
+  /** Optional pointer shown above the list. */
+  notice?: { text: string; href: string; label: string };
 }
 
 // The listing page for every content section: a compact photo hero, then
@@ -26,6 +28,7 @@ export default function GenericListingRenderer({
   description,
   items,
   path = "",
+  notice,
 }: GenericListingRendererProps) {
   const look = getListingPresentation(path);
   const rows = items.map(toRow);
@@ -45,6 +48,12 @@ export default function GenericListingRenderer({
 
       <section className={styles.listing}>
         <div className="rx-container">
+          {notice && (
+            <p className={styles.notice}>
+              <span>{notice.text}</span>
+              <Link href={notice.href}>{notice.label} →</Link>
+            </p>
+          )}
           {rows.length > 0 ? (
             <ContentList rows={rows} />
           ) : (
