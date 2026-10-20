@@ -8,7 +8,7 @@
 // See docs/code-studio.md for what it does and does not protect.
 //
 // Messages in  : { type: "init", baseUrl, inputBuffer }
-//                { type: "run", id, code, stdinLines }
+//                { type: "run", id, code, stdinLines, scripted }
 // Messages out : { type: "ready" } | { type: "fatal", message }
 //                { type: "out", stream: "stdout" | "stderr", text }
 //                { type: "input-request" }
@@ -27,7 +27,8 @@ const atomicsWait = Atomics.wait.bind(Atomics);
 let pyodide = null;
 let runPython = null; // the Python function that runs one program
 let inputBuffer = null; // SharedArrayBuffer when the page is cross-origin isolated
-let pendingLines = []; // fallback input when there is no shared buffer
+let pendingLines = []; // scripted answers for input() (checks, or no shared buffer)
+let scripted = false; // true: answer input() from pendingLines even if a shared buffer exists
 let outChars = 0;
 let limitHit = false;
 let queue = { stdout: "", stderr: "" };
@@ -65,7 +66,7 @@ function write(stream, bytes) {
 // Layout of inputBuffer: Int32[0] = state (0 waiting, 1 ready), Int32[1] = byte
 // length, bytes from offset 8.
 function readInputLine() {
-  if (inputBuffer) {
+  if (inputBuffer && !scripted) {
     flush();
     const flag = new Int32Array(inputBuffer, 0, 2);
     Atomics.store(flag, 0, 0);
@@ -184,7 +185,8 @@ function heapMB() {
   }
 }
 
-function run(id, code, lines) {
+function run(id, code, lines, isScripted) {
+  scripted = isScripted === true;
   outChars = 0;
   limitHit = false;
   queue = { stdout: "", stderr: "" };
@@ -215,6 +217,6 @@ self.onmessage = (event) => {
       post({ type: "fatal", message: String(error && error.message ? error.message : error) }),
     );
   } else if (message.type === "run" && runPython) {
-    run(message.id, String(message.code).slice(0, 100000), message.stdinLines);
+    run(message.id, String(message.code).slice(0, 100000), message.stdinLines, message.scripted);
   }
 };

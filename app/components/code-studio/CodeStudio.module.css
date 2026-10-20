@@ -266,3 +266,218 @@
   border-radius: 8px;
   padding: 8px;
 }
+
+/* ---- Layout with the exercise column ---- */
+.layout {
+  display: grid;
+  grid-template-columns: minmax(250px, 300px) minmax(0, 1fr);
+  gap: 14px;
+  align-items: start;
+}
+
+.workspace {
+  min-width: 0;
+}
+
+.side {
+  display: grid;
+  gap: 12px;
+  align-content: start;
+  max-height: clamp(520px, calc(100dvh - 140px), 900px);
+  overflow-y: auto;
+  padding-right: 2px;
+}
+
+.exerciseList {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 6px;
+}
+
+.exerciseButton {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  min-height: 44px;
+  padding: 8px 12px;
+  border: 1px solid #c4d6ee;
+  border-radius: 10px;
+  background: #fff;
+  color: #123b73;
+  font: inherit;
+  font-size: 0.92rem;
+  font-weight: 600;
+  text-align: left;
+  cursor: pointer;
+}
+
+.exerciseButton:hover:not(:disabled) {
+  background: #f1f7ff;
+}
+
+.exerciseButton[aria-current="step"] {
+  border-color: #0f6fde;
+  background: #eaf3ff;
+  box-shadow: inset 3px 0 0 #0f6fde;
+}
+
+.exerciseButton:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.exerciseButton:focus-visible,
+.taskActions button:focus-visible,
+.inputRow button:focus-visible {
+  outline: 3px solid #7fb1f5;
+  outline-offset: 2px;
+}
+
+.exerciseNumber {
+  flex: none;
+  display: grid;
+  place-items: center;
+  min-width: 26px;
+  height: 26px;
+  padding: 0 4px;
+  border-radius: 999px;
+  background: #dbeaff;
+  color: #0e2a52;
+  font-size: 0.78rem;
+  font-weight: 800;
+}
+
+.exerciseNumber[data-done] {
+  background: #159570;
+  color: #fff;
+}
+
+.exerciseTitle {
+  min-width: 0;
+}
+
+.task {
+  padding: 14px;
+  border: 1px solid #c4d6ee;
+  border-radius: 12px;
+  background: #f7fbfe;
+  color: #2c4064;
+  font-size: 0.92rem;
+  line-height: 1.5;
+}
+
+.task h2 {
+  margin: 0 0 8px;
+  font-size: 1.02rem;
+  color: #0e2a52;
+}
+
+.task p {
+  margin: 0 0 8px;
+  overflow-wrap: anywhere;
+}
+
+.hint {
+  padding: 8px 10px;
+  border-radius: 8px;
+  background: #fff6e0;
+  border: 1px solid #f3d99b;
+}
+
+.taskActions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 6px;
+}
+
+.taskActions button {
+  min-height: 40px;
+  padding: 8px 14px;
+  border: 1px solid #c4d6ee;
+  border-radius: 10px;
+  background: #fff;
+  color: #123b73;
+  font: inherit;
+  font-size: 0.9rem;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.taskActions button.checkButton {
+  background: #159570;
+  border-color: #159570;
+  color: #fff;
+}
+
+.taskActions button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.report {
+  margin-top: 10px;
+}
+
+.report p {
+  margin: 0 0 6px;
+}
+
+.pass {
+  padding: 10px 12px;
+  border-radius: 8px;
+  background: #e5f6ef;
+  border: 1px solid #9bd6bf;
+  color: #0b5d44;
+}
+
+.fail {
+  padding: 10px 12px;
+  border-radius: 8px;
+  background: #fdecea;
+  border: 1px solid #f1b3ad;
+  color: #8a1f17;
+}
+
+.srOnly {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+
+.note a {
+  color: #0b57c9;
+  font-weight: 600;
+}
+
+/* Tablets and below: the exercise column becomes a block above the workspace. */
+@media (max-width: 1100px) {
+  .layout {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .side {
+    max-height: none;
+    overflow: visible;
+  }
+
+  .exerciseList {
+    display: flex;
+    flex-wrap: wrap;
+  }
+
+  .exerciseButton {
+    width: auto;
+  }
+
+  .task {
+    max-height: 260px;
+    overflow-y: auto;
+  }
+}

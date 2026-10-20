@@ -493,13 +493,14 @@ export const pages = {
       { label: "Game Challenges", href: "/coding-robotics/challenges", secondary: true },
     ],
     intro: {
-      eyebrow: "Two studios, one platform",
+      eyebrow: "Three studios, one platform",
       lineOne: "Pick a studio",
       lineTwo: "and start making.",
       text: "RhinoCode brings Rhinox coding learning together. Work in a studio, practise with challenges and keep what you make.",
       items: [
         { title: "RhinoBot: Robot Programming Lab", text: "Snap blocks together to guide a robot through missions, from first steps to loops and decisions." },
-        { title: "RhinoCode Game Creator", text: "Design a maze, choose the rules, then play the game you built." },
+        { title: "RhinoCode Game Creator", text: "Design levels with enemies, keys and doors, choose the rules, then play the game you built." },
+        { title: "Rhinox Code Studio", text: "Write and run real Python in your browser, with guided exercises that check your answers." },
         { title: "Game Challenges", text: "Short coding puzzles and missions to practise one idea at a time." },
         { title: "My Projects", text: "Your saved programmes and games, kept together and ready to reopen." },
       ],

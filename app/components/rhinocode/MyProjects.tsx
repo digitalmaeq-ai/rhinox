@@ -11,9 +11,10 @@ import styles from "./MyProjects.module.css";
 
 const LAB_PATH = "/coding-robotics/robot-lab";
 const GAME_PATH = "/coding-robotics/game-creator";
+const PYTHON_PATH = "/coding-robotics/code-studio";
 
 function openHref(project: Project): string {
-  const base = project.kind === "robot-program" ? LAB_PATH : GAME_PATH;
+  const base = project.kind === "robot-program" ? LAB_PATH : project.kind === "python" ? PYTHON_PATH : GAME_PATH;
   return `${base}?project=${encodeURIComponent(project.id)}`;
 }
 
@@ -65,9 +66,10 @@ export default function MyProjects() {
         {projects.length === 0 ? (
           <section className={styles.empty} aria-live="polite">
             <h2>Nothing saved yet</h2>
-            <p>Save a programme in the Robot Lab and it will appear here, ready to reopen.</p>
+            <p>Save a programme, a game or a Python program and it will appear here, ready to reopen.</p>
             <div className={styles.emptyActions}>
               <Link href="/coding-robotics/robot-lab" className="rx-button rx-button-primary">Open the Robot Lab</Link>
+              <Link href="/coding-robotics/code-studio" className="rx-button rx-button-secondary">Open Code Studio</Link>
               <Link href="/coding-robotics/challenges" className="rx-button rx-button-secondary">Game Challenges</Link>
             </div>
           </section>

@@ -22,7 +22,21 @@ export type RunOutcome =
   | "crashed" // the worker died (for example out of memory)
   | "failed-to-start"; // the Python runtime could not be loaded
 
-export type RunResult = { outcome: RunOutcome; ms: number; detail?: string };
+export type RunResult = {
+  outcome: RunOutcome;
+  ms: number;
+  detail?: string;
+  /** Everything the program printed (at most the output limit). */
+  stdout: string;
+  stderr: string;
+};
+
+export type RunOptions = {
+  /** Answer input() from the given lines instead of asking the learner. */
+  scripted?: boolean;
+  /** Do not show the output in the console (used by exercise checks). */
+  quiet?: boolean;
+};
 
 export type RunnerListener = {
   onOutput: (stream: "stdout" | "stderr", text: string) => void;
@@ -79,9 +93,16 @@ export class PythonRunner {
   private timerStartedAt = 0;
   private runStartedAt = 0;
   private failRun: ((error: Error) => void) | null = null;
+  private quiet = false;
+  private stdout = "";
+  private stderr = "";
 
   constructor(listener: RunnerListener) {
     this.listener = listener;
+  }
+
+  get isBusy(): boolean {
+    return this.status !== "idle";
   }
 
   /** True when input() can pause the program and wait for the learner to type. */
@@ -130,7 +151,7 @@ export class PythonRunner {
     this.finish = null;
     this.killWorker();
     this.setStatus("idle");
-    finish?.({ outcome, ms: Math.round(performance.now() - this.runStartedAt), detail });
+    finish?.({ outcome, ms: Math.round(performance.now() - this.runStartedAt), detail, stdout: this.stdout, stderr: this.stderr });
   }
 
   private start(): Promise<void> {
@@ -178,7 +199,9 @@ export class PythonRunner {
         this.end("output-limit");
         return;
       }
-      this.listener.onOutput(message.stream, message.text);
+      if (message.stream === "stderr") this.stderr += message.text;
+      else this.stdout += message.text;
+      if (!this.quiet) this.listener.onOutput(message.stream, message.text);
     } else if (message.type === "input-request") {
       this.pauseTimer();
       this.setStatus("waiting-input");
@@ -189,6 +212,8 @@ export class PythonRunner {
       const result: RunResult = {
         outcome: message.outputLimit ? "output-limit" : message.ok ? "ok" : "error",
         ms: message.ms,
+        stdout: this.stdout,
+        stderr: this.stderr,
       };
       // Python's memory only ever grows. After a heavy run, start a clean worker.
       if (message.heapMB > RECYCLE_HEAP_MB) this.killWorker();
@@ -198,8 +223,11 @@ export class PythonRunner {
   }
 
   /** Runs one program. Never rejects: problems come back as an outcome. */
-  async run(code: string, stdinLines: string[] = []): Promise<RunResult> {
-    if (this.status !== "idle") return { outcome: "error", ms: 0, detail: "Already running." };
+  async run(code: string, stdinLines: string[] = [], options: RunOptions = {}): Promise<RunResult> {
+    if (this.status !== "idle") return { outcome: "error", ms: 0, detail: "Already running.", stdout: "", stderr: "" };
+    this.quiet = options.quiet === true;
+    this.stdout = "";
+    this.stderr = "";
     this.setStatus("starting");
     this.runStartedAt = performance.now();
     try {
@@ -207,7 +235,7 @@ export class PythonRunner {
     } catch (error) {
       this.killWorker();
       this.setStatus("idle");
-      return { outcome: "failed-to-start", ms: 0, detail: error instanceof Error ? error.message : String(error) };
+      return { outcome: "failed-to-start", ms: 0, detail: error instanceof Error ? error.message : String(error), stdout: "", stderr: "" };
     }
     return new Promise<RunResult>((resolve) => {
       this.finish = resolve;
@@ -217,7 +245,7 @@ export class PythonRunner {
       this.runStartedAt = performance.now();
       this.setStatus("running");
       this.armTimer();
-      this.worker?.postMessage({ type: "run", id: this.runId, code, stdinLines });
+      this.worker?.postMessage({ type: "run", id: this.runId, code, stdinLines, scripted: options.scripted === true });
     });
   }
 

@@ -267,13 +267,7 @@ export const navigation: NavigationItem[] = [
               label: "RhinoCode Game Creator",
               href: "/coding-robotics/game-creator",
               description:
-                "Design a maze game, choose its rules, play it and save it.",
-            },
-            {
-              label: "Rhinox Code Studio",
-              href: "/coding-robotics/code-studio",
-              description:
-                "Write and run real Python in your browser, with guided exercises and checks.",
+                "Build a multi-level maze game with enemies, keys and doors, set its rules, play it and save it.",
             },
           ],
         },

@@ -98,6 +98,19 @@ test("corrupt or wrong-version storage is ignored, not fatal", () => {
   assert.deepEqual(listProjects(undefined, kv).map((p) => p.id), ["ok"]);
 });
 
+test("a Python program is saved, listed by kind, updated and deleted", () => {
+  const kv = memory();
+  const saved = createProject("python", "Times table", { version: 1, exerciseId: "times-table", code: "print(1)" }, kv, 100);
+  createProject("game", "A game", {}, kv, 200);
+  assert.deepEqual(listProjects("python", kv).map((p) => p.id), [saved.id]);
+  assert.equal(getProject(saved.id, kv)?.kind, "python");
+  updateProjectData(saved.id, { version: 1, exerciseId: null, code: "print(2)" }, kv, 300);
+  assert.deepEqual((getProject(saved.id, kv)?.data as { code: string }).code, "print(2)");
+  deleteProject(saved.id, kv);
+  assert.deepEqual(listProjects("python", kv), []);
+  assert.equal(listProjects(undefined, kv).length, 1);
+});
+
 test("unavailable storage does nothing and does not throw", () => {
   assert.deepEqual(listProjects(undefined, null), []);
   createProject("game", "x", {}, null);

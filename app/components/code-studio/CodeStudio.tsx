@@ -4,9 +4,17 @@ import dynamic from "next/dynamic";
 import Link from "next/link";
 import { useCallback, useEffect, useRef, useState, useSyncExternalStore } from "react";
 
+import { runChecks, type CheckReport } from "@/lib/code-studio/check-runner";
+import { EXERCISES, getExercise } from "@/lib/code-studio/exercises";
 import { MAX_OUTPUT_CHARS, RUN_TIMEOUT_MS } from "@/lib/code-studio/limits";
+import { MAX_CODE_CHARS, toProjectData, type PythonProjectData } from "@/lib/code-studio/project";
+import {
+  markCompleted, progressFromSnapshot, progressSnapshot, saveDraft, subscribeProgress,
+} from "@/lib/code-studio/progress";
 import { PythonRunner, type RunResult, type RunnerStatus } from "@/lib/code-studio/runner";
+import { createProject, getProject, updateProjectData } from "@/lib/rhinocode/projects";
 
+import ExercisePanel from "./ExercisePanel";
 import styles from "./CodeStudio.module.css";
 
 // Monaco needs the browser, so it loads only there.
@@ -15,9 +23,15 @@ const PythonEditor = dynamic(() => import("./PythonEditor"), {
   loading: () => <p className={styles.loading}>Loading the editor…</p>,
 });
 
-const STARTER = `# Welcome to Rhinox Code Studio
+const FREE_STARTER = `# Welcome to Rhinox Code Studio
 print("Hello, Rhinox!")
 `;
+
+type Session = { exerciseId: string | null; initialCode: string; key: number };
+
+function starterFor(exerciseId: string | null): string {
+  return getExercise(exerciseId)?.starter ?? FREE_STARTER;
+}
 
 type ChunkKind = "out" | "err" | "in" | "info";
 type Chunk = { id: number; kind: ChunkKind; text: string };
@@ -50,16 +64,38 @@ function describe(result: RunResult): { kind: ChunkKind; text: string } | null {
   }
 }
 
-export default function CodeStudio() {
-  const codeRef = useRef(STARTER);
+type Props = {
+  /** The id of the project being edited, if it was opened from My Projects. */
+  savedId: string | null;
+  savedProject: PythonProjectData | null;
+};
+
+export default function CodeStudio({ savedId: initialSavedId, savedProject }: Props) {
+  const [session, setSession] = useState<Session>(() => {
+    if (savedProject) return { exerciseId: savedProject.exerciseId, initialCode: savedProject.code, key: 0 };
+    const first = EXERCISES[0].id;
+    const draft = progressFromSnapshot(progressSnapshot()).drafts[first];
+    return { exerciseId: first, initialCode: draft ?? starterFor(first), key: 0 };
+  });
+  const codeRef = useRef(session.initialCode);
   const runnerRef = useRef<PythonRunner | null>(null);
   const nextId = useRef(1);
   const bodyRef = useRef<HTMLPreElement | null>(null);
-  const [resetCount, setResetCount] = useState(0);
   const [status, setStatus] = useState<RunnerStatus>("idle");
   const [chunks, setChunks] = useState<Chunk[]>([]);
   const [stdinText, setStdinText] = useState("");
   const [typed, setTyped] = useState("");
+  const [savedId, setSavedId] = useState<string | null>(initialSavedId);
+  const [notice, setNotice] = useState("");
+  const [hintsShown, setHintsShown] = useState(0);
+  const [report, setReport] = useState<CheckReport | null>(null);
+  const [checking, setChecking] = useState(false);
+  const draftTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  const progress = progressFromSnapshot(
+    useSyncExternalStore(subscribeProgress, progressSnapshot, () => ""),
+  );
+  const exercise = getExercise(session.exerciseId) ?? null;
 
   // Whether input() can wait for the learner. It needs the page to be
   // "cross-origin isolated", which the browser decides when the page loads.
@@ -104,7 +140,13 @@ export default function CodeStudio() {
     return runnerRef.current;
   }, [append]);
 
-  useEffect(() => () => runnerRef.current?.dispose(), []);
+  useEffect(
+    () => () => {
+      runnerRef.current?.dispose();
+      if (draftTimer.current) clearTimeout(draftTimer.current);
+    },
+    [],
+  );
 
   useEffect(() => {
     const body = bodyRef.current;
@@ -120,6 +162,75 @@ export default function CodeStudio() {
     if (note) append(note.kind, note.text);
   }, [append, getRunner, stdinText]);
 
+  function onEdit(value: string) {
+    codeRef.current = value;
+    setNotice("");
+    // Keep unsaved work for each exercise, so switching exercises never loses it.
+    if (draftTimer.current) clearTimeout(draftTimer.current);
+    const id = session.exerciseId ?? "free";
+    draftTimer.current = setTimeout(() => saveDraft(id, value), 600);
+  }
+
+  function flushDraft() {
+    if (draftTimer.current) clearTimeout(draftTimer.current);
+    draftTimer.current = null;
+    saveDraft(session.exerciseId ?? "free", codeRef.current);
+  }
+
+  function selectExercise(id: string | null) {
+    if (runnerRef.current && runnerRef.current.isBusy) return;
+    flushDraft();
+    const draft = progress.drafts[id ?? "free"];
+    const initialCode = draft ?? starterFor(id);
+    codeRef.current = initialCode;
+    setSession((previous) => ({ exerciseId: id, initialCode, key: previous.key + 1 }));
+    setSavedId(null);
+    setNotice("");
+    setHintsShown(0);
+    setReport(null);
+    setChunks([]);
+  }
+
+  function resetCode() {
+    const initialCode = starterFor(session.exerciseId);
+    codeRef.current = initialCode;
+    saveDraft(session.exerciseId ?? "free", initialCode);
+    setSession((previous) => ({ ...previous, initialCode, key: previous.key + 1 }));
+    setReport(null);
+    setNotice("");
+  }
+
+  async function check() {
+    if (!exercise) return;
+    setReport(null);
+    setChecking(true);
+    const result = await runChecks(getRunner(), exercise, codeRef.current);
+    setChecking(false);
+    setReport(result);
+    if (result.passed) markCompleted(exercise.id);
+  }
+
+  function save() {
+    const code = codeRef.current;
+    if (code.length > MAX_CODE_CHARS) {
+      setNotice(`This program is too long to save (the limit is ${MAX_CODE_CHARS.toLocaleString("en")} characters).`);
+      return;
+    }
+    const data = toProjectData(session.exerciseId, code);
+    if (savedId && getProject(savedId)) {
+      updateProjectData(savedId, data);
+      setNotice(getProject(savedId) ? "Changes saved." : "Could not save. Your browser may be blocking storage.");
+      return;
+    }
+    const created = createProject("python", exercise?.title ?? "My Python program", data);
+    if (!getProject(created.id)) {
+      setNotice("Could not save. Your browser may be blocking storage.");
+      return;
+    }
+    setSavedId(created.id);
+    setNotice("Saved to My Projects.");
+  }
+
   function sendInput(event: React.FormEvent) {
     event.preventDefault();
     append("in", typed + "\n");
@@ -127,7 +238,7 @@ export default function CodeStudio() {
     setTyped("");
   }
 
-  const busy = status !== "idle";
+  const busy = status !== "idle" || checking;
 
   return (
     <main className={styles.page}>
@@ -143,34 +254,49 @@ export default function CodeStudio() {
           </div>
         </header>
 
+        <div className={styles.layout}>
+          <ExercisePanel
+            exercise={exercise}
+            completed={progress.completed}
+            hintsShown={hintsShown}
+            report={report}
+            checking={checking}
+            busy={busy}
+            onSelect={selectExercise}
+            onShowHint={() => setHintsShown((n) => n + 1)}
+            onCheck={check}
+          />
+          <div className={styles.workspace}>
         <div className={styles.toolbar} role="toolbar" aria-label="Run controls">
-          <button type="button" className={styles.run} onClick={run} disabled={busy}>
+          <button type="button" className={styles.run} onClick={run} disabled={busy || checking}>
             {status === "starting" ? "Starting…" : "Run"}
           </button>
           <button type="button" onClick={() => runnerRef.current?.stop()} disabled={!busy}>
             Stop
           </button>
-          <button
-            type="button"
-            onClick={() => {
-              codeRef.current = STARTER;
-              setResetCount((n) => n + 1);
-            }}
-            disabled={busy}
-          >
+          <button type="button" onClick={resetCode} disabled={busy || checking}>
             Reset
           </button>
-          <span className={styles.note}>Python · stops after {RUN_TIMEOUT_MS / 1000} seconds · Ctrl+Enter runs</span>
+          <button type="button" onClick={save} disabled={busy || checking}>
+            {savedId ? "Save changes" : "Save to My Projects"}
+          </button>
+          <span className={styles.note} role="status">
+            {notice || `Python · stops after ${RUN_TIMEOUT_MS / 1000} seconds · Ctrl+Enter runs`}
+            {notice.startsWith("Saved") && (
+              <>
+                {" "}
+                <Link href="/coding-robotics/my-projects">Open My Projects</Link>
+              </>
+            )}
+          </span>
         </div>
 
         <div className={styles.split}>
           <section className={styles.editorPane} aria-label="Code editor">
             <PythonEditor
-              key={resetCount}
-              initialValue={STARTER}
-              onChange={(value) => {
-                codeRef.current = value;
-              }}
+              key={session.key}
+              initialValue={session.initialCode}
+              onChange={onEdit}
               onRun={() => void run()}
             />
           </section>
@@ -219,6 +345,8 @@ export default function CodeStudio() {
               </details>
             )}
           </section>
+        </div>
+          </div>
         </div>
       </div>
     </main>

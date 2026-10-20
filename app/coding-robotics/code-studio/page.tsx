@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 
-import CodeStudio from "@/app/components/code-studio/CodeStudio";
+import CodeStudioLoader from "@/app/components/code-studio/CodeStudioLoader";
 
 export const metadata: Metadata = {
   title: "Rhinox Code Studio | Rhinox Scientifica",
@@ -9,5 +9,5 @@ export const metadata: Metadata = {
 };
 
 export default function Page() {
-  return <CodeStudio />;
+  return <CodeStudioLoader />;
 }
