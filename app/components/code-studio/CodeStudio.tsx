@@ -2,10 +2,12 @@
 
 import dynamic from "next/dynamic";
 import Link from "next/link";
-import { useCallback, useEffect, useRef, useState, useSyncExternalStore } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState, useSyncExternalStore } from "react";
 
+import { type ChartSpec } from "@/lib/code-studio/charts";
 import { runChecks, type CheckReport } from "@/lib/code-studio/check-runner";
 import { EXERCISES, getExercise } from "@/lib/code-studio/exercises";
+import { filesFromSnapshot, filesSnapshot, saveFiles, subscribeFiles, type ProgramFile } from "@/lib/code-studio/files";
 import { MAX_OUTPUT_CHARS, RUN_TIMEOUT_MS } from "@/lib/code-studio/limits";
 import { MAX_CODE_CHARS, toProjectData, type PythonProjectData } from "@/lib/code-studio/project";
 import {
@@ -15,6 +17,8 @@ import { PythonRunner, type RunResult, type RunnerStatus } from "@/lib/code-stud
 import { createProject, getProject, updateProjectData } from "@/lib/rhinocode/projects";
 
 import ExercisePanel from "./ExercisePanel";
+import ChartsPanel from "./ChartsPanel";
+import FilesPanel from "./FilesPanel";
 import styles from "./CodeStudio.module.css";
 
 // Monaco needs the browser, so it loads only there.
@@ -31,6 +35,14 @@ type Session = { exerciseId: string | null; initialCode: string; key: number };
 
 function starterFor(exerciseId: string | null): string {
   return getExercise(exerciseId)?.starter ?? FREE_STARTER;
+}
+
+// The names of the files a run added, changed or removed.
+function changedFiles(before: readonly ProgramFile[], after: readonly ProgramFile[]): string[] {
+  const names = new Set([...before.map((f) => f.name), ...after.map((f) => f.name)]);
+  return [...names]
+    .filter((name) => before.find((f) => f.name === name)?.text !== after.find((f) => f.name === name)?.text)
+    .sort();
 }
 
 type ChunkKind = "out" | "err" | "in" | "info";
@@ -90,12 +102,21 @@ export default function CodeStudio({ savedId: initialSavedId, savedProject }: Pr
   const [hintsShown, setHintsShown] = useState(0);
   const [report, setReport] = useState<CheckReport | null>(null);
   const [checking, setChecking] = useState(false);
+  const [charts, setCharts] = useState<ChartSpec[]>([]);
   const draftTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const progress = progressFromSnapshot(
     useSyncExternalStore(subscribeProgress, progressSnapshot, () => ""),
   );
   const exercise = getExercise(session.exerciseId) ?? null;
+
+  // The learner's files live in this browser. The page keeps them and hands a copy to every run.
+  const filesRaw = useSyncExternalStore(subscribeFiles, filesSnapshot, () => "");
+  const files = useMemo(() => filesFromSnapshot(filesRaw), [filesRaw]);
+  const filesRef = useRef<ProgramFile[]>(files);
+  useEffect(() => {
+    filesRef.current = files;
+  }, [files]);
 
   // Whether input() can wait for the learner. It needs the page to be
   // "cross-origin isolated", which the browser decides when the page loads.
@@ -156,10 +177,21 @@ export default function CodeStudio({ savedId: initialSavedId, savedProject }: Pr
   const run = useCallback(async () => {
     const runner = getRunner();
     setChunks([]);
+    setCharts([]);
     const lines = runner.interactiveInput ? [] : stdinText.split("\n");
-    const result = await runner.run(codeRef.current, lines);
+    const before = filesRef.current;
+    const result = await runner.run(codeRef.current, lines, { files: before });
     const note = describe(result);
     if (note) append(note.kind, note.text);
+    setCharts(result.charts);
+    if (result.charts.length > 0) append("info", `${result.charts.length === 1 ? "A chart was" : `${result.charts.length} charts were`} drawn. Look in the Charts section below.`);
+    // Keep whatever the program left behind. A run that did not finish hands back the files it started with.
+    const changed = changedFiles(before, result.files);
+    if (changed.length > 0) {
+      if (saveFiles(result.files)) append("info", `Files updated: ${changed.join(", ")}. Open "My files" to see them.`);
+      else append("info", "The files could not be kept. Your browser may be blocking storage.");
+    }
+    if (result.fileNotes) append("info", result.fileNotes.join(" "));
   }, [append, getRunner, stdinText]);
 
   function onEdit(value: string) {
@@ -189,6 +221,7 @@ export default function CodeStudio({ savedId: initialSavedId, savedProject }: Pr
     setHintsShown(0);
     setReport(null);
     setChunks([]);
+    setCharts([]);
   }
 
   function resetCode() {
@@ -346,6 +379,8 @@ export default function CodeStudio({ savedId: initialSavedId, savedProject }: Pr
             )}
           </section>
         </div>
+            <ChartsPanel charts={charts} />
+            <FilesPanel files={files} onChange={(next) => saveFiles(next)} busy={busy} />
           </div>
         </div>
       </div>

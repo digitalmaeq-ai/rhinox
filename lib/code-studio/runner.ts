@@ -10,6 +10,8 @@ import {
   RUN_TIMEOUT_MS,
   WORKER_URL,
 } from "./limits";
+import { cleanCharts, type ChartSpec } from "./charts";
+import { cleanFiles, type ProgramFile } from "./files";
 
 export type RunnerStatus = "idle" | "starting" | "running" | "waiting-input";
 
@@ -29,9 +31,17 @@ export type RunResult = {
   /** Everything the program printed (at most the output limit). */
   stdout: string;
   stderr: string;
+  /** The program's files after the run. The files it started with if the run did not finish. */
+  files: ProgramFile[];
+  /** The charts the program drew (empty if the run did not finish). */
+  charts: ChartSpec[];
+  /** Set when the worker handed back files that had to be dropped. */
+  fileNotes?: string[];
 };
 
 export type RunOptions = {
+  /** The files the program can open. They are handed to the worker for this run only. */
+  files?: ProgramFile[];
   /** Answer input() from the given lines instead of asking the learner. */
   scripted?: boolean;
   /** Do not show the output in the console (used by exercise checks). */
@@ -48,7 +58,7 @@ type WorkerMessage =
   | { type: "fatal"; message: string }
   | { type: "out"; stream: "stdout" | "stderr"; text: string }
   | { type: "input-request" }
-  | { type: "done"; id: number; ok: boolean; outputLimit: boolean; ms: number; heapMB: number };
+  | { type: "done"; id: number; ok: boolean; outputLimit: boolean; ms: number; heapMB: number; files: unknown[] | null; charts: unknown[] };
 
 // Only these exact shapes are accepted. Anything else from the worker is ignored.
 function parseMessage(data: unknown): WorkerMessage | null {
@@ -73,6 +83,8 @@ function parseMessage(data: unknown): WorkerMessage | null {
         outputLimit: m.outputLimit === true,
         ms: Number(m.ms) || 0,
         heapMB: Number(m.heapMB) || 0,
+        files: Array.isArray(m.files) ? m.files.slice(0, 100) : null,
+        charts: Array.isArray(m.charts) ? m.charts.slice(0, 20) : [],
       };
     default:
       return null;
@@ -96,6 +108,7 @@ export class PythonRunner {
   private quiet = false;
   private stdout = "";
   private stderr = "";
+  private startFiles: ProgramFile[] = [];
 
   constructor(listener: RunnerListener) {
     this.listener = listener;
@@ -151,7 +164,15 @@ export class PythonRunner {
     this.finish = null;
     this.killWorker();
     this.setStatus("idle");
-    finish?.({ outcome, ms: Math.round(performance.now() - this.runStartedAt), detail, stdout: this.stdout, stderr: this.stderr });
+    finish?.({
+      outcome,
+      ms: Math.round(performance.now() - this.runStartedAt),
+      detail,
+      stdout: this.stdout,
+      stderr: this.stderr,
+      files: this.startFiles,
+      charts: [],
+    });
   }
 
   private start(): Promise<void> {
@@ -209,11 +230,17 @@ export class PythonRunner {
       const finish = this.finish;
       this.finish = null;
       this.clearTimer();
+      // Whatever the worker sends back is checked again here: it is only trusted
+      // as far as the same rules that apply to every file.
+      const returned = message.files === null ? null : cleanFiles(message.files);
       const result: RunResult = {
         outcome: message.outputLimit ? "output-limit" : message.ok ? "ok" : "error",
         ms: message.ms,
         stdout: this.stdout,
         stderr: this.stderr,
+        files: returned ? returned.files : this.startFiles,
+        charts: cleanCharts(message.charts),
+        fileNotes: returned && returned.notes.length > 0 ? returned.notes : undefined,
       };
       // Python's memory only ever grows. After a heavy run, start a clean worker.
       if (message.heapMB > RECYCLE_HEAP_MB) this.killWorker();
@@ -224,7 +251,9 @@ export class PythonRunner {
 
   /** Runs one program. Never rejects: problems come back as an outcome. */
   async run(code: string, stdinLines: string[] = [], options: RunOptions = {}): Promise<RunResult> {
-    if (this.status !== "idle") return { outcome: "error", ms: 0, detail: "Already running.", stdout: "", stderr: "" };
+    const startFiles = cleanFiles(options.files ?? []).files;
+    if (this.status !== "idle") return { outcome: "error", ms: 0, detail: "Already running.", stdout: "", stderr: "", files: startFiles, charts: [] };
+    this.startFiles = startFiles;
     this.quiet = options.quiet === true;
     this.stdout = "";
     this.stderr = "";
@@ -235,7 +264,7 @@ export class PythonRunner {
     } catch (error) {
       this.killWorker();
       this.setStatus("idle");
-      return { outcome: "failed-to-start", ms: 0, detail: error instanceof Error ? error.message : String(error), stdout: "", stderr: "" };
+      return { outcome: "failed-to-start", ms: 0, detail: error instanceof Error ? error.message : String(error), stdout: "", stderr: "", files: startFiles, charts: [] };
     }
     return new Promise<RunResult>((resolve) => {
       this.finish = resolve;
@@ -245,7 +274,7 @@ export class PythonRunner {
       this.runStartedAt = performance.now();
       this.setStatus("running");
       this.armTimer();
-      this.worker?.postMessage({ type: "run", id: this.runId, code, stdinLines, scripted: options.scripted === true });
+      this.worker?.postMessage({ type: "run", id: this.runId, code, stdinLines, scripted: options.scripted === true, files: this.startFiles });
     });
   }
 

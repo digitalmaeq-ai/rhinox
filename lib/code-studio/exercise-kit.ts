@@ -1,11 +1,17 @@
 // Shared pieces for the guided exercises: the types and the helpers every
 // exercise's checks use. Nothing here runs Python itself.
+import type { ChartSpec } from "./charts";
+import type { ProgramFile } from "./files";
 
 /** What one run of the learner's program produced. */
 export interface RunCapture {
   outcome: "ok" | "error" | "stopped" | "timeout" | "output-limit" | "crashed" | "failed-to-start";
   stdout: string;
   stderr: string;
+  /** The program's files after the run (absent in older tests that build a capture by hand). */
+  files?: ProgramFile[];
+  /** The charts the program drew (absent in older tests that build a capture by hand). */
+  charts?: ChartSpec[];
 }
 
 export interface CheckCase {
@@ -13,6 +19,8 @@ export interface CheckCase {
   label: string;
   /** The answers given to input(), one per call. */
   stdin: string[];
+  /** Files the program starts with (for example a CSV to read). Only for this case; the learner's own files are never touched by a check. */
+  files?: ProgramFile[];
   /** Hidden code added after the learner's program (used to call their function). */
   append?: string;
   /** Returns null when the run is right, otherwise a helpful sentence. */
@@ -169,6 +177,110 @@ export function returnCase(functionName: string, signature: string, args: Expect
         return null;
       }
       return `${call} should give ${pythonValue(expected)}, but gave ${shown(value)}.`;
+    },
+  };
+}
+
+/** The non-blank lines of a file the program left behind, or null if there is no such file. */
+export function fileLines(run: RunCapture, name: string): string[] | null {
+  const file = run.files?.find((f) => f.name === name);
+  if (!file) return null;
+  return file.text.split(/\r?\n/).filter((line) => line.trim() !== "");
+}
+
+/**
+ * A case for programs that use files. The program starts with `files`, then must
+ * print `printed` (when given) and leave `file` with exactly these lines (when given).
+ */
+export function filesCase(options: {
+  label: string;
+  stdin: string[];
+  files?: ProgramFile[];
+  printed?: string[];
+  file?: { name: string; lines: string[] };
+}): CheckCase {
+  const { label, stdin, files, printed, file } = options;
+  return {
+    label,
+    stdin,
+    files,
+    evaluate: (run) => {
+      const problem = runProblem(run);
+      if (problem) return problem;
+      if (printed) {
+        if (run.stdout.trim() === "") return "Your program did not print anything. Use print().";
+        const wrong = compareLines(printedLines(run), printed);
+        if (wrong) return wrong;
+      }
+      if (file) {
+        const actual = fileLines(run, file.name);
+        if (actual === null) {
+          return `Your program did not create ${file.name}. Open it with open("${file.name}", ...) and write to it.`;
+        }
+        for (let i = 0; i < file.lines.length; i += 1) {
+          if (actual[i] === undefined) return `${file.name} is missing line ${i + 1}. It should be: ${file.lines[i]}`;
+          if (actual[i].trim() !== file.lines[i]) {
+            return `In ${file.name}, line ${i + 1} should be: ${file.lines[i]} (yours is: ${shown(actual[i])})`;
+          }
+        }
+        if (actual.length > file.lines.length) {
+          return `${file.name} has an extra line: ${shown(actual[file.lines.length])}. It should have ${file.lines.length} line${file.lines.length === 1 ? "" : "s"}.`;
+        }
+      }
+      return null;
+    },
+  };
+}
+
+/** What a chart exercise expects the program to draw. */
+export interface ExpectedChart {
+  kind: "bar" | "line";
+  title: string;
+  xLabel?: string;
+  yLabel?: string;
+  labels: string[];
+  values: number[];
+}
+
+/** A case for programs that draw a chart: the program starts with `files` and must draw exactly this one chart. */
+export function chartCase(options: { label: string; stdin?: string[]; files?: ProgramFile[]; chart: ExpectedChart }): CheckCase {
+  const { label, files, chart } = options;
+  const word = chart.kind === "bar" ? "bar_chart" : "line_chart";
+  const other = chart.kind === "bar" ? "line_chart" : "bar_chart";
+  return {
+    label,
+    stdin: options.stdin ?? [],
+    files,
+    evaluate: (run) => {
+      const problem = runProblem(run);
+      if (problem) return problem;
+      const drawn = run.charts ?? [];
+      if (drawn.length === 0) {
+        return `Your program did not draw a chart. Write import charts, then call charts.${word}(...) with your labels, your values and a title.`;
+      }
+      if (drawn.length > 1) return `Your program drew ${drawn.length} charts. This exercise needs just one.`;
+      const got = drawn[0];
+      if (got.kind !== chart.kind) return `This chart should be drawn with ${word}, but your program used ${other}.`;
+      if (got.title !== chart.title) {
+        if (got.title.toLowerCase() === chart.title.toLowerCase()) return `Nearly! Check the capital letters in the chart title. It should be: ${chart.title}`;
+        return `The chart title should be: ${chart.title} (yours is: ${shown(got.title) || "empty"})`;
+      }
+      if (chart.xLabel !== undefined && got.xLabel !== chart.xLabel) {
+        return `The label under the chart (x_label) should be: ${chart.xLabel} (yours is: ${shown(got.xLabel) || "empty"})`;
+      }
+      if (chart.yLabel !== undefined && got.yLabel !== chart.yLabel) {
+        return `The label beside the chart (y_label) should be: ${chart.yLabel} (yours is: ${shown(got.yLabel) || "empty"})`;
+      }
+      if (got.values.length !== chart.values.length) {
+        return `The chart should show ${chart.values.length} ${chart.kind === "bar" ? "bars" : "points"}, but yours shows ${got.values.length}.`;
+      }
+      for (let i = 0; i < chart.labels.length; i += 1) {
+        if (got.labels[i] !== chart.labels[i]) return `Label ${i + 1} should be: ${chart.labels[i]} (yours is: ${shown(got.labels[i])})`;
+      }
+      for (let i = 0; i < chart.values.length; i += 1) {
+        if (Math.abs(got.values[i] - chart.values[i]) > 1e-6) return `Value ${i + 1} should be: ${chart.values[i]} (yours is: ${got.values[i]})`;
+      }
+      return null;
     },
   };
 }
