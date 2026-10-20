@@ -4,6 +4,8 @@ import dynamic from "next/dynamic";
 import Link from "next/link";
 import { useCallback, useEffect, useRef, useState, useSyncExternalStore } from "react";
 
+import { toArduinoProjectData, type ArduinoProjectData, ARDUINO_MAX_SAVED_CODE } from "@/lib/code-studio/arduino-project";
+import { createProject, getProject, updateProjectData } from "@/lib/rhinocode/projects";
 import { ARDUINO_EXAMPLES } from "@/lib/code-studio/arduino-examples";
 import { ARDUINO_EXERCISES, getArduinoExercise } from "@/lib/code-studio/exercises-arduino";
 import { markCompleted, progressFromSnapshot, progressSnapshot, saveDraft, subscribeProgress } from "@/lib/code-studio/progress";
@@ -12,6 +14,7 @@ import { emptyPins, type PinState } from "@/lib/code-studio/arduino";
 import { playTone, prepareAudio, stopTone } from "@/lib/code-studio/board-audio";
 
 import ArduinoBoard from "./ArduinoBoard";
+import OfflineBar from "./OfflineBar";
 import styles from "./CodeStudio.module.css";
 
 const PythonEditor = dynamic(() => import("./PythonEditor"), {
@@ -22,15 +25,19 @@ const PythonEditor = dynamic(() => import("./PythonEditor"), {
 const noopSubscribe = () => () => {};
 const MAX_CONSOLE_CHARS = 20_000;
 
-export default function ArduinoStudio() {
-  const [choice, setChoice] = useState(`ex:${ARDUINO_EXAMPLES[0].id}`);
+type Props = { savedId?: string | null; saved?: ArduinoProjectData | null };
+
+export default function ArduinoStudio({ savedId: initialSavedId = null, saved = null }: Props) {
+  const [savedId, setSavedId] = useState<string | null>(initialSavedId);
+  const [notice, setNotice] = useState("");
+  const [choice, setChoice] = useState(saved?.exerciseId ? `ar:${saved.exerciseId}` : saved ? "free" : `ex:${ARDUINO_EXAMPLES[0].id}`);
   const [hintsShown, setHintsShown] = useState(0);
   const [checking, setChecking] = useState(false);
   const [report, setReport] = useState<{ passed: boolean; lines: { name: string; ok: boolean; detail: string }[] } | null>(null);
   const draftTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const progress = progressFromSnapshot(useSyncExternalStore(subscribeProgress, progressSnapshot, () => ""));
   const exercise = choice.startsWith("ar:") ? getArduinoExercise(choice.slice(3)) : undefined;
-  const [initialCode, setInitialCode] = useState(ARDUINO_EXAMPLES[0].code);
+  const [initialCode, setInitialCode] = useState(saved?.code ?? ARDUINO_EXAMPLES[0].code);
   const [editorKey, setEditorKey] = useState(0);
   const [pins, setPins] = useState<PinState>(emptyPins);
   const [running, setRunning] = useState(false);
@@ -39,7 +46,7 @@ export default function ArduinoStudio() {
   const [buzzing, setBuzzing] = useState(false);
   const [muted, setMuted] = useState(false);
   const [dials, setDials] = useState<[number, number]>([512, 512]);
-  const codeRef = useRef(ARDUINO_EXAMPLES[0].code);
+  const codeRef = useRef(saved?.code ?? ARDUINO_EXAMPLES[0].code);
   const mutedRef = useRef(false);
   const runnerRef = useRef<ArduinoRunner | null>(null);
   const buzzTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -127,6 +134,8 @@ export default function ArduinoStudio() {
     }
     if (code === undefined) return;
     setChoice(value);
+    setSavedId(null);
+    setNotice("");
     codeRef.current = code;
     setInitialCode(code);
     setEditorKey((k) => k + 1);
@@ -172,6 +181,27 @@ export default function ArduinoStudio() {
     setChecking(false);
   }
 
+  function save() {
+    const code = codeRef.current;
+    if (code.length > ARDUINO_MAX_SAVED_CODE) {
+      setNotice(`This sketch is too long to save (the limit is ${ARDUINO_MAX_SAVED_CODE.toLocaleString("en")} characters).`);
+      return;
+    }
+    const data = toArduinoProjectData(exercise?.id ?? null, code);
+    if (savedId && getProject(savedId)) {
+      updateProjectData(savedId, data);
+      setNotice("Changes saved.");
+      return;
+    }
+    const created = createProject("arduino", exercise?.title ?? "My Arduino sketch", data);
+    if (!getProject(created.id)) {
+      setNotice("Could not save. Your browser may be blocking storage.");
+      return;
+    }
+    setSavedId(created.id);
+    setNotice("Saved to My Projects.");
+  }
+
   function download() {
     const url = URL.createObjectURL(new Blob([codeRef.current], { type: "text/plain;charset=utf-8" }));
     const link = document.createElement("a");
@@ -194,8 +224,11 @@ export default function ArduinoStudio() {
           </nav>
           <div className={styles.links}>
             <Link href="/coding-robotics/code-studio">Python Studio</Link>
+            <Link href="/coding-robotics/my-projects">My Projects</Link>
           </div>
         </header>
+
+        <OfflineBar kind="arduino" />
 
         <div className={styles.workspace}>
           <div className={styles.toolbar} role="toolbar" aria-label="Run controls">
@@ -208,6 +241,7 @@ export default function ArduinoStudio() {
             <label style={{ display: "inline-flex", gap: 6, alignItems: "center", fontSize: "0.85rem" }}>
               Program
               <select value={choice} onChange={(e) => choose(e.target.value)} disabled={running || checking} aria-label="Choose an example or exercise">
+                {choice === "free" && <option value="free">My saved sketch</option>}
                 <optgroup label="Examples">
                   {ARDUINO_EXAMPLES.map((e) => (
                     <option key={e.id} value={`ex:${e.id}`}>
@@ -235,11 +269,20 @@ export default function ArduinoStudio() {
                 </button>
               </>
             )}
+            <button type="button" onClick={save} disabled={running || checking}>
+              {savedId ? "Save changes" : "Save to My Projects"}
+            </button>
             <button type="button" onClick={download} title="Download this sketch as sketch.ino to open in the Arduino IDE">
               Download .ino
             </button>
             <span className={styles.note} role="status">
-              {isolated === false ? "Reload the page: it needs secure mode to run." : "Arduino Uno · runs until you press Stop · Ctrl+Enter runs"}
+              {notice || (isolated === false ? "Reload the page: it needs secure mode to run." : "Arduino Uno · runs until you press Stop · Ctrl+Enter runs")}
+              {notice.startsWith("Saved") && (
+                <>
+                  {" "}
+                  <Link href="/coding-robotics/my-projects">Open My Projects</Link>
+                </>
+              )}
             </span>
           </div>
 

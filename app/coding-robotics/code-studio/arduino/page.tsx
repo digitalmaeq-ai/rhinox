@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 
-import ArduinoStudio from "@/app/components/code-studio/ArduinoStudio";
+import ArduinoLoader from "@/app/components/code-studio/ArduinoLoader";
 
 export const metadata: Metadata = {
   title: "Arduino Studio | Rhinox Scientifica",
@@ -8,5 +8,5 @@ export const metadata: Metadata = {
 };
 
 export default function Page() {
-  return <ArduinoStudio />;
+  return <ArduinoLoader />;
 }

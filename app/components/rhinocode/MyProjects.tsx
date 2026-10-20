@@ -12,9 +12,10 @@ import styles from "./MyProjects.module.css";
 const LAB_PATH = "/coding-robotics/robot-lab";
 const GAME_PATH = "/coding-robotics/game-creator";
 const PYTHON_PATH = "/coding-robotics/code-studio";
+const ARDUINO_PATH = "/coding-robotics/code-studio/arduino";
 
 function openHref(project: Project): string {
-  const base = project.kind === "robot-program" ? LAB_PATH : project.kind === "python" ? PYTHON_PATH : GAME_PATH;
+  const base = project.kind === "robot-program" ? LAB_PATH : project.kind === "python" ? PYTHON_PATH : project.kind === "arduino" ? ARDUINO_PATH : GAME_PATH;
   return `${base}?project=${encodeURIComponent(project.id)}`;
 }
 

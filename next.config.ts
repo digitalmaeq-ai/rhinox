@@ -50,6 +50,10 @@ const workerCsp = [
 
 const nextConfig: NextConfig = {
   env: { NEXT_PUBLIC_PYODIDE_VERSION: pyodideVersion() },
+  async redirects() {
+    // Arduino Studio first lived at its own path; keep old links working.
+    return [{ source: "/coding-robotics/arduino-studio", destination: "/coding-robotics/code-studio/arduino", permanent: false }];
+  },
   async headers() {
     return [
       {
@@ -58,7 +62,7 @@ const nextConfig: NextConfig = {
       },
       {
         // Arduino Studio: the page, its worker and the language engine get the same strict rules.
-        source: "/coding-robotics/arduino-studio",
+        source: "/coding-robotics/code-studio/arduino",
         headers: [...isolation, { key: "Content-Security-Policy", value: pageCsp }],
       },
       {

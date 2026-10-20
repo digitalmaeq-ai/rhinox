@@ -311,7 +311,7 @@ through a client-side link, the page reloads itself once to pick them up.
 
 ## Arduino Studio (Stage 4.2)
 
-A separate page, `/coding-robotics/arduino-studio`, runs Arduino C++ programs on a simulated Uno kit.
+A separate page, `/coding-robotics/code-studio/arduino` (the old address `/coding-robotics/arduino-studio` redirects there), runs Arduino C++ programs on a simulated Uno kit.
 The Python Studio is not changed, except for a link and C++ colouring in the editor.
 
 **The language engine** (`public/coding-robotics/code-studio/arduino-vm.js`) reads a classroom subset of Arduino C++
@@ -342,4 +342,6 @@ worker on a **pretend clock** (`simulate()` in `arduino-vm.js`): a script presse
 looks at what the board did (pin changes, Serial text, buzzer notes). A scripted run is bounded: 3 million steps, 120 seconds of pretend time, 2,000 trace entries;
 the page re-validates the trace (`cleanSimResult`) and gives up after 15 seconds. Progress (✓) and drafts use the same browser storage as Python Studio.
 `npx tsx lib/code-studio/exercises-arduino.test.ts` proves, for every exercise, that the reference solution passes, the untouched starter fails, and a wrong try fails.
-Arduino Studio does not work offline yet, and its programs cannot be saved to My Projects yet.
+Arduino Studio sits under the Code Studio path on purpose, so the same offline service worker (scope `/coding-robotics/code-studio`) and the same saved-copy cache cover it
+(its worker and engine must be inside the scope for the service worker to serve them). Its "Save for offline use" bar saves only its own page, worker, engine and the site files it loaded (about 3 MB, no Python runtime).
+"Remove saved copy" removes the whole saved copy, Python Studio's too. Sketches are saved to My Projects as kind `arduino` and reopen from there (`?project=<id>`).
