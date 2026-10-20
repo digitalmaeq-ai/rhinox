@@ -275,6 +275,17 @@ export default function CodeStudio({ savedId: initialSavedId, savedProject }: Pr
     if (result.passed) markCompleted(exercise.id);
   }
 
+  function downloadProgram() {
+    const url = URL.createObjectURL(new Blob([codeRef.current], { type: "text/x-python;charset=utf-8" }));
+    const link = document.createElement("a");
+    link.href = url;
+    link.download = "main.py";
+    document.body.appendChild(link);
+    link.click();
+    link.remove();
+    setTimeout(() => URL.revokeObjectURL(url), 1000);
+  }
+
   function save() {
     const code = codeRef.current;
     if (code.length > MAX_CODE_CHARS) {
@@ -350,6 +361,11 @@ export default function CodeStudio({ savedId: initialSavedId, savedProject }: Pr
           <button type="button" onClick={resetCode} disabled={busy || checking}>
             Reset
           </button>
+          {boardProgram && (
+            <button type="button" onClick={downloadProgram} title="Download this program as main.py to put on a real micro:bit (python.microbit.org)">
+              Download .py
+            </button>
+          )}
           <button type="button" onClick={save} disabled={busy || checking}>
             {savedId ? "Save changes" : "Save to My Projects"}
           </button>

@@ -349,4 +349,107 @@ while True:
   ],
 };
 
-export const MICROBIT_EXERCISES: Exercise[] = [hello, buttons, counter, lightDetective, hot, musicBox, dice];
+// ---- 8. Scroll a message (Year 5, Term 1, Week 1) ---------------------------------
+
+const scroll: Exercise = {
+  id: "mb-scroll",
+  group: "micro:bit",
+  lesson: "Year 5, Term 1, Week 1",
+  title: "Scroll a message",
+  summary: "Move words across the lights.",
+  instructions: [
+    "Numbers fit on the 25 lights, but words are too wide, so the micro:bit scrolls them from right to left.",
+    "Make the micro:bit scroll the word RHINO once, then stop.",
+  ],
+  starter: `${HEADER}
+# Scroll the word RHINO across the lights
+`,
+  hints: [
+    "display.scroll(...) moves text across the lights.",
+    "Text goes inside quotes: display.scroll(\"Hello\").",
+    'display.scroll("RHINO")',
+  ],
+  cases: [
+    boardCase("Scrolls RHINO", { events: [], duration: 20000 }, (trace) => {
+      if (trace.frames.length === 0) return "Nothing was shown on the lights. Use display.scroll(...).";
+      if (trace.frames.length < 20) return "That is too short to be the word RHINO. Check that you scrolled the whole word, in capitals.";
+      if (trace.frames.length > 120) return "That scrolled for too long. Scroll the word RHINO once.";
+      if (trace.leds !== "0".repeat(25)) return "When the word has gone past, the lights should be empty.";
+      return null;
+    }),
+  ],
+};
+
+// ---- 9. Forever and count (Year 5, Term 1, Week 3) --------------------------------
+
+const foreverCount: Exercise = {
+  id: "mb-forever",
+  group: "micro:bit",
+  lesson: "Year 5, Term 1, Week 3",
+  title: "Forever and count",
+  summary: "Count the seconds on the lights.",
+  instructions: [
+    "A loop that never ends lets the micro:bit keep working. Build a seconds counter: it shows 1 after one second, 2 after two seconds, and so on. It only needs to count up to 9.",
+    "sleep(1000) waits one second (1000 milliseconds).",
+  ],
+  starter: `${HEADER}
+count = 0
+while count < 9:
+    sleep(100)  # this waits only a tenth of a second: change it to one second
+    # Then add 1 to count and show it
+`,
+  hints: [
+    "Do the steps in order: sleep(1000), then count = count + 1, then display.show(count).",
+    "Change the sleep to 1000, then add the other two lines underneath, indented the same.",
+    "sleep(1000)  count = count + 1  display.show(count)",
+  ],
+  cases: [
+    boardCase("Counts the seconds", { events: [], duration: 12000 }, (trace) =>
+      expectAt(trace, 1500, digitLeds(1), "After one second") ??
+      expectAt(trace, 3500, digitLeds(3), "After three seconds") ??
+      expectAt(trace, 6500, digitLeds(6), "After six seconds") ??
+      expectAt(trace, 11000, digitLeds(9), "After nine seconds"),
+    ),
+  ],
+};
+
+// ---- 10. Ike's smart night light (Year 5, Term 2, Week 9) ---------------------------
+
+const nightLight: Exercise = {
+  id: "mb-night-light",
+  group: "micro:bit",
+  lesson: "Year 5, Term 2, Week 9",
+  title: "Ike's smart night light",
+  summary: "Switch every light on when it gets dark.",
+  instructions: [
+    "Make a night light. When the light level is below 50 (dark), switch all 25 lights on at full brightness. When it is 50 or more, switch them all off.",
+    "Image('99999:99999:99999:99999:99999') is a picture with every light at brightness 9. display.clear() switches them all off.",
+  ],
+  starter: `${HEADER}
+while True:
+    level = display.read_light_level()
+    # Dark (below 50): all lights on. Otherwise: all lights off.
+    sleep(100)
+`,
+  hints: [
+    "if level < 50:  then display.show(...) for the full picture, else:  display.clear()",
+    "The full picture is Image('99999:99999:99999:99999:99999').",
+    "if level < 50:  display.show(Image('99999:99999:99999:99999:99999'))  else:  display.clear()",
+  ],
+  cases: [
+    boardCase(
+      "Day, night, day",
+      { duration: 4000, events: [{ at: 0, do: "set", light: 180 }, { at: 1200, do: "set", light: 10 }, { at: 2600, do: "set", light: 150 }] },
+      (trace) =>
+        (ledsAt(trace, 900) === "0".repeat(25) ? null : "In daylight, all the lights should be off.") ??
+        (ledsAt(trace, 2200) === "9".repeat(25) ? null : "In the dark, all 25 lights should be on at full brightness (9).") ??
+        (ledsAt(trace, 3800) === "0".repeat(25) ? null : "When the light comes back, all the lights should go off."),
+    ),
+    boardCase("Right on the line", { duration: 2000, events: [{ at: 0, do: "set", light: 50 }, { at: 800, do: "set", light: 49 }] }, (trace) =>
+      (ledsAt(trace, 600) === "0".repeat(25) ? null : "At a light level of 50 the lights should be off.") ??
+      (ledsAt(trace, 1800) === "9".repeat(25) ? null : "At a light level of 49 the lights should be on."),
+    ),
+  ],
+};
+
+export const MICROBIT_EXERCISES: Exercise[] = [hello, scroll, buttons, counter, foreverCount, lightDetective, hot, nightLight, musicBox, dice];

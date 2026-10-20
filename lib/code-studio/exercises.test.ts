@@ -316,6 +316,25 @@ for line in lines:
 print(f"Average time: {seconds / count:.1f} seconds")
 print(f"Total errors: {errors}")
 `,
+  "mb-scroll": `from microbit import *
+display.scroll("RHINO")
+`,
+  "mb-forever": `from microbit import *
+count = 0
+while count < 9:
+    sleep(1000)
+    count = count + 1
+    display.show(count)
+`,
+  "mb-night-light": `from microbit import *
+while True:
+    level = display.read_light_level()
+    if level < 50:
+        display.show(Image('99999:99999:99999:99999:99999'))
+    else:
+        display.clear()
+    sleep(100)
+`,
   "mb-hello": `from microbit import *
 display.show(Image.HEART)
 `,
@@ -387,8 +406,8 @@ async function main() {
   const runner = await makeRunner();
 
   await test("there are five starters and ten, ten and eleven exercises for Years 7, 8 and 9, each with a starter, hints and checks", () => {
-    assert.equal(EXERCISES.length, 43);
-    assert.equal(EXERCISES.filter((e) => e.group === "micro:bit").length, 7);
+    assert.equal(EXERCISES.length, 46);
+    assert.equal(EXERCISES.filter((e) => e.group === "micro:bit").length, 10);
     assert.equal(EXERCISES.filter((e) => e.group === "Starter").length, 5);
     assert.equal(EXERCISES.filter((e) => e.group === "Year 7").length, 10);
     assert.equal(EXERCISES.filter((e) => e.group === "Year 8").length, 10);
@@ -396,7 +415,7 @@ async function main() {
     assert.ok(EXERCISES.filter((e) => e.group.startsWith("Year")).every((e) => e.lesson && /^Term [123], Week \d+$/.test(e.lesson)));
     assert.ok(EXERCISES.filter((e) => e.group === "micro:bit").every((e) => e.lesson && /^Year [4-8], Term [123], Week \d+$/.test(e.lesson)));
     const ids = new Set(EXERCISES.map((e) => e.id));
-    assert.equal(ids.size, 43);
+    assert.equal(ids.size, 46);
     for (const e of EXERCISES) {
       assert.ok(e.starter.length > 0 && e.hints.length >= 2 && e.cases.length >= 1 && e.instructions.length >= 1, e.id);
       assert.ok(SOLUTIONS[e.id], `solution for ${e.id}`);
@@ -601,6 +620,9 @@ async function main() {
     await failsWith("mb-hot", SOLUTIONS["mb-hot"].replace(">= 30", "> 30"), /exactly 30/);
     await failsWith("mb-music", SOLUTIONS["mb-music"].replace("'d4:4', ", ""), /three notes/);
     await failsWith("mb-music", "from microbit import *\nimport music\nmusic.play(['c4:4', 'd4:4', 'e4:4'])\n", /before button A|only play when A/);
+    await failsWith("mb-scroll", 'from microbit import *\ndisplay.scroll("R")\n', /too short/);
+    await failsWith("mb-forever", SOLUTIONS["mb-forever"].replace("1000", "500"), /After one second|After three seconds/);
+    await failsWith("mb-night-light", SOLUTIONS["mb-night-light"].replace("< 50", "<= 50"), /light level of 50/);
     await failsWith("mb-dice", SOLUTIONS["mb-dice"].replace("random.randint(1, 6)", "4"), /same number every time/);
     await failsWith("mb-dice", SOLUTIONS["mb-dice"].replace("random.randint(1, 6)", "random.randint(1, 9)"), /from 1 to 6|same number/);
   });
