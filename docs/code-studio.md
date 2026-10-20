@@ -333,4 +333,13 @@ without the pull-up a held button reads HIGH), dials on A0 and A1, a buzzer on p
 | Test | What it checks |
 | --- | --- |
 | `npx tsx lib/code-studio/arduino.test.ts` | the language engine (11 groups of checks) |
-| `node scripts/arduino-browser-tests.cjs http://localhost:3000` | headers, blink, button, dial, Serial, buzzer, error messages, endless loops, Serial flood, recursion, recovery (24 checks) |
+| `node scripts/arduino-browser-tests.cjs http://localhost:3000` | headers, blink, button, dial, Serial, buzzer, error messages, endless loops, Serial flood, recursion, recovery (28 checks) |
+
+### Arduino exercises and checks (Stage 4.3)
+
+Arduino Studio has 8 guided exercises (`lib/code-studio/exercises-arduino.ts`). "Check my work" runs the program in a scripted
+worker on a **pretend clock** (`simulate()` in `arduino-vm.js`): a script presses buttons and turns dials at set times, and the check
+looks at what the board did (pin changes, Serial text, buzzer notes). A scripted run is bounded: 3 million steps, 120 seconds of pretend time, 2,000 trace entries;
+the page re-validates the trace (`cleanSimResult`) and gives up after 15 seconds. Progress (✓) and drafts use the same browser storage as Python Studio.
+`npx tsx lib/code-studio/exercises-arduino.test.ts` proves, for every exercise, that the reference solution passes, the untouched starter fails, and a wrong try fails.
+Arduino Studio does not work offline yet, and its programs cannot be saved to My Projects yet.

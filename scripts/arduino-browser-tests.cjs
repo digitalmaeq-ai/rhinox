@@ -59,7 +59,7 @@ async function headersOf(path) {
     await page.waitForFunction(() => /^Run$/.test([...document.querySelectorAll("button")].find((b) => /^(Run|Running…)$/.test(b.textContent || ""))?.textContent || ""), null, { timeout: 8000 }).catch(() => {});
   }
   async function pickExample(id) {
-    await page.selectOption('select[aria-label="Choose an example program"]', id);
+    await page.selectOption('select[aria-label="Choose an example or exercise"]', id.includes(":") ? id : "ex:" + id);
     await sleep(400);
   }
   async function waitFor(fn, ms = 6000) {
@@ -155,6 +155,19 @@ async function headersOf(path) {
   await runButton.click();
   check("The page recovers and runs a normal program afterwards", await waitFor(async () => (await lit(13)) === "1", 4000));
   await stop();
+
+  // Exercises
+  await pickExample("ar:ar-blink-fast");
+  await page.getByRole("button", { name: "Check my work" }).click();
+  check("An untouched exercise does not pass", await waitFor(async () => (await page.locator('[role="status"][data-passed]').count()) > 0 && (await page.locator('[role="status"][data-passed="0"]').count()) === 1, 15000));
+  await type("void setup(){ pinMode(13, OUTPUT); } void loop(){ digitalWrite(13, HIGH); delay(250); digitalWrite(13, LOW); delay(250); }");
+  await page.getByRole("button", { name: "Check my work" }).click();
+  check("A correct solution passes and is marked done", (await waitFor(async () => (await page.locator('[role="status"][data-passed="1"]').count()) === 1, 15000)) && (await page.locator("option", { hasText: "✓ Blink faster" }).count()) === 1);
+  await type("void setup(){ while(true){} } void loop(){}");
+  await page.getByRole("button", { name: "Check my work" }).click();
+  check("A check on an endless loop finishes with an explanation", await waitFor(async () => /too much work/.test(await page.locator('[role="status"][data-passed]').innerText().catch(() => "")), 25000));
+  await pickExample("ar:ar-sum");
+  check("Switching exercise keeps the page working", (await page.getByText("Add up with a loop").count()) > 0);
 
   // Python Studio is not disturbed
   await page.goto(BASE + "/coding-robotics/code-studio", { waitUntil: "load" });
