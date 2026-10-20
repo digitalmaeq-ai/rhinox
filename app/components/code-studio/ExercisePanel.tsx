@@ -37,7 +37,7 @@ export default function ExercisePanel({ exercise, completed, hintsShown, report,
 
   return (
     <aside className={styles.side} aria-label="Exercises">
-      <nav aria-label="Choose an exercise">
+      <nav aria-label="Choose an exercise" className={styles.exerciseNav} tabIndex={0}>
         {GROUPS.map(({ name, label }) => {
           const items = EXERCISES.filter((item) => item.group === name);
           const doneCount = items.filter((item) => completed.includes(item.id)).length;

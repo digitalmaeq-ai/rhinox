@@ -548,3 +548,11 @@
   text-transform: uppercase;
   color: #44608a;
 }
+
+/* The exercise list scrolls on its own, so the task and its buttons stay in view. */
+.exerciseNav {
+  max-height: clamp(150px, 30dvh, 280px);
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  padding-right: 4px;
+}
