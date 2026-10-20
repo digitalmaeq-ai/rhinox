@@ -2,6 +2,7 @@
 // exercise's checks use. Nothing here runs Python itself.
 import type { ChartSpec } from "./charts";
 import type { ProgramFile } from "./files";
+import type { DeviceScript, DeviceTrace } from "./microbit";
 
 /** What one run of the learner's program produced. */
 export interface RunCapture {
@@ -12,6 +13,8 @@ export interface RunCapture {
   files?: ProgramFile[];
   /** The charts the program drew (absent in older tests that build a capture by hand). */
   charts?: ChartSpec[];
+  /** What the program did on the micro:bit board (only for cases that run the scripted board). */
+  device?: DeviceTrace;
 }
 
 export interface CheckCase {
@@ -21,6 +24,8 @@ export interface CheckCase {
   stdin: string[];
   /** Files the program starts with (for example a CSV to read). Only for this case; the learner's own files are never touched by a check. */
   files?: ProgramFile[];
+  /** Run the program on the scripted micro:bit board: buttons and sensors change at pretend times. */
+  board?: DeviceScript;
   /** Hidden code added after the learner's program (used to call their function). */
   append?: string;
   /** Returns null when the run is right, otherwise a helpful sentence. */
@@ -28,7 +33,7 @@ export interface CheckCase {
 }
 
 /** The lesson group an exercise belongs to. More years are added here. */
-export type ExerciseGroup = "Starter" | "Year 7" | "Year 8" | "Year 9";
+export type ExerciseGroup = "Starter" | "Year 7" | "Year 8" | "Year 9" | "micro:bit";
 
 export interface Exercise {
   id: string;

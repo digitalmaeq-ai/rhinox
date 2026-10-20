@@ -834,3 +834,136 @@
   flex: 1 1 160px;
   max-width: 280px;
 }
+
+/* ---- micro:bit board ---- */
+.board {
+  margin-top: 12px;
+  border: 1px solid #c4d6ee;
+  border-radius: 12px;
+  background: #fff;
+  overflow: hidden;
+}
+
+.boardTitle {
+  margin: 0;
+  padding: 9px 14px;
+  font-size: 0.82rem;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: #123b73;
+  background: #e5eefb;
+  border-bottom: 1px solid #c4d6ee;
+}
+
+.boardBody {
+  display: grid;
+  grid-template-columns: minmax(0, 340px) minmax(0, 1fr);
+  gap: 16px;
+  padding: 14px;
+  align-items: start;
+}
+
+@media (max-width: 760px) {
+  .boardBody {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+.boardArt {
+  display: grid;
+  gap: 8px;
+}
+
+.boardSvg {
+  width: 100%;
+  height: auto;
+  max-width: 340px;
+  margin-inline: auto;
+  touch-action: manipulation;
+  user-select: none;
+  -webkit-user-select: none;
+}
+
+.boardPart {
+  cursor: pointer;
+  outline: none;
+}
+
+.boardPart:focus-visible {
+  filter: drop-shadow(0 0 4px #ffb020);
+}
+
+.boardPart:active {
+  transform: translateY(1px);
+}
+
+.boardNote {
+  margin: 0;
+  text-align: center;
+  font-size: 0.85rem;
+  color: #475569;
+}
+
+.boardControls {
+  display: grid;
+  gap: 12px;
+}
+
+.boardGroup {
+  margin: 0;
+  padding: 8px 12px 12px;
+  border: 1px solid #d6e4f5;
+  border-radius: 10px;
+  display: grid;
+  gap: 8px;
+}
+
+.boardGroup legend {
+  padding: 0 6px;
+  font-size: 0.8rem;
+  font-weight: 700;
+  color: #123b73;
+}
+
+.boardRow {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.boardRow button {
+  padding: 6px 10px;
+  border: 1px solid #9fbbe0;
+  border-radius: 8px;
+  background: #f4f8fe;
+  color: #123b73;
+  font: inherit;
+  font-size: 0.85rem;
+  cursor: pointer;
+}
+
+.boardRow button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.boardSlider {
+  display: grid;
+  gap: 2px;
+  font-size: 0.85rem;
+  color: #334155;
+}
+
+.boardSlider span {
+  display: flex;
+  justify-content: space-between;
+}
+
+.boardSlider input {
+  width: 100%;
+}
+
+.boardMute {
+  font-size: 0.85rem;
+  color: #334155;
+}

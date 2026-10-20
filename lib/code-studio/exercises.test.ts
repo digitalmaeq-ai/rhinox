@@ -10,6 +10,7 @@ import { loadPyodide } from "pyodide";
 
 import { runChecks, type CheckRunner } from "./check-runner";
 import { EXERCISES, getExercise, type RunCapture } from "./exercises";
+import { cleanScript, cleanTrace } from "./microbit";
 import { MAX_CODE_CHARS, parseProjectData, toProjectData } from "./project";
 import { parseProgress, progressFromSnapshot, progressSnapshot, markCompleted, saveDraft, PROGRESS_KEY, type KeyValue } from "./progress";
 
@@ -29,6 +30,7 @@ async function makeRunner(): Promise<CheckRunner> {
   const scope = pyodide.toPy({});
   pyodide.runPython(setup as string, { globals: scope });
   const runPython = scope.get("run");
+  scope.get("install_microbit")(readFileSync(join(process.cwd(), "public/coding-robotics/code-studio/microbit.py"), "utf8"));
   let lines: string[] = [];
   let out = "";
   let err = "";
@@ -55,11 +57,15 @@ async function makeRunner(): Promise<CheckRunner> {
       let ok = false;
       let files: { name: string; text: string }[] = [];
       let charts: RunCapture["charts"] = [];
+      let device: RunCapture["device"];
       try {
-        const reply = JSON.parse(runPython(code, JSON.stringify(options.files ?? [])));
+        const reply = JSON.parse(
+          runPython(code, JSON.stringify(options.files ?? []), options.board ? "script" : "", options.board ? JSON.stringify(cleanScript(options.board)) : ""),
+        );
         ok = reply.ok === true;
         files = reply.files;
         charts = reply.charts;
+        device = cleanTrace(reply.device);
       } catch {
         ok = false;
       }
@@ -68,7 +74,7 @@ async function makeRunner(): Promise<CheckRunner> {
       } catch {
         // a flush after the output limit was hit is discarded, as in the worker
       }
-      const capture: RunCapture & { ms: number } = { outcome: limitHit ? "output-limit" : ok ? "ok" : "error", stdout: out, stderr: err, ms: 0, files, charts };
+      const capture: RunCapture & { ms: number } = { outcome: limitHit ? "output-limit" : ok ? "ok" : "error", stdout: out, stderr: err, ms: 0, files, charts, device };
       return capture;
     },
   };
@@ -310,6 +316,62 @@ for line in lines:
 print(f"Average time: {seconds / count:.1f} seconds")
 print(f"Total errors: {errors}")
 `,
+  "mb-hello": `from microbit import *
+display.show(Image.HEART)
+`,
+  "mb-buttons": `from microbit import *
+while True:
+    if button_a.is_pressed():
+        display.show(Image.HAPPY)
+    if button_b.is_pressed():
+        display.show(Image.SAD)
+    sleep(50)
+`,
+  "mb-counter": `from microbit import *
+count = 0
+display.show(count)
+while True:
+    if button_a.was_pressed():
+        count = count + 1
+        display.show(count)
+    if button_b.was_pressed():
+        count = 0
+        display.show(count)
+    sleep(50)
+`,
+  "mb-light": `from microbit import *
+while True:
+    level = display.read_light_level()
+    if level < 60:
+        display.show(Image.ASLEEP)
+    else:
+        display.show(Image.HAPPY)
+    sleep(100)
+`,
+  "mb-hot": `from microbit import *
+while True:
+    heat = temperature()
+    if heat >= 30:
+        display.show(Image.SURPRISED)
+    else:
+        display.show(Image.HAPPY)
+    sleep(200)
+`,
+  "mb-music": `from microbit import *
+import music
+while True:
+    if button_a.was_pressed():
+        music.play(['c4:4', 'd4:4', 'e4:4'])
+    sleep(50)
+`,
+  "mb-dice": `from microbit import *
+import random
+display.show("?")
+while True:
+    if accelerometer.was_gesture('shake'):
+        display.show(random.randint(1, 6))
+    sleep(100)
+`,
   "y7-distance-travelled": `def distance_travelled(speed, seconds):
     return speed * seconds
 
@@ -325,14 +387,16 @@ async function main() {
   const runner = await makeRunner();
 
   await test("there are five starters and ten, ten and eleven exercises for Years 7, 8 and 9, each with a starter, hints and checks", () => {
-    assert.equal(EXERCISES.length, 36);
+    assert.equal(EXERCISES.length, 43);
+    assert.equal(EXERCISES.filter((e) => e.group === "micro:bit").length, 7);
     assert.equal(EXERCISES.filter((e) => e.group === "Starter").length, 5);
     assert.equal(EXERCISES.filter((e) => e.group === "Year 7").length, 10);
     assert.equal(EXERCISES.filter((e) => e.group === "Year 8").length, 10);
     assert.equal(EXERCISES.filter((e) => e.group === "Year 9").length, 11);
-    assert.ok(EXERCISES.filter((e) => e.group !== "Starter").every((e) => e.lesson && /^Term [123], Week \d+$/.test(e.lesson)));
+    assert.ok(EXERCISES.filter((e) => e.group.startsWith("Year")).every((e) => e.lesson && /^Term [123], Week \d+$/.test(e.lesson)));
+    assert.ok(EXERCISES.filter((e) => e.group === "micro:bit").every((e) => e.lesson && /^Year [4-8], Term [123], Week \d+$/.test(e.lesson)));
     const ids = new Set(EXERCISES.map((e) => e.id));
-    assert.equal(ids.size, 36);
+    assert.equal(ids.size, 43);
     for (const e of EXERCISES) {
       assert.ok(e.starter.length > 0 && e.hints.length >= 2 && e.cases.length >= 1 && e.instructions.length >= 1, e.id);
       assert.ok(SOLUTIONS[e.id], `solution for ${e.id}`);
@@ -524,6 +588,21 @@ async function main() {
     await failsWith("y9-chart-test-log", readLog + 'charts.line_chart(runs, secs, "Test times", "Run", "Seconds")\ncharts.line_chart(runs, secs, "Test times", "Run", "Seconds")', /drew 2 charts/);
     await failsWith("y8-chart-readings", 'import charts\nv = [int(x) for x in open("climate.txt").read().split()]\ncharts.bar_chart(v, v, "Daily temperatures", "Day", "Degrees")', /Label 1 should be: Day 1/);
     await failsWith("y8-chart-readings", 'import charts\nv = [int(x) for x in open("climate.txt").read().split()]\ncharts.bar_chart([f"Day {i+1}" for i in range(len(v))], v, "Temperatures", "Day", "Degrees")', /title should be: Daily temperatures/);
+  });
+
+  await test("micro:bit: common wrong answers are explained", async () => {
+    await failsWith("mb-hello", "from microbit import *\ndisplay.show(Image.SAD)\n", /should show a heart, but they show a sad face/);
+    await failsWith("mb-hello", "from microbit import *\nprint('hi')\n", /Nothing was shown/);
+    await failsWith("mb-hello", "print('no import')\n", /micro:bit board did not run|Your program stopped with an error|Nothing was shown/);
+    await failsWith("mb-buttons", SOLUTIONS["mb-buttons"].replace("Image.HAPPY", "Image.SAD"), /After button A is pressed/);
+    await failsWith("mb-counter", SOLUTIONS["mb-counter"].replace("count + 1", "count + 2"), /After one press of A/);
+    await failsWith("mb-counter", SOLUTIONS["mb-counter"].replace("button_b.was_pressed", "button_a.is_pressed"), /After|At the start|should show/);
+    await failsWith("mb-light", SOLUTIONS["mb-light"].replace("< 60", "<= 60"), /light level of 60/);
+    await failsWith("mb-hot", SOLUTIONS["mb-hot"].replace(">= 30", "> 30"), /exactly 30/);
+    await failsWith("mb-music", SOLUTIONS["mb-music"].replace("'d4:4', ", ""), /three notes/);
+    await failsWith("mb-music", "from microbit import *\nimport music\nmusic.play(['c4:4', 'd4:4', 'e4:4'])\n", /before button A|only play when A/);
+    await failsWith("mb-dice", SOLUTIONS["mb-dice"].replace("random.randint(1, 6)", "4"), /same number every time/);
+    await failsWith("mb-dice", SOLUTIONS["mb-dice"].replace("random.randint(1, 6)", "random.randint(1, 9)"), /from 1 to 6|same number/);
   });
 
   console.log(`\n${passed} tests passed`);

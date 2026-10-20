@@ -12,6 +12,20 @@ import {
 } from "./limits";
 import { cleanCharts, type ChartSpec } from "./charts";
 import { cleanFiles, type ProgramFile } from "./files";
+import {
+  cleanDeviceEvent,
+  cleanScript,
+  cleanTrace,
+  DEVICE_RUN_TIMEOUT_MS,
+  GESTURE_CODES,
+  INPUT,
+  INPUT_SLOTS,
+  usesMicrobit,
+  type DeviceEvent,
+  type DeviceScript,
+  type DeviceTrace,
+  type GestureName,
+} from "./microbit";
 
 export type RunnerStatus = "idle" | "starting" | "running" | "waiting-input";
 
@@ -37,7 +51,14 @@ export type RunResult = {
   charts: ChartSpec[];
   /** Set when the worker handed back files that had to be dropped. */
   fileNotes?: string[];
+  /** What the program did on the scripted micro:bit board (only for runs given a board script). */
+  device?: DeviceTrace;
 };
+
+/** What the board's sensors read. Tilt is in milli-g (about -1024 to 1024), temperature in °C, light 0-255. */
+export type SensorValues = { x: number; y: number; z: number; temperature: number; light: number };
+
+export const DEFAULT_SENSORS: SensorValues = { x: 0, y: 0, z: -1024, temperature: 21, light: 128 };
 
 export type RunOptions = {
   /** The files the program can open. They are handed to the worker for this run only. */
@@ -46,11 +67,17 @@ export type RunOptions = {
   scripted?: boolean;
   /** Do not show the output in the console (used by exercise checks). */
   quiet?: boolean;
+  /** Where the board's sensors start (a live micro:bit run). */
+  sensors?: SensorValues;
+  /** Run on the scripted micro:bit board (exercise checks): buttons and sensors change at pretend times. */
+  board?: DeviceScript;
 };
 
 export type RunnerListener = {
   onOutput: (stream: "stdout" | "stderr", text: string) => void;
   onStatus: (status: RunnerStatus) => void;
+  /** The live micro:bit board changed (lights, sound, pins). Only called for live board runs. */
+  onDevice?: (event: DeviceEvent) => void;
 };
 
 type WorkerMessage =
@@ -58,7 +85,8 @@ type WorkerMessage =
   | { type: "fatal"; message: string }
   | { type: "out"; stream: "stdout" | "stderr"; text: string }
   | { type: "input-request" }
-  | { type: "done"; id: number; ok: boolean; outputLimit: boolean; ms: number; heapMB: number; files: unknown[] | null; charts: unknown[] };
+  | { type: "device"; event: DeviceEvent }
+  | { type: "done"; id: number; ok: boolean; outputLimit: boolean; ms: number; heapMB: number; files: unknown[] | null; charts: unknown[]; device: unknown };
 
 // Only these exact shapes are accepted. Anything else from the worker is ignored.
 function parseMessage(data: unknown): WorkerMessage | null {
@@ -75,6 +103,10 @@ function parseMessage(data: unknown): WorkerMessage | null {
         return { type: "out", stream: m.stream, text: m.text.slice(0, HARD_OUTPUT_CAP_CHARS) };
       }
       return null;
+    case "device": {
+      const event = cleanDeviceEvent(m);
+      return event ? { type: "device", event } : null;
+    }
     case "done":
       return {
         type: "done",
@@ -85,16 +117,26 @@ function parseMessage(data: unknown): WorkerMessage | null {
         heapMB: Number(m.heapMB) || 0,
         files: Array.isArray(m.files) ? m.files.slice(0, 100) : null,
         charts: Array.isArray(m.charts) ? m.charts.slice(0, 20) : [],
+        device: m.device,
       };
     default:
       return null;
   }
 }
 
+function clampInt(value: number, low: number, high: number): number {
+  const n = Math.round(Number(value));
+  return Number.isFinite(n) ? Math.max(low, Math.min(high, n)) : low;
+}
+
 export class PythonRunner {
   private worker: Worker | null = null;
   private ready: Promise<void> | null = null;
   private inputBuffer: SharedArrayBuffer | null = null;
+  private boardBuffer: SharedArrayBuffer | null = null;
+  private boardInputs: Int32Array | null = null;
+  private liveBoard = false;
+  private sensors: SensorValues = DEFAULT_SENSORS;
   private status: RunnerStatus = "idle";
   private listener: RunnerListener;
   private runId = 0;
@@ -138,6 +180,9 @@ export class PythonRunner {
     this.worker = null;
     this.ready = null;
     this.inputBuffer = null;
+    this.boardBuffer = null;
+    this.boardInputs = null;
+    this.liveBoard = false;
     this.clearTimer();
   }
 
@@ -206,8 +251,12 @@ export class PythonRunner {
       worker.onmessageerror = () => {
         if (this.finish) this.end("crashed");
       };
-      if (this.interactiveInput) this.inputBuffer = new SharedArrayBuffer(8 + MAX_INPUT_CHARS * 4);
-      worker.postMessage({ type: "init", baseUrl: PYODIDE_BASE, inputBuffer: this.inputBuffer });
+      if (this.interactiveInput) {
+        this.inputBuffer = new SharedArrayBuffer(8 + MAX_INPUT_CHARS * 4);
+        this.boardBuffer = new SharedArrayBuffer(INPUT_SLOTS * 4);
+        this.boardInputs = new Int32Array(this.boardBuffer);
+      }
+      worker.postMessage({ type: "init", baseUrl: PYODIDE_BASE, inputBuffer: this.inputBuffer, boardBuffer: this.boardBuffer });
     });
     return this.ready;
   }
@@ -223,6 +272,8 @@ export class PythonRunner {
       if (message.stream === "stderr") this.stderr += message.text;
       else this.stdout += message.text;
       if (!this.quiet) this.listener.onOutput(message.stream, message.text);
+    } else if (message.type === "device") {
+      if (this.liveBoard) this.listener.onDevice?.(message.event);
     } else if (message.type === "input-request") {
       this.pauseTimer();
       this.setStatus("waiting-input");
@@ -240,6 +291,7 @@ export class PythonRunner {
         stderr: this.stderr,
         files: returned ? returned.files : this.startFiles,
         charts: cleanCharts(message.charts),
+        device: cleanTrace(message.device),
         fileNotes: returned && returned.notes.length > 0 ? returned.notes : undefined,
       };
       // Python's memory only ever grows. After a heavy run, start a clean worker.
@@ -270,11 +322,27 @@ export class PythonRunner {
       this.finish = resolve;
       this.runId += 1;
       this.outputChars = 0;
-      this.remainingMs = RUN_TIMEOUT_MS;
+      // A micro:bit program that is not a check runs on the live board, in real time. It has its own
+      // (much longer) limit, because a board program is normally a forever loop. Stop always works.
+      const board = options.board ? cleanScript(options.board) : null;
+      const live = !board && options.scripted !== true && this.boardBuffer !== null && usesMicrobit(code);
+      this.liveBoard = live;
+      if (options.sensors) this.sensors = options.sensors;
+      if (live) this.resetBoardInputs();
+      this.remainingMs = live ? DEVICE_RUN_TIMEOUT_MS : RUN_TIMEOUT_MS;
       this.runStartedAt = performance.now();
       this.setStatus("running");
       this.armTimer();
-      this.worker?.postMessage({ type: "run", id: this.runId, code, stdinLines, scripted: options.scripted === true, files: this.startFiles });
+      this.worker?.postMessage({
+        type: "run",
+        id: this.runId,
+        code,
+        stdinLines,
+        scripted: options.scripted === true,
+        files: this.startFiles,
+        device: board ? "script" : live ? "live" : "",
+        script: board ?? undefined,
+      });
     });
   }
 
@@ -289,6 +357,57 @@ export class PythonRunner {
     this.armTimer();
     Atomics.store(flag, 0, 1);
     Atomics.notify(flag, 0);
+  }
+
+  /** True while a live micro:bit program is running. */
+  get boardRunning(): boolean {
+    return this.liveBoard && this.status !== "idle";
+  }
+
+  private resetBoardInputs() {
+    const v = this.boardInputs;
+    if (!v) return;
+    for (let i = 0; i < INPUT_SLOTS; i += 1) Atomics.store(v, i, 0);
+    this.setSensors(this.sensors);
+  }
+
+  /** Puts the sensors back where they were, for a new run (the page calls this with the sliders' values). */
+  setSensors(values: SensorValues) {
+    // Remembered even when no run is going yet, so a slider moved while Python is still starting is not lost.
+    this.sensors = values;
+    const v = this.boardInputs;
+    if (!v) return;
+    Atomics.store(v, INPUT.x, clampInt(values.x, -2048, 2048));
+    Atomics.store(v, INPUT.y, clampInt(values.y, -2048, 2048));
+    Atomics.store(v, INPUT.z, clampInt(values.z, -2048, 2048));
+    Atomics.store(v, INPUT.temperature, clampInt(values.temperature, -5, 50));
+    Atomics.store(v, INPUT.light, clampInt(values.light, 0, 255));
+  }
+
+  /** A button or the logo goes down (true) or up (false). Counts a press when it goes down. */
+  setButton(button: "a" | "b" | "logo", down: boolean) {
+    const v = this.boardInputs;
+    if (!v || !this.liveBoard) return;
+    const slot = button === "a" ? INPUT.a : button === "b" ? INPUT.b : INPUT.logo;
+    const counter = button === "a" ? INPUT.aPresses : button === "b" ? INPUT.bPresses : INPUT.logoPresses;
+    if (down && Atomics.load(v, slot) === 0) Atomics.add(v, counter, 1);
+    Atomics.store(v, slot, down ? 1 : 0);
+  }
+
+  /** Pins 0 to 2: a voltage (0-1023) or a touch. */
+  setPin(pin: 0 | 1 | 2, value: number, touched?: boolean) {
+    const v = this.boardInputs;
+    if (!v) return;
+    Atomics.store(v, INPUT.pin0 + pin, clampInt(value, 0, 1023));
+    if (touched !== undefined) Atomics.store(v, INPUT.touch0 + pin, touched ? 1 : 0);
+  }
+
+  /** The learner shakes (or drops) the micro:bit. */
+  doGesture(name: GestureName) {
+    const v = this.boardInputs;
+    if (!v || !this.liveBoard) return;
+    Atomics.store(v, INPUT.gesture, GESTURE_CODES[name]);
+    Atomics.add(v, INPUT.gestureCount, 1);
   }
 
   /** The learner pressed Stop. */

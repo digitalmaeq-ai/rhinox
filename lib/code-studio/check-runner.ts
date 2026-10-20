@@ -3,12 +3,13 @@
 import type { CheckCase, Exercise, RunCapture } from "./exercises";
 import { runProblem } from "./exercises";
 import type { ProgramFile } from "./files";
+import type { DeviceScript } from "./microbit";
 
 export interface CheckRunner {
   run(
     code: string,
     stdinLines: string[],
-    options: { scripted: true; quiet: true; files?: ProgramFile[] },
+    options: { scripted: true; quiet: true; files?: ProgramFile[]; board?: DeviceScript },
   ): Promise<RunCapture & { ms: number }>;
 }
 
@@ -48,6 +49,7 @@ async function runCase(runner: CheckRunner, testCase: CheckCase, code: string) {
     quiet: true,
     // A check starts from its own files, so it never reads or changes the learner's.
     files: testCase.files ?? ([] as ProgramFile[]),
+    board: testCase.board,
   });
   // A program that hangs or is stopped would hang again on every case: end the check.
   const stop = ["stopped", "timeout", "crashed", "failed-to-start", "output-limit"].includes(result.outcome);

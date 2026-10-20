@@ -17,6 +17,7 @@ import {
 import { YEAR_7_EXERCISES } from "./exercises-year7";
 import { YEAR_8_EXERCISES } from "./exercises-year8";
 import { YEAR_9_EXERCISES } from "./exercises-year9";
+import { MICROBIT_EXERCISES } from "./exercises-microbit";
 
 export { runProblem };
 export type { CheckCase, Exercise, ExerciseGroup, RunCapture } from "./exercise-kit";
@@ -235,7 +236,7 @@ print(celsius_to_fahrenheit(100))
 
 export const STARTER_EXERCISES: Exercise[] = [helloWorld, variables, loops, ifElse, functions];
 
-export const EXERCISES: Exercise[] = [...STARTER_EXERCISES, ...YEAR_7_EXERCISES, ...YEAR_8_EXERCISES, ...YEAR_9_EXERCISES];
+export const EXERCISES: Exercise[] = [...STARTER_EXERCISES, ...YEAR_7_EXERCISES, ...YEAR_8_EXERCISES, ...YEAR_9_EXERCISES, ...MICROBIT_EXERCISES];
 
 export function getExercise(id: string | null | undefined): Exercise | undefined {
   return EXERCISES.find((exercise) => exercise.id === id);
