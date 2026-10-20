@@ -66,6 +66,11 @@ const nextConfig: NextConfig = {
         headers: [...isolation, { key: "Content-Security-Policy", value: pageCsp }],
       },
       {
+        // Web Studio shows learners' pages in a sandboxed iframe; it needs no isolation of its own.
+        source: "/coding-robotics/code-studio/web",
+        headers: [{ key: "Content-Security-Policy", value: pageCsp }],
+      },
+      {
         source: "/coding-robotics/code-studio/arduino-:name.js",
         headers: [
           ...isolation,
