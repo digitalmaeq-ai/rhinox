@@ -102,6 +102,56 @@ installed like an app. Nothing is saved until the learner presses "Save for offl
 - A later USB-folder version (Milestone 3) needs a different approach (a small local server or
   a packaged app), because browsers do not run service workers from `file://`.
 
+## The micro:bit simulator (Stage 3.1)
+
+A program that starts with `from microbit import *` (or `import music`) runs on a
+simulated micro:bit shown under the editor: 25 lights with brightness, buttons A and
+B, the touch logo, pins 0 to 2, shake and tilt, temperature and light sliders, and a
+speaker (a square wave through Web Audio, one note at a time; there is a Mute box).
+The names and behaviour follow the micro:bit MicroPython API, so what a learner
+writes here is what they will write on a real board. The 5×5 font, the pictures
+(about 60, including clocks and arrows) and the sounds are our own drawings.
+
+**Two ways to run the same program**
+
+| Mode | Used for | Clock | Inputs |
+| --- | --- | --- | --- |
+| Live | The Run button | Real time (`sleep()` really waits) | The page writes buttons, tilt and sensors into shared memory, the worker reads them |
+| Scripted | The exercise checks | A pretend clock: `sleep()` jumps forward, nothing waits | The check lists events at pretend times ("press A at 500 ms"), the run is cut off at the check's duration, and every picture and note is recorded |
+
+A scripted check therefore takes milliseconds, always gives the same answer, and a
+`while True:` loop is allowed: it simply ends when the check's time is up.
+
+**Limits.** A live board program is not stopped at 10 seconds (a board program is
+normally a forever loop); it has a 20-minute limit, and Stop always works. Frames
+are limited to 60 a second, sounds and pin changes to 60 a second, a trace to 600
+pictures and 200 notes, a script to 200 events and 120 seconds.
+
+**How Python reaches the page.** Learner code cannot use the `js` module, so the
+board talks to the page through one private device file, `/dev/rxdev`, created in
+the worker with Emscripten's `FS.registerDevice`. Each write is a small JSON request
+(`now`, `poll`, `sleep`, `leds`, `sound`, `pin`) and the next read is the reply. The
+worker checks every request again (exact command names, a 25-digit string for the
+lights, integer ranges for sound and pins, a rate limit) and ignores anything else;
+outside a live run it answers `{}` to everything. What it sends on to the page is
+plain data, which the page checks again (`cleanDeviceEvent`) before drawing it. The
+module itself (`public/coding-robotics/code-studio/microbit.py`) is compiled once and
+run afresh for every program, with the same import guard as the program, so a program
+that changes `Image` or the module changes nothing for the next run.
+
+**Residual risk.** A learner can write to `/dev/rxdev` themselves. The worst this does
+is drive their own simulator (the checks above) or burn CPU until Stop; it cannot
+reach JavaScript. It does not add to the introspection risk listed below.
+
+**Exercises.** A new group, "micro:bit", has seven exercises tied to the Think, Move,
+Code! lessons (Hello, micro:bit!; Press A, Press B; Ike keeps count; Light level
+detective; If it's hot…; Ike's music box; Shake the dice). Each check lists the
+events, then compares the pictures and notes the program produced.
+
+**Not in this stage yet:** radio between two boards, the accelerometer's exact
+gesture timing, `microbit.uart`, `i2c`/`spi`, servo and NeoPixel; the Arduino and
+ESP32 simulators; a USB connection to a real board.
+
 ## Pieces
 
 | Piece | Where | Notes |
@@ -111,6 +161,7 @@ installed like an app. Nothing is saved until the learner presses "Save for offl
 | Controller | `lib/code-studio/runner.ts`, `limits.ts` | Owns the worker. Enforces the time limit **from outside** the worker. Treats every message from the worker as untrusted. |
 | Worker | `public/coding-robotics/code-studio/python-worker.js` | Served as a plain file so it can have its own headers. Runs Pyodide (CPython compiled to WebAssembly). |
 | Runtime files | `public/pyodide/<version>/` | Copied from `node_modules/pyodide` by `scripts/copy-code-studio-assets.mjs` on every `predev`/`prebuild`. Git-ignored. |
+| micro:bit | `public/coding-robotics/code-studio/microbit.py`, `lib/code-studio/microbit.ts`, `board-audio.ts`, `exercises-microbit.ts`, `app/components/code-studio/MicrobitPanel.tsx` | The simulated board: Python module, page-side rules, speaker, exercises and the board drawing. |
 | Headers | `next.config.ts` | Route-scoped. See below. |
 
 ## A Web Worker is risk reduction, not a complete security sandbox
@@ -193,6 +244,8 @@ Run all three before changing the worker, the CSP or `next.config.ts`:
 | `lib/code-studio/charts.test.ts` | `npx tsx lib/code-studio/charts.test.ts` | Page-side chart rules: junk dropped, text cut, limits, axis scale |
 | `lib/code-studio/offline.test.ts` | `npx tsx lib/code-studio/offline.test.ts` | Cache name and page path agree between page and service worker, runtime file list matches the build, manifest, only own static addresses are saved |
 | `lib/code-studio/files.test.ts` | `npx tsx lib/code-studio/files.test.ts` | The page-side file rules: names, cleaning, limits, storage, downloads |
+| `lib/code-studio/microbit.test.ts` | `npx tsx lib/code-studio/microbit.test.ts` | The micro:bit module on the scripted clock (17 checks): pictures, buttons (quick presses are not missed), sleep, scroll, sensors, music, panic, caps, a clean start for every run |
+| `lib/code-studio/microbit-page.test.ts` | `npx tsx lib/code-studio/microbit-page.test.ts` | Page-side rules for the board: what the worker may send, script and trace limits |
 | `lib/code-studio/exercises.test.ts` | `npx tsx lib/code-studio/exercises.test.ts` | Every exercise: correct solutions pass, wrong ones fail; project and progress storage |
 | `scripts/code-studio-browser-tests.cjs` | build and start the site, `npm install --no-save playwright`, then `node scripts/code-studio-browser-tests.cjs http://localhost:3000` | Real browser, 111 checks (including offline: save, reload with the network off, run Python, files and charts offline, scope, remove; plus a manual run with the server really stopped) (including charts: draw, hostile labels, errors, timeouts, limits, clearing; and files: write, view, download, upload, delete, reload, timeouts, path tricks, flooding, junk in storage, checks leave learner files alone): headers on Code Studio and 8 other pages, blocked modules, network, endless loop (stopped at ~10 s), Stop, output flooding (with and without newlines), memory, recursion, recovery after each, page never blocked for long (worst 316 ms), no requests leave the site, in-site navigation ends up isolated |
 

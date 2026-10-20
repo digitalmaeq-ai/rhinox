@@ -25,6 +25,7 @@ const GROUPS: { name: ExerciseGroup; label: string }[] = [
   { name: "Year 7", label: "Year 7: Python with Nka's robot" },
   { name: "Year 8", label: "Year 8: Python with Echiche" },
   { name: "Year 9", label: "Year 9: Python with Ogbon" },
+  { name: "micro:bit", label: "micro:bit: build and test on the board" },
 ];
 
 // The left column: pick an exercise, read the task, ask for hints, check the answer.
@@ -37,7 +38,7 @@ export default function ExercisePanel({ exercise, completed, hintsShown, report,
 
   return (
     <aside className={styles.side} aria-label="Exercises">
-      <nav aria-label="Choose an exercise">
+      <nav aria-label="Choose an exercise" className={styles.exerciseNav} tabIndex={0}>
         {GROUPS.map(({ name, label }) => {
           const items = EXERCISES.filter((item) => item.group === name);
           const doneCount = items.filter((item) => completed.includes(item.id)).length;

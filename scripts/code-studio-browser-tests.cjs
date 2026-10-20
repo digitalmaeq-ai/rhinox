@@ -510,6 +510,140 @@ except Exception as e:
   check("removing the copy keeps the learner's own work", await offlinePage.evaluate(() => Boolean(localStorage.getItem("rhinox-code-studio-files") || localStorage.getItem("rhinox-code-studio"))));
   await offlineContext.close();
 
+  // ---------- 11. The micro:bit board ----------
+  const mb = await context.newPage();
+  const mbErrors = [];
+  mb.on("pageerror", (e) => mbErrors.push(e.message));
+  await mb.goto(BASE + "/coding-robotics/code-studio", { waitUntil: "networkidle" });
+  await mb.waitForSelector(".monaco-editor");
+  await sleep(1500);
+  if (!(await mb.evaluate(() => crossOriginIsolated))) {
+    await mb.reload({ waitUntil: "networkidle" });
+    await mb.waitForSelector(".monaco-editor");
+    await sleep(1500);
+  }
+  // The program is wrapped in exec() so the editor's auto-indent cannot change it. A real first line
+  // "from microbit import *" is added in front when the program uses the board, because that is what
+  // the page looks for.
+  async function mbSetCode(code, board = true) {
+    await mb.click(".monaco-editor .view-lines");
+    await mb.keyboard.press("Control+A");
+    await mb.keyboard.press("Delete");
+    await mb.keyboard.insertText((board && /^\s*(from|import)\s+(microbit|music)\b/m.test(code) ? "from microbit import *\n" : "") + "exec(" + JSON.stringify(code) + ")");
+  }
+  const mbIdle = (timeout = 30000) =>
+    mb.waitForFunction(() => {
+      const run = [...document.querySelectorAll("button")].find((b) => /^(Run|Starting)/.test(b.textContent));
+      return run && run.textContent === "Run" && !run.disabled;
+    }, null, { timeout });
+  // The program is really running: Stop is available and Python has finished starting.
+  async function mbRunning() {
+    await mb.waitForFunction(
+      () => [...document.querySelectorAll("button")].some((b) => b.textContent === "Stop" && !b.disabled) && !document.querySelector('[role="log"]').innerText.includes("Starting Python"),
+      null,
+      { timeout: 60000 },
+    );
+    await sleep(300);
+  }
+  const mbLit = () => mb.evaluate(() => [...document.querySelectorAll('svg[aria-label^="A micro:bit"] rect[fill="#ff3d3d"]')].filter((r) => Number(r.getAttribute("opacity")) > 0.5).length);
+  const mbConsole = () => mb.evaluate(() => document.querySelector('[role="log"]').innerText);
+
+  check("the board is hidden until a program or exercise needs it", (await mb.locator('section[aria-label="micro:bit simulator"]').count()) === 0);
+  await mbSetCode("from microbit import *\ndisplay.show(Image.HEART)\n");
+  check("importing microbit shows the board", (await mb.locator('section[aria-label="micro:bit simulator"]').count()) === 1);
+  await mb.click("button:has-text('Run')");
+  await mbIdle();
+  check("show(Image.HEART) lights 16 lights on the board", (await mbLit()) === 16, String(await mbLit()));
+
+  // A forever loop reacting to the buttons, longer than the normal 10 second limit.
+  await mbSetCode(
+    "from microbit import *\nn = 0\nwhile True:\n    if button_a.was_pressed():\n        n += 1\n        display.show(n)\n    if button_b.was_pressed():\n        display.clear()\n    if pin_logo.is_touched():\n        display.show(Image.HEART)\n    sleep(20)\n",
+  );
+  await mb.click("button:has-text('Run')");
+  await mbRunning();
+  await sleep(800);
+  await mb.click('[aria-label="Button A"]');
+  await sleep(600);
+  check("pressing button A on the board changes the lights", (await mbLit()) === 8, String(await mbLit()));
+  await mb.click('[aria-label="Button A"]');
+  await mb.click('[aria-label="Button A"]');
+  await sleep(600);
+  check("each click of A counts (3 clicks show the number 3)", (await mbLit()) === 7, String(await mbLit()));
+  await mb.click('[aria-label="Button B"]');
+  await sleep(600);
+  check("button B clears the lights", (await mbLit()) === 0);
+  await mb.dispatchEvent('[aria-label="Touch logo"]', "pointerdown", { pointerId: 1 });
+  await sleep(300);
+  await mb.dispatchEvent('[aria-label="Touch logo"]', "pointerup", { pointerId: 1 });
+  await sleep(600);
+  check("touching the logo works", (await mbLit()) === 16, String(await mbLit()));
+  await sleep(10500);
+  check("a board program is not stopped by the normal 10 second limit", await mb.evaluate(() => [...document.querySelectorAll("button")].some((b) => b.textContent === "Stop" && !b.disabled)));
+  await mb.click("button:has-text('Stop')");
+  await mbIdle();
+  check("Stop ends a board program", /Stopped/.test(await mbConsole()));
+
+  // Sensors: the sliders reach the program while it runs.
+  await mbSetCode("from microbit import *\nwhile True:\n    if temperature() >= 40:\n        display.show(Image.SURPRISED)\n    elif display.read_light_level() < 20:\n        display.show(Image.ASLEEP)\n    else:\n        display.clear()\n    sleep(30)\n");
+  await mb.click("button:has-text('Run')");
+  await mbRunning();
+  await mb.locator('input[type="range"]').nth(0).fill("45");
+  await sleep(500);
+  check("the temperature slider reaches the program", (await mbLit()) === 6, String(await mbLit()));
+  await mb.locator('input[type="range"]').nth(0).fill("20");
+  await mb.locator('input[type="range"]').nth(1).fill("5");
+  await sleep(500);
+  check("the light slider reaches the program", (await mbLit()) === 7, String(await mbLit()));
+  await mb.click("button:has-text('Stop')");
+  await mbIdle();
+
+  // Shake and music.
+  await mbSetCode("from microbit import *\nimport music\nwhile True:\n    if accelerometer.was_gesture('shake'):\n        display.show(Image.HAPPY)\n        music.pitch(440, 100)\n    sleep(30)\n");
+  await mb.click("button:has-text('Run')");
+  await mbRunning();
+  await mb.click("button:has-text('Shake')");
+  await sleep(800);
+  check("Shake reaches the program, and music.pitch() runs without errors", (await mbLit()) === 7 && !/Error/.test(await mbConsole()), await mbConsole());
+  await mb.click("button:has-text('Stop')");
+  await mbIdle();
+
+  // Hostile programs on the private channel.
+  await mbSetCode(
+    'from microbit import *\nimport os, json\nfd = os.open("/dev/rxdev", os.O_RDWR)\nfor bad in [b"{", b"[]", b\'{"c":"leds","d":"abc"}\', b\'{"c":"sound","f":-5,"ms":1e99}\', b\'{"c":"pin","n":99,"k":"x","v":1}\', b\'{"c":"eval","code":"alert(1)"}\', b\'{"c":"sleep","ms":"x"}\', b"\\xff\\xfe"]:\n    os.write(fd, bad)\n    os.read(fd, 8192)\nfor i in range(3000):\n    os.write(fd, b\'{"c":"sound","f":440,"ms":5}\')\n    os.read(fd, 8192)\nfor i in range(3000):\n    os.write(fd, b\'{"c":"leds","d":"9999999999999999999999999"}\')\n    os.read(fd, 8192)\ndisplay.show(Image.HAPPY)\nprint("survived")\n',
+  );
+  await mb.click("button:has-text('Run')");
+  await mbIdle(60000);
+  check("bad requests on the private channel are ignored and the page stays alive", /survived/.test(await mbConsole()) && (await mbLit()) === 7, (await mbConsole()).slice(0, 200));
+  check("a flood of device messages does not break the page", mbErrors.length === 0, mbErrors.slice(0, 2).join(" | "));
+
+  // A program that is not a board run cannot drive the board.
+  await mbSetCode('import os\nfd = os.open("/dev/rxdev", os.O_RDWR)\nos.write(fd, b\'{"c":"leds","d":"9999999999999999999999999"}\')\nprint(os.read(fd, 8192))\n', false);
+  await mb.click("button:has-text('Run')");
+  await mbIdle();
+  check("outside a board run the private channel answers nothing", /b'\{\}'/.test(await mbConsole()), (await mbConsole()).slice(0, 200));
+
+  // Reaching JavaScript through the module is still refused.
+  await mbSetCode('from microbit import *\ntry:\n    microbit_g = display.show.__globals__\n    print(type(microbit_g["__builtins__"]).__name__)\n    microbit_g["__builtins__"]["__import__"]("js")\nexcept Exception as e:\n    print(type(e).__name__)\n');
+  await mb.click("button:has-text('Run')");
+  await mbIdle();
+  check("the module's internals do not hand out the JavaScript bridge", /ImportError/.test(await mbConsole()) && !/JsProxy/.test(await mbConsole()), (await mbConsole()).slice(0, 200));
+
+  // An exercise on the scripted board, checked.
+  await mb.click('h2 button:has-text("micro:bit")');
+  await mb.click('button:has-text("Hello, micro:bit!")');
+  await sleep(500);
+  check("choosing a micro:bit exercise shows the board", (await mb.locator('section[aria-label="micro:bit simulator"]').count()) === 1);
+  await mbSetCode("from microbit import *\ndisplay.show(Image.SAD)\n");
+  await mb.click("button:has-text('Check my answer')");
+  await mb.waitForSelector("text=Not quite yet", { timeout: 90000 });
+  check("a wrong micro:bit answer is explained", /should show a heart, but they show a sad face/.test(await mb.locator("aside").innerText()));
+  await mbSetCode("from microbit import *\ndisplay.show(Image.HEART)\n");
+  await mb.click("button:has-text('Check my answer')");
+  await mb.waitForSelector("text=Well done", { timeout: 90000 });
+  check("a correct micro:bit answer passes the check", true);
+  check("no page errors during the micro:bit tests", mbErrors.length === 0, mbErrors.slice(0, 2).join(" | "));
+  await mb.close();
+
   await browser.close();
   const failed = results.filter((x) => !x.ok);
   console.log(`\n${results.length - failed.length} of ${results.length} checks passed`);

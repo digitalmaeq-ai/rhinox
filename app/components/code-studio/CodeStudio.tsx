@@ -9,17 +9,20 @@ import { runChecks, type CheckReport } from "@/lib/code-studio/check-runner";
 import { EXERCISES, getExercise } from "@/lib/code-studio/exercises";
 import { filesFromSnapshot, filesSnapshot, saveFiles, subscribeFiles, type ProgramFile } from "@/lib/code-studio/files";
 import { MAX_OUTPUT_CHARS, RUN_TIMEOUT_MS } from "@/lib/code-studio/limits";
+import { prepareAudio, playTone, stopTone } from "@/lib/code-studio/board-audio";
+import { usesMicrobit, type DeviceEvent, type GestureName } from "@/lib/code-studio/microbit";
 import { MAX_CODE_CHARS, toProjectData, type PythonProjectData } from "@/lib/code-studio/project";
 import {
   markCompleted, progressFromSnapshot, progressSnapshot, saveDraft, subscribeProgress,
 } from "@/lib/code-studio/progress";
-import { PythonRunner, type RunResult, type RunnerStatus } from "@/lib/code-studio/runner";
+import { DEFAULT_SENSORS, PythonRunner, type RunResult, type RunnerStatus, type SensorValues } from "@/lib/code-studio/runner";
 import { createProject, getProject, updateProjectData } from "@/lib/rhinocode/projects";
 
 import ExercisePanel from "./ExercisePanel";
 import ChartsPanel from "./ChartsPanel";
 import OfflineBar from "./OfflineBar";
 import FilesPanel from "./FilesPanel";
+import MicrobitPanel from "./MicrobitPanel";
 import styles from "./CodeStudio.module.css";
 
 // Monaco needs the browser, so it loads only there.
@@ -104,6 +107,14 @@ export default function CodeStudio({ savedId: initialSavedId, savedProject }: Pr
   const [report, setReport] = useState<CheckReport | null>(null);
   const [checking, setChecking] = useState(false);
   const [charts, setCharts] = useState<ChartSpec[]>([]);
+  const [boardWanted, setBoardWanted] = useState(() => usesMicrobit(session.initialCode) || getExercise(session.exerciseId)?.group === "micro:bit");
+  const [boardProgram, setBoardProgram] = useState(() => usesMicrobit(session.initialCode));
+  const [boardRunning, setBoardRunning] = useState(false);
+  const [leds, setLeds] = useState<number[]>(() => new Array(25).fill(0));
+  const [sensors, setSensors] = useState<SensorValues>(DEFAULT_SENSORS);
+  const [muted, setMuted] = useState(false);
+  const mutedRef = useRef(false);
+  const sensorsRef = useRef<SensorValues>(DEFAULT_SENSORS);
   const draftTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const progress = progressFromSnapshot(
@@ -157,6 +168,10 @@ export default function CodeStudio({ savedId: initialSavedId, savedProject }: Pr
       runnerRef.current = new PythonRunner({
         onOutput: (stream, text) => append(stream === "stderr" ? "err" : "out", text),
         onStatus: setStatus,
+        onDevice: (event: DeviceEvent) => {
+          if (event.kind === "leds") setLeds(event.leds);
+          else if (event.kind === "sound" && !mutedRef.current) playTone(event.frequency, event.ms);
+        },
       });
     }
     return runnerRef.current;
@@ -165,6 +180,7 @@ export default function CodeStudio({ savedId: initialSavedId, savedProject }: Pr
   useEffect(
     () => () => {
       runnerRef.current?.dispose();
+      stopTone();
       if (draftTimer.current) clearTimeout(draftTimer.current);
     },
     [],
@@ -181,7 +197,16 @@ export default function CodeStudio({ savedId: initialSavedId, savedProject }: Pr
     setCharts([]);
     const lines = runner.interactiveInput ? [] : stdinText.split("\n");
     const before = filesRef.current;
-    const result = await runner.run(codeRef.current, lines, { files: before });
+    const board = usesMicrobit(codeRef.current);
+    if (board) {
+      prepareAudio();
+      setLeds(new Array(25).fill(0));
+      if (!runner.interactiveInput) append("info", "The micro:bit board needs the page in secure mode. Reload the page, then press Run again.");
+    }
+    setBoardRunning(board && runner.interactiveInput);
+    const result = await runner.run(codeRef.current, lines, { files: before, sensors: sensorsRef.current });
+    setBoardRunning(false);
+    if (board) stopTone();
     const note = describe(result);
     if (note) append(note.kind, note.text);
     setCharts(result.charts);
@@ -197,6 +222,8 @@ export default function CodeStudio({ savedId: initialSavedId, savedProject }: Pr
 
   function onEdit(value: string) {
     codeRef.current = value;
+    setBoardProgram(usesMicrobit(value));
+    setBoardWanted(usesMicrobit(value) || getExercise(session.exerciseId)?.group === "micro:bit");
     setNotice("");
     // Keep unsaved work for each exercise, so switching exercises never loses it.
     if (draftTimer.current) clearTimeout(draftTimer.current);
@@ -216,6 +243,9 @@ export default function CodeStudio({ savedId: initialSavedId, savedProject }: Pr
     const draft = progress.drafts[id ?? "free"];
     const initialCode = draft ?? starterFor(id);
     codeRef.current = initialCode;
+    setBoardWanted(usesMicrobit(initialCode) || getExercise(id)?.group === "micro:bit");
+    setBoardProgram(usesMicrobit(initialCode));
+    setLeds(new Array(25).fill(0));
     setSession((previous) => ({ exerciseId: id, initialCode, key: previous.key + 1 }));
     setSavedId(null);
     setNotice("");
@@ -228,6 +258,7 @@ export default function CodeStudio({ savedId: initialSavedId, savedProject }: Pr
   function resetCode() {
     const initialCode = starterFor(session.exerciseId);
     codeRef.current = initialCode;
+    setBoardProgram(usesMicrobit(initialCode));
     saveDraft(session.exerciseId ?? "free", initialCode);
     setSession((previous) => ({ ...previous, initialCode, key: previous.key + 1 }));
     setReport(null);
@@ -274,6 +305,12 @@ export default function CodeStudio({ savedId: initialSavedId, savedProject }: Pr
 
   const busy = status !== "idle" || checking;
 
+  function changeSensors(next: SensorValues) {
+    sensorsRef.current = next;
+    setSensors(next);
+    runnerRef.current?.setSensors(next);
+  }
+
   return (
     <main className={styles.page}>
       <div className={`rx-container ${styles.wrap}`}>
@@ -317,7 +354,7 @@ export default function CodeStudio({ savedId: initialSavedId, savedProject }: Pr
             {savedId ? "Save changes" : "Save to My Projects"}
           </button>
           <span className={styles.note} role="status">
-            {notice || `Python · stops after ${RUN_TIMEOUT_MS / 1000} seconds · Ctrl+Enter runs`}
+            {notice || (boardProgram ? "micro:bit · runs until you press Stop · Ctrl+Enter runs" : `Python · stops after ${RUN_TIMEOUT_MS / 1000} seconds · Ctrl+Enter runs`)}
             {notice.startsWith("Saved") && (
               <>
                 {" "}
@@ -382,6 +419,23 @@ export default function CodeStudio({ savedId: initialSavedId, savedProject }: Pr
             )}
           </section>
         </div>
+            {boardWanted && (
+              <MicrobitPanel
+                leds={leds}
+                running={boardRunning}
+                sensors={sensors}
+                muted={muted}
+                onButton={(button, down) => runnerRef.current?.setButton(button, down)}
+                onPin={(pin, touched) => runnerRef.current?.setPin(pin, touched ? 1023 : 0, touched)}
+                onGesture={(name: GestureName) => runnerRef.current?.doGesture(name)}
+                onSensors={changeSensors}
+                onMute={(value) => {
+                  mutedRef.current = value;
+                  setMuted(value);
+                  if (value) stopTone();
+                }}
+              />
+            )}
             <ChartsPanel charts={charts} />
             <FilesPanel files={files} onChange={(next) => saveFiles(next)} busy={busy} />
           </div>

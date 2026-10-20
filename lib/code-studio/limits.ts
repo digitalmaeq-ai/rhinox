@@ -38,6 +38,8 @@ export const PYODIDE_BASE = `/pyodide/${process.env.NEXT_PUBLIC_PYODIDE_VERSION 
 // Inside the Code Studio page's own path, so the offline service worker (whose scope is that
 // path) is allowed to serve it. Browsers only let a service worker serve a worker script in its scope.
 export const WORKER_URL = "/coding-robotics/code-studio/python-worker.js";
+/** The micro:bit simulator's Python module. The worker fetches it by this name, next to itself. */
+export const MICROBIT_URL = "/coding-robotics/code-studio/microbit.py";
 
 /** Charts a program can draw (bar and line). The Python worker has matching numbers. */
 export const MAX_CHARTS = 5;

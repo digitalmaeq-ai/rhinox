@@ -8,11 +8,12 @@
 // See docs/code-studio.md for what it does and does not protect.
 //
 // Messages in  : { type: "init", baseUrl, inputBuffer }
-//                { type: "run", id, code, stdinLines, scripted, files }
+//                { type: "run", id, code, stdinLines, scripted, files, device, script }
 // Messages out : { type: "ready" } | { type: "fatal", message }
 //                { type: "out", stream: "stdout" | "stderr", text }
 //                { type: "input-request" }
-//                { type: "done", id, ok, outputLimit, ms, heapMB, files, charts }
+//                { type: "device", kind: "leds" | "sound" | "pin", ... }  (micro:bit simulator)
+//                { type: "done", id, ok, outputLimit, ms, heapMB, files, charts, device }
 
 const MAX_OUTPUT_CHARS = 100000; // everything one run may print
 const MAX_INPUT_CHARS = 2000; // one line typed into input()
@@ -33,6 +34,134 @@ let outChars = 0;
 let limitHit = false;
 let queue = { stdout: "", stderr: "" };
 let lastFlush = 0;
+
+// ---- micro:bit simulator: the live board --------------------------------------
+// Python reaches the page through ONE private device file, /dev/rxdev. Each write
+// is a small JSON request and the next read is the reply. Every request is
+// checked here, and everything sent on to the page is plain data the page checks
+// again. The page writes the board's inputs (buttons, tilt, ...) into shared memory.
+const encoder = new TextEncoder();
+const requestDecoder = new TextDecoder();
+const SLEEP_CELL = typeof SharedArrayBuffer === "function" ? new Int32Array(new SharedArrayBuffer(4)) : null;
+const MAX_SLEEP_MS = 60000;
+const LED_GAP_MS = 16;
+const MAX_DEVICE_EVENTS_PER_SECOND = 60;
+let boardInputs = null; // Int32Array over the page's shared memory
+let boardLive = false; // true only while a live micro:bit run is going
+let boardStart = 0;
+let pendingLeds = null;
+let lastLedPost = 0;
+let deviceReply = new Uint8Array(0);
+let eventTimes = [];
+
+function boardNow() {
+  return Math.round(performance.now() - boardStart);
+}
+
+function sendLeds(force) {
+  if (pendingLeds === null) return;
+  const now = performance.now();
+  if (!force && now - lastLedPost < LED_GAP_MS) return;
+  post({ type: "device", kind: "leds", d: pendingLeds });
+  pendingLeds = null;
+  lastLedPost = now;
+}
+
+function allowEvent() {
+  const now = performance.now();
+  eventTimes = eventTimes.filter((t) => now - t < 1000);
+  if (eventTimes.length >= MAX_DEVICE_EVENTS_PER_SECOND) return false;
+  eventTimes.push(now);
+  return true;
+}
+
+function readBoard() {
+  const v = boardInputs;
+  const get = (i) => (v ? Atomics.load(v, i) : 0);
+  return {
+    a: get(0), b: get(1), logo: get(2), a_n: get(3), b_n: get(4), logo_n: get(5),
+    x: v ? get(6) : 0, y: v ? get(7) : 0, z: v ? get(8) : -1024,
+    temp: v ? get(9) : 21, light: v ? get(10) : 128,
+    gest: get(11), gest_n: get(12),
+    pin: [get(13), get(14), get(15)], touch: [get(16), get(17), get(18)],
+    t: boardNow(),
+  };
+}
+
+function boardSleep(ms) {
+  sendLeds(true);
+  let left = Math.max(0, Math.min(MAX_SLEEP_MS, Math.round(ms)));
+  const until = performance.now() + left;
+  while (left > 0) {
+    if (SLEEP_CELL) atomicsWait(SLEEP_CELL, 0, 0, Math.min(left, 100));
+    left = until - performance.now();
+  }
+}
+
+function handleBoardRequest(text) {
+  if (!boardLive) return {};
+  let message;
+  try {
+    message = JSON.parse(text);
+  } catch {
+    return {};
+  }
+  if (!message || typeof message !== "object") return {};
+  switch (message.c) {
+    case "now":
+      return { t: boardNow() };
+    case "poll":
+      return readBoard();
+    case "sleep":
+      boardSleep(Number(message.ms) || 0);
+      return {};
+    case "leds":
+      if (typeof message.d === "string" && /^[0-9]{25}$/.test(message.d)) {
+        pendingLeds = message.d;
+        sendLeds(false);
+      }
+      return {};
+    case "sound": {
+      const f = Math.round(Number(message.f));
+      const ms = Math.round(Number(message.ms));
+      if (Number.isFinite(f) && Number.isFinite(ms) && f >= 0 && f <= 20000 && ms >= 0 && ms <= 60000 && allowEvent()) {
+        post({ type: "device", kind: "sound", f, ms });
+      }
+      return {};
+    }
+    case "pin": {
+      const n = Math.round(Number(message.n));
+      const v = Math.round(Number(message.v));
+      if (n >= 0 && n <= 20 && (message.k === "d" || message.k === "a") && v >= 0 && v <= 1023 && allowEvent()) {
+        post({ type: "device", kind: "pin", n, k: message.k, v });
+      }
+      return {};
+    }
+    default:
+      return {};
+  }
+}
+
+function registerBoardDevice() {
+  const FS = pyodide.FS;
+  const id = FS.makedev(64, 0);
+  FS.registerDevice(id, {
+    open() {},
+    close() {},
+    read(stream, buffer, offset, length) {
+      const n = Math.min(length, deviceReply.length);
+      buffer.set(deviceReply.subarray(0, n), offset);
+      deviceReply = deviceReply.subarray(n);
+      return n;
+    },
+    write(stream, buffer, offset, length) {
+      const text = requestDecoder.decode(buffer.subarray(offset, offset + Math.min(length, 4096)));
+      deviceReply = encoder.encode(JSON.stringify(handleBoardRequest(text)));
+      return length;
+    },
+  });
+  FS.mkdev("/dev/rxdev", 0o666, id);
+}
 
 function flush() {
   for (const stream of ["stdout", "stderr"]) {
@@ -382,7 +511,31 @@ def _load_files(files_json):
             _sizes[item["name"]] = len(item["text"])
             total += len(item["text"])
 
-def run(source, files_json="[]"):
+# ---- micro:bit simulator ---------------------------------------------------
+# microbit.py is fetched by the worker and compiled once. For each run that
+# imports it, it is executed afresh (so nothing a program changes lasts) with
+# builtins that have the same import guard as the program itself.
+_MB = {"code": None}
+
+def install_microbit(source):
+    _MB["code"] = compile(source, "microbit.py", "exec")
+
+def _start_microbit(mode, script_json, guarded_builtins):
+    namespace = {"__name__": "_rx_microbit", "__builtins__": guarded_builtins}
+    exec(_MB["code"], namespace)
+    fd = None
+    if mode == "live":
+        fd = os.open("/dev/rxdev", os.O_RDWR)
+        def ask(message):
+            os.write(fd, _dumps(message).encode())
+            return json.loads(os.read(fd, 8192))
+        backend = namespace["LiveBackend"](ask)
+    else:
+        backend = namespace["ScriptedBackend"](json.loads(script_json) if script_json else {})
+    microbit_module, music_module = namespace["build"](backend)
+    return namespace, backend, microbit_module, music_module, fd
+
+def run(source, files_json="[]", device_mode="", script_json=""):
     _load_files(files_json)
     del _charts[:]
     sys.modules["charts"] = _make_charts_module()
@@ -407,6 +560,11 @@ def run(source, files_json="[]"):
     for unsafe in ("breakpoint", "help", "exit", "quit"):
         user_builtins.pop(unsafe, None)
     namespace = {"__name__": "__main__", "__builtins__": user_builtins}
+    device = None
+    if device_mode in ("live", "script") and _MB["code"] is not None:
+        device = _start_microbit(device_mode, script_json, user_builtins)
+        sys.modules["microbit"] = device[2]
+        sys.modules["music"] = device[3]
     linecache.cache["main.py"] = (len(source), None, source.splitlines(True), "main.py")
     ok = True
     try:
@@ -414,14 +572,17 @@ def run(source, files_json="[]"):
     except SystemExit:
         pass
     except BaseException as error:
-        frames = [f for f in traceback.extract_tb(error.__traceback__)[1:] if f.filename == "main.py"]
-        lines = []
-        if frames:
-            lines.append("Traceback (most recent call last):\n")
-            lines.extend(traceback.format_list(frames))
-        lines.extend(traceback.format_exception_only(type(error), error))
-        sys.stderr.write("".join(lines))
-        ok = False
+        if device is not None and type(error).__name__ == "_SimulationEnd":
+            pass
+        else:
+            frames = [f for f in traceback.extract_tb(error.__traceback__)[1:] if f.filename == "main.py"]
+            lines = []
+            if frames:
+                lines.append("Traceback (most recent call last):\n")
+                lines.extend(traceback.format_list(frames))
+            lines.extend(traceback.format_exception_only(type(error), error))
+            sys.stderr.write("".join(lines))
+            ok = False
     finally:
         for name in set(sys.modules) - before:
             sys.modules.pop(name, None)
@@ -431,6 +592,11 @@ def run(source, files_json="[]"):
         sys.path_hooks[:] = saved_hooks
         sys.path_importer_cache.clear()
         linecache.cache.pop("main.py", None)
+        if device is not None and device[4] is not None:
+            try:
+                os.close(device[4])
+            except BaseException:
+                pass
         for handle in list(_handles):
             try:
                 handle.close()
@@ -438,11 +604,12 @@ def run(source, files_json="[]"):
                 pass
         os.path.exists, os.path.isfile, os.path.getsize = real_os["exists"], real_os["isfile"], real_os["getsize"]
         os.listdir, os.remove, os.unlink = real_os["listdir"], real_os["remove"], real_os["unlink"]
-    return _dumps({"ok": ok, "files": [{"name": n, "text": _files[n]} for n in sorted(_files)], "charts": list(_charts)})
+    return _dumps({"ok": ok, "files": [{"name": n, "text": _files[n]} for n in sorted(_files)], "charts": list(_charts), "device": (device[1].trace() if device is not None else None)})
 `;
 
-async function init(baseUrl, shared) {
+async function init(baseUrl, shared, board) {
   inputBuffer = shared || null;
+  boardInputs = board ? new Int32Array(board) : null;
   const { loadPyodide } = await import(baseUrl + "pyodide.mjs");
   pyodide = await loadPyodide({ indexURL: baseUrl, fullStdLib: false });
 
@@ -453,6 +620,17 @@ async function init(baseUrl, shared) {
   const scope = pyodide.toPy({});
   pyodide.runPython(PYTHON_SETUP, { globals: scope });
   runPython = scope.get("run");
+  // The micro:bit module is a plain file next to this worker. If it cannot be
+  // fetched, programs that import microbit say so; everything else still works.
+  try {
+    const reply = await fetch(new URL("microbit.py", self.location.href));
+    if (reply.ok) {
+      scope.get("install_microbit")(await reply.text());
+      registerBoardDevice();
+    }
+  } catch {
+    /* the simulator is optional */
+  }
   scope.destroy();
 
   // From here on the program has no way to open a connection or start workers.
@@ -483,8 +661,14 @@ function heapMB() {
   }
 }
 
-function run(id, code, lines, isScripted, files) {
+function run(id, code, lines, isScripted, files, device, script) {
   scripted = isScripted === true;
+  const mode = device === "live" || device === "script" ? device : "";
+  boardLive = mode === "live";
+  boardStart = performance.now();
+  pendingLeds = null;
+  eventTimes = [];
+  deviceReply = new Uint8Array(0);
   outChars = 0;
   limitHit = false;
   queue = { stdout: "", stderr: "" };
@@ -493,8 +677,12 @@ function run(id, code, lines, isScripted, files) {
   let ok = false;
   let outFiles = null; // null: the page keeps the files it already has
   let outCharts = [];
+  let outDevice = null;
   try {
-    const reply = JSON.parse(runPython(code, JSON.stringify(Array.isArray(files) ? files : [])));
+    const reply = JSON.parse(
+      runPython(code, JSON.stringify(Array.isArray(files) ? files : []), mode, mode === "script" ? JSON.stringify(script || {}) : ""),
+    );
+    outDevice = reply.device && typeof reply.device === "object" ? reply.device : null;
     ok = reply.ok === true;
     outFiles = Array.isArray(reply.files) ? reply.files : null;
     outCharts = Array.isArray(reply.charts) ? reply.charts : [];
@@ -509,17 +697,19 @@ function run(id, code, lines, isScripted, files) {
     /* the streams were already shut by the output limit */
   }
   flush();
-  post({ type: "done", id, ok, outputLimit: limitHit, ms: Math.round(performance.now() - started), heapMB: heapMB(), files: outFiles, charts: outCharts });
+  sendLeds(true);
+  boardLive = false;
+  post({ type: "done", id, ok, outputLimit: limitHit, ms: Math.round(performance.now() - started), heapMB: heapMB(), files: outFiles, charts: outCharts, device: outDevice });
 }
 
 self.onmessage = (event) => {
   const message = event.data || {};
   if (message.type === "init" && !pyodide) {
     const baseUrl = typeof message.baseUrl === "string" ? message.baseUrl : "/pyodide/";
-    init(baseUrl, message.inputBuffer).catch((error) =>
+    init(baseUrl, message.inputBuffer, message.boardBuffer).catch((error) =>
       post({ type: "fatal", message: String(error && error.message ? error.message : error) }),
     );
   } else if (message.type === "run" && runPython) {
-    run(message.id, String(message.code).slice(0, 100000), message.stdinLines, message.scripted, message.files);
+    run(message.id, String(message.code).slice(0, 100000), message.stdinLines, message.scripted, message.files, message.device, message.script);
   }
 };
