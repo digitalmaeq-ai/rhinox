@@ -6,6 +6,7 @@ import { MICROBIT_URL, PYODIDE_BASE, WORKER_URL } from "./limits";
 import { ARDUINO_WORKER_URL } from "./arduino";
 
 const ARDUINO_VM_URL = "/coding-robotics/code-studio/arduino-vm.js";
+const ARDUINO_BOARDS_URL = "/coding-robotics/code-studio/arduino-boards.js";
 
 /** The saved copy. Must match CACHE in public/code-studio/offline-sw.js (a test checks it). */
 export const OFFLINE_CACHE = "rhinox-code-studio-offline-v1";
@@ -40,7 +41,7 @@ export function isSaveable(address: string, origin: string): boolean {
 
 /** The files that must be saved for Code Studio to run offline, in the order they are fetched. */
 export function requiredAddresses(kind: StudioKind = "python"): string[] {
-  if (kind === "arduino") return [ARDUINO_PAGE_PATH, ARDUINO_WORKER_URL, ARDUINO_VM_URL, "/code-studio/manifest.webmanifest", "/code-studio/icon-192.png"];
+  if (kind === "arduino") return [ARDUINO_PAGE_PATH, ARDUINO_WORKER_URL, ARDUINO_VM_URL, ARDUINO_BOARDS_URL, "/code-studio/manifest.webmanifest", "/code-studio/icon-192.png"];
   return [PAGE_PATH, WORKER_URL, MICROBIT_URL, ...PYODIDE_FILES.map((file) => `${PYODIDE_BASE}${file}`), "/code-studio/manifest.webmanifest", "/code-studio/icon-192.png"];
 }
 

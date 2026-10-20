@@ -333,7 +333,7 @@ without the pull-up a held button reads HIGH), dials on A0 and A1, a buzzer on p
 | Test | What it checks |
 | --- | --- |
 | `npx tsx lib/code-studio/arduino.test.ts` | the language engine (11 groups of checks) |
-| `node scripts/arduino-browser-tests.cjs http://localhost:3000` | headers, blink, button, dial, Serial, buzzer, error messages, endless loops, Serial flood, recursion, recovery (28 checks) |
+| `node scripts/arduino-browser-tests.cjs http://localhost:3000` | headers, blink, button, dial, Serial, buzzer, error messages, endless loops, Serial flood, recursion, recovery (47 checks) |
 
 ### Arduino exercises and checks (Stage 4.3)
 
@@ -345,3 +345,25 @@ the page re-validates the trace (`cleanSimResult`) and gives up after 15 seconds
 Arduino Studio sits under the Code Studio path on purpose, so the same offline service worker (scope `/coding-robotics/code-studio`) and the same saved-copy cache cover it
 (its worker and engine must be inside the scope for the service worker to serve them). Its "Save for offline use" bar saves only its own page, worker, engine and the site files it loaded (about 3 MB, no Python runtime).
 "Remove saved copy" removes the whole saved copy, Python Studio's too. Sketches are saved to My Projects as kind `arduino` and reopen from there (`?project=<id>`).
+
+## ESP32 board (Milestone 5)
+
+Arduino Studio has a **Board** menu: Arduino Uno or ESP32 DevKit. Both use the same language engine; the board decides the differences
+(`public/coding-robotics/code-studio/arduino-boards.js` is the one file the page, the worker and the engine all read, so they cannot disagree):
+
+| | Uno | ESP32 |
+| --- | --- | --- |
+| `int` | 16 bits | 32 bits |
+| Pins | 0 to 13, A0 to A5 | GPIO 0 to 39 (34 to 39 are input-only) |
+| `analogRead` | 0 to 1023 | 0 to 4095 |
+| PWM | `analogWrite` on 3, 5, 6, 9, 10, 11 | `analogWrite`, or `ledcAttach(pin, freq, bits)` + `ledcWrite(pin, duty)` on any output pin |
+| Extras | | `touchRead`, `WiFi.begin/status/localIP/SSID/RSSI/disconnect/reconnect`, `WL_*` constants |
+| Kit | LEDs 13, 12, 11, 10, 9; buttons 2, 3; dials A0, A1; buzzer 8 | LEDs GPIO 2, 16, 17, 18, 19; buttons 25, 26; touch pads 4, 15; dials 34, 35; buzzer 27 |
+
+**Wi-Fi is pretend.** Nothing reaches a real network. The pretend chip knows two networks, `RhinoxLab` (password `stem2026`) and `RhinoxGuest` (open), in `arduino-boards.js`.
+A right network connects after about 1.8 seconds, a wrong password gives `WL_CONNECT_FAILED` (4) after 2.5 seconds, an unknown name gives `WL_NO_SSID_AVAIL` (1), and a "Router on" tick box on the board
+switches the pretend router, so a learner can watch the connection drop (`WL_DISCONNECTED`, 6) and come back by itself. The worker only reports the status number and network name, which the page re-checks.
+Using `WiFi`, `touchRead` or `ledcWrite` on the Uno gives a plain message: it is only available on the ESP32 board.
+
+There are 5 ESP32 examples and 7 ESP32 exercises (blink and report, touch switch, dial in percent, PWM fade, join Wi-Fi, Wi-Fi status light with a router outage, 32-bit factorial).
+Sketches saved to My Projects remember their board (older ones mean the Uno). Arduino Studio's browser test now has 47 checks.

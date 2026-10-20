@@ -2,17 +2,23 @@
 // everything the Arduino worker sends back. The worker is not trusted: whatever it posts is
 // reduced here to plain numbers and short text before anything on the page uses it.
 
-/** The board is an Arduino Uno with a small kit wired to it. */
-export const PIN_COUNT = 20; // 0 to 13, then A0 to A5 as 14 to 19
-export const BUTTON_PINS = [2, 3] as const;
-export const LED_PINS = [13, 12, 11, 10, 9] as const;
-export const PWM_PINS = [11, 10, 9, 6, 5, 3] as const;
-export const BUZZER_PIN = 8;
-export const POT_PINS = [14, 15] as const; // A0, A1
+import { ANALOG_BASE as ANALOG, BOARDS, INPUT_SLOTS, PIN_COUNT as PINS, ROUTER_SLOT as ROUTER, WL as WL_CODES, NETWORKS as NETS, boardById } from "../../public/coding-robotics/code-studio/arduino-boards.js";
 
-/** Slots in the shared input buffer (Int32Array). Slot p (0 to 19): 1 while the button on pin p is held. Slot 20 + a: analog input a, 0 to 1023. */
-export const ANALOG_BASE = 20;
-export const ARDUINO_INPUT_SLOTS = 32;
+/** The numbers about each board live in one file shared with the worker, so they cannot disagree. */
+export { BOARDS, boardById };
+export type BoardId = "uno" | "esp32";
+export type Kit = (typeof BOARDS)["uno"] | (typeof BOARDS)["esp32"];
+export const PIN_COUNT: number = PINS;
+export const ANALOG_BASE: number = ANALOG;
+export const ROUTER_SLOT: number = ROUTER;
+export const WL = WL_CODES;
+export const NETWORKS = NETS;
+export function kitOf(id: BoardId): Kit {
+  return boardById(id);
+}
+
+/** Slots in the shared input buffer (Int32Array): slot p is 1 while the button or touch pad on pin p is held; ANALOG_BASE + d is dial d in ADC units; ROUTER_SLOT is 1 while the pretend router is on. */
+export const ARDUINO_INPUT_SLOTS: number = INPUT_SLOTS;
 export const ARDUINO_INPUT_BYTES = ARDUINO_INPUT_SLOTS * 4;
 
 /** The longest program, the most Serial text, and how long a live run may last. */
@@ -27,7 +33,7 @@ export type PinState = {
   level: number[];
   /** The analogWrite value for each pin, or -1 when the pin is not in PWM mode. */
   pwm: number[];
-  /** 1 for OUTPUT, 0 for INPUT, 2 for INPUT_PULLUP. */
+  /** 1 for OUTPUT, 0 for INPUT, 2 for INPUT_PULLUP, 3 for INPUT_PULLDOWN. */
   mode: number[];
 };
 
@@ -36,6 +42,7 @@ export type ArduinoMessage =
   | { kind: "state"; state: PinState }
   | { kind: "tone"; frequency: number; ms: number }
   | { kind: "serial"; text: string }
+  | { kind: "wifi"; status: number; ssid: string }
   | { kind: "done"; error: string | null; line: number };
 
 export function emptyPins(): PinState {
@@ -62,7 +69,7 @@ export function cleanArduinoMessage(data: unknown): ArduinoMessage | null {
     case "state": {
       const level = intsIn(m.level, PIN_COUNT, 0, 1);
       const pwm = intsIn(m.pwm, PIN_COUNT, -1, 255);
-      const mode = intsIn(m.mode, PIN_COUNT, 0, 2);
+      const mode = intsIn(m.mode, PIN_COUNT, 0, 3);
       return level && pwm && mode ? { kind: "state", state: { level, pwm, mode } } : null;
     }
     case "tone": {
@@ -71,6 +78,11 @@ export function cleanArduinoMessage(data: unknown): ArduinoMessage | null {
       if (typeof f !== "number" || !Number.isInteger(f) || f < 0 || f > 20_000) return null;
       if (typeof ms !== "number" || !Number.isInteger(ms) || ms < 0 || ms > 60_000) return null;
       return { kind: "tone", frequency: f, ms };
+    }
+    case "wifi": {
+      const status = m.status;
+      if (typeof status !== "number" || !Number.isInteger(status) || status < 0 || status > 255) return null;
+      return { kind: "wifi", status, ssid: typeof m.ssid === "string" ? m.ssid.slice(0, 32) : "" };
     }
     case "serial":
       return typeof m.text === "string" && m.text.length <= 4_000 ? { kind: "serial", text: m.text } : null;
@@ -91,12 +103,13 @@ export function brightness(state: PinState, pin: number): number {
 }
 
 // ---- Scripted runs for exercise checks -----------------------------------------------
-export type SimEvent = { t: number; pin: number; down: boolean } | { t: number; dial: number; value: number };
+export type SimEvent = { t: number; pin: number; down: boolean } | { t: number; dial: number; value: number } | { t: number; router: boolean };
 export type SimScript = { duration: number; events: SimEvent[] };
 export type SimTrace = {
   pins: { t: number; pin: number; level: number; pwm: number }[];
   serial: { t: number; text: string }[];
   tones: { t: number; f: number; ms: number }[];
+  wifi: { t: number; status: number }[];
 };
 export type SimResult = { error: string | null; line: number; trace: SimTrace };
 
@@ -111,6 +124,7 @@ export function cleanSimResult(data: unknown): SimResult | null {
   const pins: SimTrace["pins"] = [];
   const serial: SimTrace["serial"] = [];
   const tones: SimTrace["tones"] = [];
+  const wifi: SimTrace["wifi"] = [];
   if (Array.isArray(t.pins)) {
     for (const e of t.pins.slice(0, 2000)) {
       const r = e as Record<string, unknown>;
@@ -129,9 +143,15 @@ export function cleanSimResult(data: unknown): SimResult | null {
       if (r && isInt(r.t, 0, 1e7) && isInt(r.f, 0, 20000) && isInt(r.ms, 0, 60000)) tones.push({ t: r.t, f: r.f, ms: r.ms });
     }
   }
+  if (Array.isArray(t.wifi)) {
+    for (const e of t.wifi.slice(0, 200)) {
+      const r = e as Record<string, unknown>;
+      if (r && isInt(r.t, 0, 1e7) && isInt(r.status, 0, 255)) wifi.push({ t: r.t, status: r.status });
+    }
+  }
   const error = typeof m.error === "string" ? m.error.slice(0, 400) : null;
   const line = isInt(m.line, 0, 99999) ? m.line : 0;
-  return { error, line, trace: { pins, serial, tones } };
+  return { error, line, trace: { pins, serial, tones, wifi } };
 }
 
 /** The level (0 to 1, PWM counted) of a pin at a time, read back from a trace. */

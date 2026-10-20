@@ -209,6 +209,53 @@ async function headersOf(path) {
   check("and the Blink example runs offline", litOffline);
   await offline.close();
 
+  // ESP32
+  await page.goto(URL, { waitUntil: "load" });
+  await page.waitForSelector(".monaco-editor", { timeout: 30000 });
+  await page.selectOption('select[aria-label="Choose a board"]', "esp32");
+  await sleep(500);
+  check("The ESP32 board shows its own kit: five LEDs, two buttons, two touch pads, two dials, Wi-Fi", (await page.locator("[data-pin]").count()) === 5 && (await page.locator('button[aria-label^="Push button"]').count()) === 2 && (await page.locator('button[aria-label^="Touch pad"]').count()) === 2 && (await page.locator('[data-wifi]').count()) === 1);
+  await runButton.click();
+  check("ESP32 Blink: GPIO 2 lights and Serial says LED on", (await waitFor(async () => (await lit(2)) === "1", 4000)) && (await waitFor(async () => /LED on/.test(await serialText()), 3000)));
+  await stop();
+  await pickExample("esp-touch");
+  await runButton.click();
+  await sleep(1200);
+  await page.locator('button[aria-label^="Touch pad on pin 4"]').scrollIntoViewIfNeeded();
+  const pad = await page.locator('button[aria-label^="Touch pad on pin 4"]').boundingBox();
+  check("Touch pad: untouched, the LED is off", (await lit(16)) === "0");
+  await page.mouse.move(pad.x + pad.width / 2, pad.y + pad.height / 2);
+  await page.mouse.down();
+  check("Touch pad: touching lights the LED", await waitFor(async () => (await lit(16)) === "1", 3000));
+  await page.mouse.up();
+  await stop();
+  await pickExample("esp-wifi");
+  await runButton.click();
+  check("Wi-Fi: the board says it is connected", await waitFor(async () => /Connected to RhinoxLab/.test(await page.locator('[data-wifi]').innerText()), 8000));
+  check("Wi-Fi: Serial shows the IP address and the LED lights", (await waitFor(async () => /192\.168\.1\.42/.test(await serialText()), 3000)) && (await lit(2)) === "1");
+  await stop();
+  await type('void setup(){ Serial.begin(115200); WiFi.begin("RhinoxLab", "nope"); } void loop(){ Serial.println(WiFi.status()); delay(1000); }');
+  await runButton.click();
+  check("Wi-Fi: a wrong password is reported", await waitFor(async () => /Wrong password/.test(await page.locator('[data-wifi]').innerText()), 8000));
+  await stop();
+  await type('void setup(){ WiFi.begin("RhinoxGuest"); } void loop(){ delay(100); }');
+  await runButton.click();
+  await waitFor(async () => /Connected to RhinoxGuest/.test(await page.locator('[data-wifi]').innerText()), 8000);
+  await page.getByLabel("Router on").uncheck();
+  check("Wi-Fi: switching the router off drops the connection", await waitFor(async () => /Not connected/.test(await page.locator('[data-wifi]').innerText()), 5000));
+  await page.getByLabel("Router on").check();
+  check("Wi-Fi: and it reconnects when the router returns", await waitFor(async () => /Connected to RhinoxGuest/.test(await page.locator('[data-wifi]').innerText()), 8000));
+  await stop();
+  await pickExample("ar:es-bigint");
+  await type("int factorial(int n){ if (n <= 1) return 1; return n * factorial(n - 1); } void setup(){ Serial.begin(115200); Serial.println(factorial(10)); } void loop(){}");
+  await page.getByRole("button", { name: "Check my work" }).click();
+  check("An ESP32 exercise is checked on the ESP32 board", await waitFor(async () => (await page.locator('[role="status"][data-passed="1"]').count()) === 1, 15000));
+  await page.selectOption('select[aria-label="Choose a board"]', "uno");
+  await sleep(400);
+  await type("void setup(){ touchRead(4); } void loop(){}");
+  await runButton.click();
+  check("The Uno says plainly that touchRead is ESP32-only", await waitFor(async () => /only available on the ESP32/.test(await serialText()), 5000));
+
   // Python Studio is not disturbed
   await page.goto(BASE + "/coding-robotics/code-studio", { waitUntil: "load" });
   check("Python Studio page still loads", await page.waitForSelector(".monaco-editor", { timeout: 30000 }).then(() => true).catch(() => false));
