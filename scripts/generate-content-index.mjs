@@ -142,3 +142,5 @@ console.log(
 for (const file of files) {
   console.log(`  - ${path.relative(root, file)}`);
 }
+
+import "./copy-code-studio-assets.mjs";

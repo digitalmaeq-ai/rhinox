@@ -12,6 +12,7 @@ const STATIC_PATHS = [
   "/about/mission",
   "/about/support",
   "/coding-robotics",
+  "/coding-robotics/code-studio",
   "/coding-robotics/game-creator",
   "/coding-robotics/my-projects",
   "/contact",

@@ -269,6 +269,12 @@ export const navigation: NavigationItem[] = [
               description:
                 "Design a maze game, choose its rules, play it and save it.",
             },
+            {
+              label: "Rhinox Code Studio",
+              href: "/coding-robotics/code-studio",
+              description:
+                "Write and run real Python in your browser, with guided exercises and checks.",
+            },
           ],
         },
         {
