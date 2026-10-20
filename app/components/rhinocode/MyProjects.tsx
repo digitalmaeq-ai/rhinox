@@ -13,9 +13,10 @@ const LAB_PATH = "/coding-robotics/robot-lab";
 const GAME_PATH = "/coding-robotics/game-creator";
 const PYTHON_PATH = "/coding-robotics/code-studio";
 const ARDUINO_PATH = "/coding-robotics/code-studio/arduino";
+const WEB_PATH = "/coding-robotics/code-studio/web";
 
 function openHref(project: Project): string {
-  const base = project.kind === "robot-program" ? LAB_PATH : project.kind === "python" ? PYTHON_PATH : project.kind === "arduino" ? ARDUINO_PATH : GAME_PATH;
+  const base = project.kind === "robot-program" ? LAB_PATH : project.kind === "python" ? PYTHON_PATH : project.kind === "arduino" ? ARDUINO_PATH : project.kind === "web" ? WEB_PATH : GAME_PATH;
   return `${base}?project=${encodeURIComponent(project.id)}`;
 }
 

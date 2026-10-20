@@ -26,6 +26,7 @@ const CACHE = "rhinox-code-studio-offline-v1";
 const CACHE_PREFIX = "rhinox-code-studio-offline-";
 const PAGE = "/coding-robotics/code-studio";
 const ARDUINO_PAGE = "/coding-robotics/code-studio/arduino";
+const WEB_PAGE = "/coding-robotics/code-studio/web";
 
 self.addEventListener("install", () => {
   self.skipWaiting();
@@ -103,7 +104,7 @@ self.addEventListener("fetch", (event) => {
     );
 
   if (request.mode === "navigate") {
-    if (path === PAGE || path === ARDUINO_PAGE) handle(() => networkFirst(request, path));
+    if (path === PAGE || path === ARDUINO_PAGE || path === WEB_PAGE) handle(() => networkFirst(request, path));
     return;
   }
   if (path.startsWith("/_next/static/") || path.startsWith("/pyodide/")) {

@@ -14,7 +14,8 @@ export const SW_URL = "/code-studio/offline-sw.js";
 export const PAGE_PATH = "/coding-robotics/code-studio";
 /** Arduino Studio lives under the Code Studio path, so the same service worker and saved copy cover it. */
 export const ARDUINO_PAGE_PATH = "/coding-robotics/code-studio/arduino";
-export type StudioKind = "python" | "arduino";
+export const WEB_PAGE_PATH = "/coding-robotics/code-studio/web";
+export type StudioKind = "python" | "arduino" | "web";
 /** The service worker only controls the Code Studio page, never the rest of the site. */
 export const SW_SCOPE = "/coding-robotics/code-studio";
 
@@ -41,6 +42,7 @@ export function isSaveable(address: string, origin: string): boolean {
 
 /** The files that must be saved for Code Studio to run offline, in the order they are fetched. */
 export function requiredAddresses(kind: StudioKind = "python"): string[] {
+  if (kind === "web") return [WEB_PAGE_PATH, "/code-studio/manifest.webmanifest", "/code-studio/icon-192.png"];
   if (kind === "arduino") return [ARDUINO_PAGE_PATH, ARDUINO_WORKER_URL, ARDUINO_VM_URL, ARDUINO_BOARDS_URL, "/code-studio/manifest.webmanifest", "/code-studio/icon-192.png"];
   return [PAGE_PATH, WORKER_URL, MICROBIT_URL, ...PYODIDE_FILES.map((file) => `${PYODIDE_BASE}${file}`), "/code-studio/manifest.webmanifest", "/code-studio/icon-192.png"];
 }
@@ -105,7 +107,7 @@ async function keep(cache: Cache, address: string): Promise<void> {
     throw new Error(`Could not save ${address.split("?")[0]} (${response.status}).`);
   }
   const bare = address.split("?")[0];
-  await cache.put(bare === PAGE_PATH || bare === ARDUINO_PAGE_PATH ? bare : address, response);
+  await cache.put(bare === PAGE_PATH || bare === ARDUINO_PAGE_PATH || bare === WEB_PAGE_PATH ? bare : address, response);
 }
 
 /** Saves everything needed. Calls onProgress(done, total) as it goes. Throws an Error with words a learner can read. */

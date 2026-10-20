@@ -367,3 +367,17 @@ Using `WiFi`, `touchRead` or `ledcWrite` on the Uno gives a plain message: it is
 
 There are 5 ESP32 examples and 7 ESP32 exercises (blink and report, touch switch, dial in percent, PWM fade, join Wi-Fi, Wi-Fi status light with a router outage, 32-bit factorial).
 Sketches saved to My Projects remember their board (older ones mean the Uno). Arduino Studio's browser test now has 47 checks.
+
+## Web Studio: HTML and CSS (Milestone 6)
+
+`/coding-robotics/code-studio/web` (under the Code Studio path, so the same offline service worker covers it). Two files, `index.html` and `style.css`, with a live preview that updates 300 ms after typing.
+
+**How a page is kept safe.** JavaScript does not run in Web Studio. The learner's HTML is read with `DOMParser` (which runs nothing), then `lib/code-studio/web.ts` removes
+`script`, `link`, `base`, `meta http-equiv`, `iframe`, `object`, `embed`, `form`, `noscript` and `template`; every `on…` attribute; `javascript:` addresses; any `src` that is not a `data:` address; and `@import` and non-`data:` `url()` in all CSS.
+The result gets a Content-Security-Policy `<meta>` as its first element (`default-src 'none'; style-src 'unsafe-inline'; img-src data:; font-src data:; …`), and is shown in an iframe with `sandbox=""` (no scripts, no forms, no same-origin, no top navigation).
+The policy is the real wall; the cleaning is the second layer (CSS escapes could disguise a `url(`, which the policy still blocks). The Web Studio page itself has the same page CSP as the other studios.
+
+**Checks.** "Check my work" shows the page in a hidden iframe with `sandbox="allow-same-origin"` (still no scripts, so nothing in the page can use that permission) at a set width (800 px, or 400 px for the media-query check), and our check code reads the laid-out result
+(computed styles and positions). There are 8 exercises (heading and paragraph, list, link, colours, card, centring, flexbox row, responsive stack). Pages save to My Projects as kind `web`.
+
+`node scripts/web-browser-tests.cjs http://localhost:3000` (34 checks): for every exercise the untouched starter fails and a correct solution passes; hostile pages (script, event handlers, outside pictures, `javascript:` link, form, iframe, meta refresh, stylesheet link, SVG script, object, CSS `@import` and `url()`) show only their safe parts and run nothing; save, reopen and offline work.
