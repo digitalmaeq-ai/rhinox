@@ -452,4 +452,130 @@ while True:
   ],
 };
 
-export const MICROBIT_EXERCISES: Exercise[] = [hello, scroll, buttons, counter, foreverCount, lightDetective, hot, nightLight, musicBox, dice];
+// ---- 11. Send a message (Year 6) --------------------------------------------------
+
+const radioSend: Exercise = {
+  id: "mb-radio-send",
+  group: "micro:bit",
+  lesson: "Year 6, Term 2, Week 1",
+  title: "Send a message",
+  summary: "Send words to another micro:bit by radio.",
+  instructions: [
+    "A micro:bit can talk to other micro:bits with its radio. The radio starts switched off, so a program has to switch it on first.",
+    "When button A is pressed, send the message hello. When button B is pressed, send the message bye. Because your program uses the radio, Code Studio shows two boards. A message sent on board 1 arrives on board 2.",
+  ],
+  starter: `${HEADER}import radio
+
+radio.on()
+while True:
+    # A: send "hello"      B: send "bye"
+    sleep(50)
+`,
+  hints: [
+    "radio.send(\"hello\") sends the words inside the quotes.",
+    "Use if button_a.was_pressed(): and then, indented underneath, radio.send(...).",
+    'if button_a.was_pressed():  radio.send("hello")  if button_b.was_pressed():  radio.send("bye")',
+  ],
+  cases: [
+    boardCase(
+      "A then B",
+      { duration: 4000, events: [{ at: 500, do: "press_a" }, { at: 1500, do: "press_b" }] },
+      (trace) => {
+        const sent = trace.radio.map((m) => m.text);
+        if (sent.length === 0) return "No message was sent. Use radio.send(...) when a button is pressed.";
+        if (sent[0] !== "hello") return `After button A, the message should be hello, but it was ${sent[0] === null ? "not text" : sent[0]}.`;
+        if (sent.length < 2) return "Button B should send the message bye.";
+        if (sent[1] !== "bye") return `After button B, the message should be bye, but it was ${sent[1] === null ? "not text" : sent[1]}.`;
+        if (sent.length > 2) return "Only two messages should be sent: one for A, one for B.";
+        return null;
+      },
+    ),
+    boardCase("No buttons, no messages", { duration: 1500, events: [] }, (trace) =>
+      trace.radio.length > 0 ? "A message was sent without a button press. Send only when A or B is pressed." : null,
+    ),
+  ],
+};
+
+// ---- 12. Receive a message (Year 6) ------------------------------------------------
+
+const radioReceive: Exercise = {
+  id: "mb-radio-receive",
+  group: "micro:bit",
+  lesson: "Year 6, Term 2, Week 2",
+  title: "Receive a message",
+  summary: "Show a picture for each message that arrives.",
+  instructions: [
+    "radio.receive() gives the next message that has arrived, or None if there is nothing new. Always check for None before you use it.",
+    "When the message happy arrives, show a happy face. When sad arrives, show a sad face. Ignore any other message.",
+  ],
+  starter: `${HEADER}import radio
+
+radio.on()
+while True:
+    message = radio.receive()
+    # If message is "happy": show Image.HAPPY. If it is "sad": show Image.SAD.
+    sleep(50)
+`,
+  hints: [
+    "When nothing has arrived, message is None. Comparing None with \"happy\" is just False, so a plain if message == \"happy\": is safe.",
+    "Add a second if (or elif) for \"sad\".",
+    'if message == "happy":  display.show(Image.HAPPY)  elif message == "sad":  display.show(Image.SAD)',
+  ],
+  cases: [
+    boardCase(
+      "Happy, sad, junk, happy",
+      {
+        duration: 6000,
+        events: [
+          { at: 500, do: "radio", text: "happy" },
+          { at: 1500, do: "radio", text: "sad" },
+          { at: 2500, do: "radio", text: "hello there" },
+          { at: 3500, do: "radio", text: "happy" },
+        ],
+      },
+      (trace) =>
+        expectAt(trace, 1000, HAPPY, "After the message happy") ??
+        expectAt(trace, 2000, SAD, "After the message sad") ??
+        expectAt(trace, 3000, SAD, "After a message it does not know (it should change nothing)") ??
+        expectAt(trace, 5000, HAPPY, "After the message happy again"),
+    ),
+  ],
+};
+
+// ---- 13. A secret group (Year 6) ---------------------------------------------------
+
+const radioGroup: Exercise = {
+  id: "mb-radio-group",
+  group: "micro:bit",
+  lesson: "Year 6, Term 2, Week 3",
+  title: "A secret group",
+  summary: "Only listen to micro:bits in your group.",
+  instructions: [
+    "Many micro:bits in one room can all use the radio. A group number keeps your messages apart: a micro:bit only hears messages from its own group.",
+    "Put this micro:bit in group 5. Show a heart whenever any message arrives, and ignore messages sent to other groups.",
+  ],
+  starter: `${HEADER}import radio
+
+radio.on()
+# Put the radio in group 5
+while True:
+    message = radio.receive()
+    # When a message arrives, show Image.HEART
+    sleep(50)
+`,
+  hints: [
+    "radio.config(group=5) sets the group. Do it once, before the loop.",
+    "if message is not None:  then display.show(Image.HEART).",
+    "radio.config(group=5)  ...  if message is not None:  display.show(Image.HEART)",
+  ],
+  cases: [
+    boardCase(
+      "Another group, then group 5",
+      { duration: 4000, events: [{ at: 500, do: "radio", text: "hi", group: 0 }, { at: 1500, do: "radio", text: "psst", group: 3 }, { at: 2500, do: "radio", text: "hi", group: 5 }] },
+      (trace) =>
+        expectAt(trace, 2000, "0".repeat(25), "After messages from other groups") ?? expectAt(trace, 3500, HEART, "After a message from group 5"),
+    ),
+  ],
+};
+
+export const MICROBIT_EXERCISES: Exercise[] = [hello, scroll, buttons, counter, foreverCount, lightDetective, hot, nightLight, musicBox, dice, radioSend, radioReceive, radioGroup];

@@ -2,7 +2,7 @@
 // The page-side checks for the micro:bit simulator: what the worker may send, and what a script may ask for.
 import assert from "node:assert/strict";
 
-import { cleanDeviceEvent, cleanScript, cleanTrace, glow, ledRows, litCount, usesMicrobit } from "./microbit";
+import { cleanDeviceEvent, cleanScript, cleanTrace, glow, hexToBytes, ledRows, litCount, radioText, usesMicrobit, usesRadio } from "./microbit";
 import { digitLeds } from "./exercises-microbit";
 
 let passed = 0;
@@ -67,6 +67,24 @@ test("pictures, digits and glow", () => {
   assert.equal(litCount(digitLeds(1)), 8);
   assert.equal(glow(0), 0);
   assert.ok(glow(9) === 1 && glow(1) > 0.18);
+});
+
+test("radio: events, text and what counts as using the radio", () => {
+  assert.deepEqual(cleanDeviceEvent({ kind: "radio", g: 5, ch: 7, h: "010001" + "6869" }), { kind: "radio", group: 5, channel: 7, bytes: [1, 0, 1, 104, 105] });
+  assert.equal(cleanDeviceEvent({ kind: "radio", g: 256, ch: 7, h: "00" }), null);
+  assert.equal(cleanDeviceEvent({ kind: "radio", g: 1, ch: 84, h: "00" }), null);
+  assert.equal(cleanDeviceEvent({ kind: "radio", g: 1, ch: 1, h: "0" }), null);
+  assert.equal(cleanDeviceEvent({ kind: "radio", g: 1, ch: 1, h: "zz" }), null);
+  assert.equal(cleanDeviceEvent({ kind: "radio", g: 1, ch: 1, h: "00".repeat(252) }), null);
+  assert.equal(cleanDeviceEvent({ kind: "radio", g: 1, ch: 1, h: "00".repeat(251) })?.kind, "radio");
+  assert.equal(radioText(hexToBytes("010001" + "6869")), "hi");
+  assert.equal(radioText(hexToBytes("6869")), null);
+  assert.equal(radioText(hexToBytes("010001ff")), null);
+  assert.equal(usesRadio("import radio\n"), true);
+  assert.equal(usesRadio("from microbit import *\n"), false);
+  assert.equal(usesMicrobit("import radio\n"), true);
+  const trace = cleanTrace({ radio: [[10, 5, 7, "01000168"], [1, 300, 7, "00"], [2, 1, 1, "zz"]], leds: "0".repeat(25) });
+  assert.deepEqual(trace?.radio, [{ t: 10, group: 5, channel: 7, text: "h" }]);
 });
 
 console.log(`\n${passed} micro:bit page checks passed`);

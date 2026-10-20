@@ -53,6 +53,17 @@ let pendingLeds = null;
 let lastLedPost = 0;
 let deviceReply = new Uint8Array(0);
 let eventTimes = [];
+let radioTimes = [];
+// Radio: the page puts incoming messages in a ring of 8 slots in the shared board memory.
+// Int32 [24] counts messages written. Slot i starts at byte 128 + i * 264:
+// int32 length, byte group, byte channel, then the data from byte 8.
+const RADIO_HEAD = 24;
+const RADIO_BASE = 128;
+const RADIO_SLOTS = 8;
+const RADIO_SLOT_BYTES = 264;
+const MAX_RADIO_BYTES = 251;
+const MAX_RADIO_PER_SECOND = 40;
+let radioRead = 0;
 
 function boardNow() {
   return Math.round(performance.now() - boardStart);
@@ -73,6 +84,33 @@ function allowEvent() {
   if (eventTimes.length >= MAX_DEVICE_EVENTS_PER_SECOND) return false;
   eventTimes.push(now);
   return true;
+}
+
+function allowRadio() {
+  const now = performance.now();
+  radioTimes = radioTimes.filter((t) => now - t < 1000);
+  if (radioTimes.length >= MAX_RADIO_PER_SECOND) return false;
+  radioTimes.push(now);
+  return true;
+}
+
+function hexOf(bytes) {
+  let out = "";
+  for (const b of bytes) out += (b < 16 ? "0" : "") + b.toString(16);
+  return out;
+}
+
+function takeRadio() {
+  if (!boardInputs) return {};
+  const head = Atomics.load(boardInputs, RADIO_HEAD);
+  if (radioRead >= head) return {};
+  if (head - radioRead > RADIO_SLOTS) radioRead = head - RADIO_SLOTS;
+  const slot = radioRead % RADIO_SLOTS;
+  radioRead += 1;
+  const at = RADIO_BASE + slot * RADIO_SLOT_BYTES;
+  const length = Math.max(0, Math.min(MAX_RADIO_BYTES, Atomics.load(boardInputs, at / 4)));
+  const view = new Uint8Array(boardInputs.buffer, at, 8 + length);
+  return { g: view[4], ch: view[5], h: hexOf(view.subarray(8, 8 + length)) };
 }
 
 function readBoard() {
@@ -137,6 +175,20 @@ function handleBoardRequest(text) {
       }
       return {};
     }
+    case "radio": {
+      const g = Number(message.g);
+      const ch = Number(message.ch);
+      const h = message.h;
+      if (
+        Number.isInteger(g) && g >= 0 && g <= 255 && Number.isInteger(ch) && ch >= 0 && ch <= 83 &&
+        typeof h === "string" && h.length <= MAX_RADIO_BYTES * 2 && /^(?:[0-9a-f]{2})*$/.test(h) && allowRadio()
+      ) {
+        post({ type: "device", kind: "radio", g, ch, h });
+      }
+      return {};
+    }
+    case "rx":
+      return takeRadio();
     default:
       return {};
   }
@@ -532,8 +584,8 @@ def _start_microbit(mode, script_json, guarded_builtins):
         backend = namespace["LiveBackend"](ask)
     else:
         backend = namespace["ScriptedBackend"](json.loads(script_json) if script_json else {})
-    microbit_module, music_module = namespace["build"](backend)
-    return namespace, backend, microbit_module, music_module, fd
+    microbit_module, music_module, radio_module = namespace["build"](backend)
+    return namespace, backend, microbit_module, music_module, fd, radio_module
 
 def run(source, files_json="[]", device_mode="", script_json=""):
     _load_files(files_json)
@@ -565,6 +617,7 @@ def run(source, files_json="[]", device_mode="", script_json=""):
         device = _start_microbit(device_mode, script_json, user_builtins)
         sys.modules["microbit"] = device[2]
         sys.modules["music"] = device[3]
+        sys.modules["radio"] = device[5]
     linecache.cache["main.py"] = (len(source), None, source.splitlines(True), "main.py")
     ok = True
     try:
@@ -668,6 +721,8 @@ function run(id, code, lines, isScripted, files, device, script) {
   boardStart = performance.now();
   pendingLeds = null;
   eventTimes = [];
+  radioTimes = [];
+  radioRead = 0;
   deviceReply = new Uint8Array(0);
   outChars = 0;
   limitHit = false;
