@@ -335,6 +335,37 @@ while True:
         display.clear()
     sleep(100)
 `,
+  "mb-radio-send": `from microbit import *
+import radio
+radio.on()
+while True:
+    if button_a.was_pressed():
+        radio.send("hello")
+    if button_b.was_pressed():
+        radio.send("bye")
+    sleep(50)
+`,
+  "mb-radio-receive": `from microbit import *
+import radio
+radio.on()
+while True:
+    message = radio.receive()
+    if message == "happy":
+        display.show(Image.HAPPY)
+    elif message == "sad":
+        display.show(Image.SAD)
+    sleep(50)
+`,
+  "mb-radio-group": `from microbit import *
+import radio
+radio.on()
+radio.config(group=5)
+while True:
+    message = radio.receive()
+    if message is not None:
+        display.show(Image.HEART)
+    sleep(50)
+`,
   "mb-hello": `from microbit import *
 display.show(Image.HEART)
 `,
@@ -406,8 +437,8 @@ async function main() {
   const runner = await makeRunner();
 
   await test("there are five starters and ten, ten and eleven exercises for Years 7, 8 and 9, each with a starter, hints and checks", () => {
-    assert.equal(EXERCISES.length, 46);
-    assert.equal(EXERCISES.filter((e) => e.group === "micro:bit").length, 10);
+    assert.equal(EXERCISES.length, 49);
+    assert.equal(EXERCISES.filter((e) => e.group === "micro:bit").length, 13);
     assert.equal(EXERCISES.filter((e) => e.group === "Starter").length, 5);
     assert.equal(EXERCISES.filter((e) => e.group === "Year 7").length, 10);
     assert.equal(EXERCISES.filter((e) => e.group === "Year 8").length, 10);
@@ -415,7 +446,7 @@ async function main() {
     assert.ok(EXERCISES.filter((e) => e.group.startsWith("Year")).every((e) => e.lesson && /^Term [123], Week \d+$/.test(e.lesson)));
     assert.ok(EXERCISES.filter((e) => e.group === "micro:bit").every((e) => e.lesson && /^Year [4-8], Term [123], Week \d+$/.test(e.lesson)));
     const ids = new Set(EXERCISES.map((e) => e.id));
-    assert.equal(ids.size, 46);
+    assert.equal(ids.size, 49);
     for (const e of EXERCISES) {
       assert.ok(e.starter.length > 0 && e.hints.length >= 2 && e.cases.length >= 1 && e.instructions.length >= 1, e.id);
       assert.ok(SOLUTIONS[e.id], `solution for ${e.id}`);
@@ -623,6 +654,10 @@ async function main() {
     await failsWith("mb-scroll", 'from microbit import *\ndisplay.scroll("R")\n', /too short/);
     await failsWith("mb-forever", SOLUTIONS["mb-forever"].replace("1000", "500"), /After one second|After three seconds/);
     await failsWith("mb-night-light", SOLUTIONS["mb-night-light"].replace("< 50", "<= 50"), /light level of 50/);
+    await failsWith("mb-radio-send", SOLUTIONS["mb-radio-send"].replace('"bye"', '"hello"'), /After button B, the message should be bye/);
+    await failsWith("mb-radio-send", SOLUTIONS["mb-radio-send"].replace("radio.on()\n", ""), /radio is off/);
+    await failsWith("mb-radio-receive", SOLUTIONS["mb-radio-receive"].replace('"sad"', '"hello there"'), /After a message it does not know|After the message sad/);
+    await failsWith("mb-radio-group", SOLUTIONS["mb-radio-group"].replace("group=5", "group=0"), /other groups/);
     await failsWith("mb-dice", SOLUTIONS["mb-dice"].replace("random.randint(1, 6)", "4"), /same number every time/);
     await failsWith("mb-dice", SOLUTIONS["mb-dice"].replace("random.randint(1, 6)", "random.randint(1, 9)"), /from 1 to 6|same number/);
   });

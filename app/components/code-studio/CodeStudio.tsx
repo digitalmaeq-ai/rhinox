@@ -10,7 +10,7 @@ import { EXERCISES, getExercise } from "@/lib/code-studio/exercises";
 import { filesFromSnapshot, filesSnapshot, saveFiles, subscribeFiles, type ProgramFile } from "@/lib/code-studio/files";
 import { MAX_OUTPUT_CHARS, RUN_TIMEOUT_MS } from "@/lib/code-studio/limits";
 import { prepareAudio, playTone, stopTone } from "@/lib/code-studio/board-audio";
-import { usesMicrobit, type DeviceEvent, type GestureName } from "@/lib/code-studio/microbit";
+import { usesMicrobit, usesRadio, type DeviceEvent, type GestureName } from "@/lib/code-studio/microbit";
 import { MAX_CODE_CHARS, toProjectData, type PythonProjectData } from "@/lib/code-studio/project";
 import {
   markCompleted, progressFromSnapshot, progressSnapshot, saveDraft, subscribeProgress,
@@ -110,6 +110,11 @@ export default function CodeStudio({ savedId: initialSavedId, savedProject }: Pr
   const [boardWanted, setBoardWanted] = useState(() => usesMicrobit(session.initialCode) || getExercise(session.exerciseId)?.group === "micro:bit");
   const [boardProgram, setBoardProgram] = useState(() => usesMicrobit(session.initialCode));
   const [boardRunning, setBoardRunning] = useState(false);
+  const [radioProgram, setRadioProgram] = useState(() => usesRadio(session.initialCode));
+  const [leds2, setLeds2] = useState<number[]>(() => new Array(25).fill(0));
+  const [sensors2, setSensors2] = useState<SensorValues>(DEFAULT_SENSORS);
+  const sensors2Ref = useRef<SensorValues>(DEFAULT_SENSORS);
+  const runner2Ref = useRef<PythonRunner | null>(null);
   const [leds, setLeds] = useState<number[]>(() => new Array(25).fill(0));
   const [sensors, setSensors] = useState<SensorValues>(DEFAULT_SENSORS);
   const [muted, setMuted] = useState(false);
@@ -171,15 +176,34 @@ export default function CodeStudio({ savedId: initialSavedId, savedProject }: Pr
         onDevice: (event: DeviceEvent) => {
           if (event.kind === "leds") setLeds(event.leds);
           else if (event.kind === "sound" && !mutedRef.current) playTone(event.frequency, event.ms);
+          else if (event.kind === "radio") runner2Ref.current?.deliverRadio(event);
         },
       });
     }
     return runnerRef.current;
   }, [append]);
 
+  // The second micro:bit, only made when a program uses the radio. It runs the same program.
+  const getRunner2 = useCallback(() => {
+    if (!runner2Ref.current) {
+      runner2Ref.current = new PythonRunner({
+        onOutput: (stream, text) => {
+          if (stream === "stderr") append("err", `micro:bit 2: ${text}`);
+        },
+        onStatus: () => {},
+        onDevice: (event: DeviceEvent) => {
+          if (event.kind === "leds") setLeds2(event.leds);
+          else if (event.kind === "radio") runnerRef.current?.deliverRadio(event);
+        },
+      });
+    }
+    return runner2Ref.current;
+  }, [append]);
+
   useEffect(
     () => () => {
       runnerRef.current?.dispose();
+      runner2Ref.current?.dispose();
       stopTone();
       if (draftTimer.current) clearTimeout(draftTimer.current);
     },
@@ -201,10 +225,18 @@ export default function CodeStudio({ savedId: initialSavedId, savedProject }: Pr
     if (board) {
       prepareAudio();
       setLeds(new Array(25).fill(0));
+      setLeds2(new Array(25).fill(0));
       if (!runner.interactiveInput) append("info", "The micro:bit board needs the page in secure mode. Reload the page, then press Run again.");
     }
     setBoardRunning(board && runner.interactiveInput);
+    // A program that uses the radio runs on two micro:bits at once, so a message sent by one can reach the other.
+    const second = board && usesRadio(codeRef.current) && runner.interactiveInput ? getRunner2() : null;
+    const secondRun = second ? second.run(codeRef.current, [], { files: before, sensors: sensors2Ref.current, quiet: true }) : null;
     const result = await runner.run(codeRef.current, lines, { files: before, sensors: sensorsRef.current });
+    if (second) {
+      second.stop();
+      await secondRun;
+    }
     setBoardRunning(false);
     if (board) stopTone();
     const note = describe(result);
@@ -218,11 +250,12 @@ export default function CodeStudio({ savedId: initialSavedId, savedProject }: Pr
       else append("info", "The files could not be kept. Your browser may be blocking storage.");
     }
     if (result.fileNotes) append("info", result.fileNotes.join(" "));
-  }, [append, getRunner, stdinText]);
+  }, [append, getRunner, getRunner2, stdinText]);
 
   function onEdit(value: string) {
     codeRef.current = value;
     setBoardProgram(usesMicrobit(value));
+    setRadioProgram(usesRadio(value));
     setBoardWanted(usesMicrobit(value) || getExercise(session.exerciseId)?.group === "micro:bit");
     setNotice("");
     // Keep unsaved work for each exercise, so switching exercises never loses it.
@@ -245,6 +278,7 @@ export default function CodeStudio({ savedId: initialSavedId, savedProject }: Pr
     codeRef.current = initialCode;
     setBoardWanted(usesMicrobit(initialCode) || getExercise(id)?.group === "micro:bit");
     setBoardProgram(usesMicrobit(initialCode));
+    setRadioProgram(usesRadio(initialCode));
     setLeds(new Array(25).fill(0));
     setSession((previous) => ({ exerciseId: id, initialCode, key: previous.key + 1 }));
     setSavedId(null);
@@ -259,6 +293,7 @@ export default function CodeStudio({ savedId: initialSavedId, savedProject }: Pr
     const initialCode = starterFor(session.exerciseId);
     codeRef.current = initialCode;
     setBoardProgram(usesMicrobit(initialCode));
+    setRadioProgram(usesRadio(initialCode));
     saveDraft(session.exerciseId ?? "free", initialCode);
     setSession((previous) => ({ ...previous, initialCode, key: previous.key + 1 }));
     setReport(null);
@@ -316,6 +351,12 @@ export default function CodeStudio({ savedId: initialSavedId, savedProject }: Pr
 
   const busy = status !== "idle" || checking;
 
+  function changeSensors2(next: SensorValues) {
+    sensors2Ref.current = next;
+    setSensors2(next);
+    runner2Ref.current?.setSensors(next);
+  }
+
   function changeSensors(next: SensorValues) {
     sensorsRef.current = next;
     setSensors(next);
@@ -355,7 +396,14 @@ export default function CodeStudio({ savedId: initialSavedId, savedProject }: Pr
           <button type="button" className={styles.run} onClick={run} disabled={busy || checking}>
             {status === "starting" ? "Starting…" : "Run"}
           </button>
-          <button type="button" onClick={() => runnerRef.current?.stop()} disabled={!busy}>
+          <button
+            type="button"
+            onClick={() => {
+              runnerRef.current?.stop();
+              runner2Ref.current?.stop();
+            }}
+            disabled={!busy}
+          >
             Stop
           </button>
           <button type="button" onClick={resetCode} disabled={busy || checking}>
@@ -437,6 +485,7 @@ export default function CodeStudio({ savedId: initialSavedId, savedProject }: Pr
         </div>
             {boardWanted && (
               <MicrobitPanel
+                title={radioProgram ? "micro:bit 1" : "micro:bit"}
                 leds={leds}
                 running={boardRunning}
                 sensors={sensors}
@@ -450,6 +499,21 @@ export default function CodeStudio({ savedId: initialSavedId, savedProject }: Pr
                   setMuted(value);
                   if (value) stopTone();
                 }}
+              />
+            )}
+            {boardWanted && radioProgram && (
+              <MicrobitPanel
+                title="micro:bit 2"
+                showMute={false}
+                leds={leds2}
+                running={boardRunning}
+                sensors={sensors2}
+                muted={muted}
+                onButton={(button, down) => runner2Ref.current?.setButton(button, down)}
+                onPin={(pin, touched) => runner2Ref.current?.setPin(pin, touched ? 1023 : 0, touched)}
+                onGesture={(name: GestureName) => runner2Ref.current?.doGesture(name)}
+                onSensors={changeSensors2}
+                onMute={() => {}}
               />
             )}
             <ChartsPanel charts={charts} />

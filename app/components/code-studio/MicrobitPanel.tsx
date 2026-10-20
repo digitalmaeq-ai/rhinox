@@ -9,6 +9,10 @@ import type { SensorValues } from "@/lib/code-studio/runner";
 import styles from "./CodeStudio.module.css";
 
 type Props = {
+  /** The name above the board, for example "micro:bit" or "micro:bit 2". */
+  title?: string;
+  /** False on the second board: the speaker is on the first. */
+  showMute?: boolean;
   leds: number[];
   running: boolean;
   sensors: SensorValues;
@@ -71,7 +75,7 @@ function usePress(onChange: (down: boolean) => void) {
   };
 }
 
-export default function MicrobitPanel({ leds, running, sensors, muted, onButton, onPin, onGesture, onSensors, onMute }: Props) {
+export default function MicrobitPanel({ title = "micro:bit", showMute = true, leds, running, sensors, muted, onButton, onPin, onGesture, onSensors, onMute }: Props) {
   const a = usePress((down) => onButton("a", down));
   const b = usePress((down) => onButton("b", down));
   const logo = usePress((down) => onButton("logo", down));
@@ -80,11 +84,11 @@ export default function MicrobitPanel({ leds, running, sensors, muted, onButton,
   const p2 = usePress((down) => onPin(2, down));
 
   return (
-    <section className={styles.board} aria-label="micro:bit simulator">
-      <h2 className={styles.boardTitle}>micro:bit</h2>
+    <section className={styles.board} aria-label={`${title} simulator`}>
+      <h2 className={styles.boardTitle}>{title}</h2>
       <div className={styles.boardBody}>
         <div className={styles.boardArt}>
-          <svg viewBox="0 0 320 250" role="img" aria-label="A micro:bit with a 5 by 5 grid of lights, buttons A and B, and a touch logo" className={styles.boardSvg}>
+          <svg viewBox="0 0 320 250" role="img" aria-label={`A ${title} with a 5 by 5 grid of lights, buttons A and B, and a touch logo`} className={styles.boardSvg}>
             <rect x="4" y="4" width="312" height="242" rx="22" fill="#15305c" stroke="#0b1d3a" strokeWidth="4" />
             <rect x="10" y="10" width="300" height="230" rx="18" fill="none" stroke="#2c5aa0" strokeWidth="1.5" />
             {/* the lights */}
@@ -168,9 +172,13 @@ export default function MicrobitPanel({ leds, running, sensors, muted, onButton,
             </label>
           </fieldset>
 
-          <label className={styles.boardMute}>
-            <input type="checkbox" checked={muted} onChange={(e) => onMute(e.target.checked)} /> Mute the speaker
-          </label>
+          {showMute ? (
+            <label className={styles.boardMute}>
+              <input type="checkbox" checked={muted} onChange={(e) => onMute(e.target.checked)} /> Mute the speaker
+            </label>
+          ) : (
+            <p className={styles.boardMute}>The speaker is on the first micro:bit.</p>
+          )}
         </div>
       </div>
     </section>

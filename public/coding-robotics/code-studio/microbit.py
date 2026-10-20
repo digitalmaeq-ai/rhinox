@@ -308,6 +308,8 @@ class ScriptedBackend:
         self.frames = []
         self.sounds = []
         self.pins = []
+        self.radio = []
+        self.rx = []
         self.leds = "0" * LEDS
         self.ended = False
 
@@ -337,6 +339,11 @@ class ScriptedBackend:
                         s[k] = int(v)
                     elif k.startswith("pin") and k[3:].isdigit() and int(k[3:]) < 3:
                         s["pin"][int(k[3:])] = int(v)
+            elif kind == "radio":
+                text = e.get("text")
+                data = (b"\x01\x00\x01" + str(text).encode("utf-8")) if text is not None else bytes.fromhex(str(e.get("hex", "")))
+                if len(self.rx) < 8:
+                    self.rx.append((int(e.get("group", 0)), int(e.get("channel", 7)), data[:251]))
             elif kind == "gesture":
                 code = {"shake": 1, "freefall": 2, "3g": 3, "6g": 4, "8g": 5}.get(e.get("name"))
                 if code:
@@ -387,8 +394,16 @@ class ScriptedBackend:
         if len(self.pins) < 200:
             self.pins.append([self.t, n, kind, int(value)])
 
+    def radio_send(self, group, channel, data):
+        if len(self.radio) < 200:
+            self.radio.append([self.t, group, channel, data.hex()])
+
+    def radio_recv(self):
+        self._apply_due()
+        return self.rx.pop(0) if self.rx else None
+
     def trace(self):
-        return {"frames": self.frames, "sounds": self.sounds, "pins": self.pins, "leds": self.leds, "ms": self.t, "ended": self.ended}
+        return {"frames": self.frames, "sounds": self.sounds, "pins": self.pins, "radio": self.radio, "leds": self.leds, "ms": self.t, "ended": self.ended}
 
 
 # ---- The live board (the page): every call goes to the page through the device file
@@ -414,6 +429,15 @@ class LiveBackend:
 
     def pin(self, n, kind, value):
         self._ask({"c": "pin", "n": n, "k": kind, "v": int(value)})
+
+    def radio_send(self, group, channel, data):
+        self._ask({"c": "radio", "g": group, "ch": channel, "h": data.hex()})
+
+    def radio_recv(self):
+        reply = self._ask({"c": "rx"})
+        if "h" in reply:
+            return (int(reply["g"]), int(reply["ch"]), bytes.fromhex(reply["h"]))
+        return None
 
     def trace(self):
         return None
@@ -789,4 +813,100 @@ def build(backend):
 
     music.pitch, music.play, music.set_tempo, music.get_tempo, music.stop = pitch, play, set_tempo, get_tempo, stop
     music.reset = reset_music
-    return microbit, music
+
+    # ---- radio: messages between micro:bits (the page passes them on) ----
+    radio = types.ModuleType("radio")
+    link = {"on": False, "group": 0, "channel": 7, "length": 32, "queue": 3, "power": 6}
+    inbox = []
+    STRING_MARK = b"\x01\x00\x01"
+
+    def _need_on():
+        if not link["on"]:
+            raise RuntimeError("radio is off: call radio.on() first")
+
+    def radio_on():
+        link["on"] = True
+
+    def radio_off():
+        link["on"] = False
+        del inbox[:]
+
+    def radio_config(**options):
+        allowed = ("length", "queue", "channel", "power", "group", "data_rate")
+        for key in options:
+            if key not in allowed:
+                raise TypeError("unexpected keyword argument '%s'" % key)
+        if "length" in options:
+            _check_range("length", options["length"], 1, 251)
+        if "queue" in options:
+            _check_range("queue", options["queue"], 1, 20)
+        if "channel" in options:
+            _check_range("channel", options["channel"], 0, 83)
+        if "power" in options:
+            _check_range("power", options["power"], 0, 7)
+        if "group" in options:
+            _check_range("group", options["group"], 0, 255)
+        for key in ("length", "queue", "channel", "power", "group"):
+            if key in options:
+                link[key] = options[key]
+
+    def radio_reset():
+        link.update({"group": 0, "channel": 7, "length": 32, "queue": 3, "power": 6})
+        del inbox[:]
+
+    def radio_send_bytes(message):
+        _need_on()
+        if not isinstance(message, (bytes, bytearray)):
+            raise TypeError("send_bytes() needs bytes")
+        if len(message) > link["length"]:
+            raise ValueError("message too long")
+        backend.radio_send(link["group"], link["channel"], bytes(message))
+
+    def radio_send(message):
+        _need_on()
+        if not isinstance(message, str):
+            raise TypeError("send() needs a string: use str(...) for numbers")
+        data = STRING_MARK + message.encode("utf-8")
+        if len(data) > link["length"] + 3:
+            raise ValueError("message too long")
+        backend.radio_send(link["group"], link["channel"], data)
+
+    def _pull():
+        # Take what has arrived: only the same group and channel are heard.
+        for _ in range(40):
+            packet = backend.radio_recv()
+            if packet is None:
+                break
+            group, channel, data = packet
+            if group == link["group"] and channel == link["channel"]:
+                inbox.append(data)
+                while len(inbox) > link["queue"]:
+                    inbox.pop(0)
+
+    def radio_receive_bytes():
+        _need_on()
+        _pull()
+        return inbox.pop(0) if inbox else None
+
+    def radio_receive():
+        _need_on()
+        _pull()
+        if not inbox:
+            return None
+        data = inbox.pop(0)
+        if data[:3] != STRING_MARK:
+            raise ValueError("received packet is not a string")
+        return data[3:].decode("utf-8", "replace")
+
+    def radio_receive_full():
+        _need_on()
+        _pull()
+        if not inbox:
+            return None
+        return (inbox.pop(0), -60, backend.now() * 1000)
+
+    radio.on, radio.off, radio.config, radio.reset = radio_on, radio_off, radio_config, radio_reset
+    radio.send, radio.send_bytes = radio_send, radio_send_bytes
+    radio.receive, radio.receive_bytes, radio.receive_full = radio_receive, radio_receive_bytes, radio_receive_full
+    radio.RATE_250KBIT, radio.RATE_1MBIT, radio.RATE_2MBIT = 2, 0, 1
+    return microbit, music, radio

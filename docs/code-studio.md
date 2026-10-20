@@ -143,13 +143,33 @@ that changes `Image` or the module changes nothing for the next run.
 is drive their own simulator (the checks above) or burn CPU until Stop; it cannot
 reach JavaScript. It does not add to the introspection risk listed below.
 
-**Exercises.** A new group, "micro:bit", has ten exercises tied to the Think, Move,
+**Exercises.** A new group, "micro:bit", has thirteen exercises tied to the Think, Move,
 Code! lessons (Hello, micro:bit!; Scroll a message; Press A, Press B; Ike keeps count;
 Forever and count; Light level detective; If it's hot…; Ike's smart night light;
-Ike's music box; Shake the dice). "Download .py" saves a board program as `main.py` for a real micro:bit. Each check lists the
+Ike's music box; Shake the dice; Send a message; Receive a message; A secret group). "Download .py" saves a board program as `main.py` for a real micro:bit. Each check lists the
 events, then compares the pictures and notes the program produced.
 
-**Not in this stage yet:** radio between two boards, the accelerometer's exact
+**Radio between two boards (Stage 3.3).** A program that does `import radio` runs on
+two simulated micro:bits at once ("micro:bit 1" and "micro:bit 2"), each in its own Python
+worker with its own board, buttons and sensors. `radio.send()` on one arrives on the other
+(`send`, `send_bytes`, `receive`, `receive_bytes`, `receive_full`, `on`, `off`, `config` with
+`group`, `channel`, `length`, `queue`, `power`, `reset`). As on the real board the radio is off
+until `radio.on()`, only the same group and channel are heard, a message is at most 251 bytes
+(32 by default), and the queue keeps the newest messages. The path of a message:
+
+1. Python on board 1 writes `{"c":"radio","g":group,"ch":channel,"h":hex}` to `/dev/rxdev`.
+2. The worker checks it (group 0-255, channel 0-83, even-length hex, at most 251 bytes, at most 40 a
+   second) and sends the page plain data.
+3. The page checks it again (`cleanDeviceEvent`) and writes it into board 2's inbox: a ring of 8
+   slots in board 2's shared memory (`runner.deliverRadio`). The oldest message is lost if it is full.
+4. Python on board 2 asks for it with `{"c":"rx"}`; the worker reads the ring and answers.
+
+Only the two boards of the same learner talk to each other; nothing leaves the page. For exercise
+checks there is no second board: the check script lists the messages that "arrive" (`do: "radio"`
+events with text, group and channel), and the trace records the messages the program sent. Three
+exercises use it (Send a message, Receive a message, A secret group).
+
+**Not in this stage yet:** the accelerometer's exact
 gesture timing, `microbit.uart`, `i2c`/`spi`, servo and NeoPixel; the Arduino and
 ESP32 simulators; a USB connection to a real board.
 
@@ -245,7 +265,7 @@ Run all three before changing the worker, the CSP or `next.config.ts`:
 | `lib/code-studio/charts.test.ts` | `npx tsx lib/code-studio/charts.test.ts` | Page-side chart rules: junk dropped, text cut, limits, axis scale |
 | `lib/code-studio/offline.test.ts` | `npx tsx lib/code-studio/offline.test.ts` | Cache name and page path agree between page and service worker, runtime file list matches the build, manifest, only own static addresses are saved |
 | `lib/code-studio/files.test.ts` | `npx tsx lib/code-studio/files.test.ts` | The page-side file rules: names, cleaning, limits, storage, downloads |
-| `lib/code-studio/microbit.test.ts` | `npx tsx lib/code-studio/microbit.test.ts` | The micro:bit module on the scripted clock (17 checks): pictures, buttons (quick presses are not missed), sleep, scroll, sensors, music, panic, caps, a clean start for every run |
+| `lib/code-studio/microbit.test.ts` | `npx tsx lib/code-studio/microbit.test.ts` | The micro:bit module on the scripted clock (22 checks): pictures, radio, buttons (quick presses are not missed), sleep, scroll, sensors, music, panic, caps, a clean start for every run |
 | `lib/code-studio/microbit-page.test.ts` | `npx tsx lib/code-studio/microbit-page.test.ts` | Page-side rules for the board: what the worker may send, script and trace limits |
 | `lib/code-studio/exercises.test.ts` | `npx tsx lib/code-studio/exercises.test.ts` | Every exercise: correct solutions pass, wrong ones fail; project and progress storage |
 | `scripts/code-studio-browser-tests.cjs` | build and start the site, `npm install --no-save playwright`, then `node scripts/code-studio-browser-tests.cjs http://localhost:3000` | Real browser, 111 checks (including offline: save, reload with the network off, run Python, files and charts offline, scope, remove; plus a manual run with the server really stopped) (including charts: draw, hostile labels, errors, timeouts, limits, clearing; and files: write, view, download, upload, delete, reload, timeouts, path tricks, flooding, junk in storage, checks leave learner files alone): headers on Code Studio and 8 other pages, blocked modules, network, endless loop (stopped at ~10 s), Stop, output flooding (with and without newlines), memory, recursion, recovery after each, page never blocked for long (worst 316 ms), no requests leave the site, in-site navigation ends up isolated |

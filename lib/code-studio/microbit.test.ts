@@ -199,6 +199,52 @@ async function main() {
     assert.equal(r.out.trim(), "Image 0");
   });
 
+  test("radio: send records text with group and channel", () => {
+    const code = "from microbit import *\nimport radio\nradio.on()\nradio.config(group=4, channel=9)\nsleep(100)\nradio.send('hello')\nradio.send_bytes(b'ab')";
+    const r = board(code, { duration: 2000 });
+    assert.equal(r.ok, true, r.err);
+    const radio = (r.trace as unknown as { radio: [number, number, number, string][] }).radio;
+    assert.deepEqual(radio.map((m) => [m[0], m[1], m[2], m[3]]), [[100, 4, 9, "010001" + "68656c6c6f"], [100, 4, 9, "6162"]]);
+  });
+
+  test("radio: receive hears the same group only, in order", () => {
+    const code = [
+      "from microbit import *", "import radio", "radio.on()", "radio.config(group=5)",
+      "got = []", "while True:", "    m = radio.receive()", "    if m is not None:", "        print(m)", "    sleep(50)",
+    ].join("\n");
+    const r = board(code, {
+      duration: 1500,
+      events: [
+        { at: 100, do: "radio", text: "one", group: 5 },
+        { at: 200, do: "radio", text: "wrong group", group: 6 },
+        { at: 300, do: "radio", text: "two", group: 5 },
+        { at: 400, do: "radio", text: "wrong channel", group: 5, channel: 8 },
+      ],
+    });
+    assert.equal(r.out.trim().split("\n").join("|"), "one|two");
+  });
+
+  test("radio: off by default, bad settings and too long messages are refused", () => {
+    assert.match(board("import radio\nradio.send('x')").err, /RuntimeError: radio is off/);
+    assert.match(board("import radio\nradio.on()\nradio.config(group=300)").err, /group out of bounds/);
+    assert.match(board("import radio\nradio.on()\nradio.config(colour=1)").err, /TypeError/);
+    assert.match(board("import radio\nradio.on()\nradio.send('x' * 40)").err, /message too long/);
+    assert.match(board("import radio\nradio.on()\nradio.send(5)").err, /TypeError/);
+    const bytes = board("import radio\nradio.on()\nprint(radio.receive_bytes())\n", { duration: 100, events: [] });
+    assert.equal(bytes.out.trim(), "None");
+  });
+
+  test("radio: a bytes message is not a string", () => {
+    const r = board("from microbit import *\nimport radio\nradio.on()\nsleep(200)\nradio.receive()\n", { duration: 1000, events: [{ at: 100, do: "radio", hex: "0102" }] });
+    assert.match(r.err, /received packet is not a string/);
+  });
+
+  test("radio: the queue keeps only the newest messages", () => {
+    const events = Array.from({ length: 6 }, (_, i) => ({ at: 10 + i, do: "radio", text: "m" + i }));
+    const r = board("from microbit import *\nimport radio\nradio.on()\nsleep(100)\nwhile True:\n    m = radio.receive()\n    if m is None:\n        break\n    print(m)\n", { duration: 1000, events });
+    assert.equal(r.out.trim().split("\n").join("|"), "m3|m4|m5");
+  });
+
   console.log(`\n${passed} micro:bit checks passed`);
 }
 

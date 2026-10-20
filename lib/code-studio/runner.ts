@@ -18,8 +18,14 @@ import {
   cleanTrace,
   DEVICE_RUN_TIMEOUT_MS,
   GESTURE_CODES,
+  BOARD_BUFFER_BYTES,
   INPUT,
   INPUT_SLOTS,
+  MAX_RADIO_BYTES,
+  RADIO_BASE,
+  RADIO_HEAD,
+  RADIO_SLOTS,
+  RADIO_SLOT_BYTES,
   usesMicrobit,
   type DeviceEvent,
   type DeviceScript,
@@ -135,6 +141,7 @@ export class PythonRunner {
   private inputBuffer: SharedArrayBuffer | null = null;
   private boardBuffer: SharedArrayBuffer | null = null;
   private boardInputs: Int32Array | null = null;
+  private boardBytes: Uint8Array | null = null;
   private liveBoard = false;
   private sensors: SensorValues = DEFAULT_SENSORS;
   private status: RunnerStatus = "idle";
@@ -182,6 +189,7 @@ export class PythonRunner {
     this.inputBuffer = null;
     this.boardBuffer = null;
     this.boardInputs = null;
+    this.boardBytes = null;
     this.liveBoard = false;
     this.clearTimer();
   }
@@ -253,8 +261,9 @@ export class PythonRunner {
       };
       if (this.interactiveInput) {
         this.inputBuffer = new SharedArrayBuffer(8 + MAX_INPUT_CHARS * 4);
-        this.boardBuffer = new SharedArrayBuffer(INPUT_SLOTS * 4);
+        this.boardBuffer = new SharedArrayBuffer(BOARD_BUFFER_BYTES);
         this.boardInputs = new Int32Array(this.boardBuffer);
+        this.boardBytes = new Uint8Array(this.boardBuffer);
       }
       worker.postMessage({ type: "init", baseUrl: PYODIDE_BASE, inputBuffer: this.inputBuffer, boardBuffer: this.boardBuffer });
     });
@@ -368,6 +377,7 @@ export class PythonRunner {
     const v = this.boardInputs;
     if (!v) return;
     for (let i = 0; i < INPUT_SLOTS; i += 1) Atomics.store(v, i, 0);
+    Atomics.store(v, RADIO_HEAD, 0);
     this.setSensors(this.sensors);
   }
 
@@ -400,6 +410,21 @@ export class PythonRunner {
     if (!v) return;
     Atomics.store(v, INPUT.pin0 + pin, clampInt(value, 0, 1023));
     if (touched !== undefined) Atomics.store(v, INPUT.touch0 + pin, touched ? 1 : 0);
+  }
+
+  /** A radio message from the other board. It is put in this board's inbox (8 slots; the oldest is lost if it is full). */
+  deliverRadio(message: { group: number; channel: number; bytes: number[] }) {
+    const v = this.boardInputs;
+    const bytes = this.boardBytes;
+    if (!v || !bytes || !this.liveBoard) return;
+    if (message.bytes.length > MAX_RADIO_BYTES) return;
+    const head = Atomics.load(v, RADIO_HEAD);
+    const at = RADIO_BASE + (head % RADIO_SLOTS) * RADIO_SLOT_BYTES;
+    bytes[at + 4] = message.group & 255;
+    bytes[at + 5] = message.channel & 255;
+    bytes.set(message.bytes, at + 8);
+    Atomics.store(v, at / 4, message.bytes.length);
+    Atomics.add(v, RADIO_HEAD, 1);
   }
 
   /** The learner shakes (or drops) the micro:bit. */

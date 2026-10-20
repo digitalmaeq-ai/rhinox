@@ -529,7 +529,7 @@ except Exception as e:
     await mb.click(".monaco-editor .view-lines");
     await mb.keyboard.press("Control+A");
     await mb.keyboard.press("Delete");
-    await mb.keyboard.insertText((board && /^\s*(from|import)\s+(microbit|music)\b/m.test(code) ? "from microbit import *\n" : "") + "exec(" + JSON.stringify(code) + ")");
+    await mb.keyboard.insertText((board && /^\s*(from|import)\s+(microbit|music|radio)\b/m.test(code) ? "from microbit import *\n" + (/^\s*import\s+(os, )?radio\b/m.test(code) ? "import radio\n" : "") : "") + "exec(" + JSON.stringify(code) + ")");
   }
   const mbIdle = (timeout = 30000) =>
     mb.waitForFunction(() => {
@@ -628,6 +628,46 @@ except Exception as e:
   await mb.click("button:has-text('Run')");
   await mbIdle();
   check("the module's internals do not hand out the JavaScript bridge", /ImportError/.test(await mbConsole()) && !/JsProxy/.test(await mbConsole()), (await mbConsole()).slice(0, 200));
+
+  // Radio: one program on two boards.
+  const lit2 = (title) => mb.evaluate((t) => [...document.querySelectorAll(`section[aria-label="${t} simulator"] svg rect[fill="#ff3d3d"]`)].filter((r) => Number(r.getAttribute("opacity")) > 0.5).length, title);
+  await mbSetCode(
+    'from microbit import *\nimport radio\nradio.on()\nradio.config(group=2)\nwhile True:\n    if button_a.was_pressed():\n        radio.send("hi")\n    m = radio.receive()\n    if m == "hi":\n        display.show(Image.HEART)\n    sleep(20)\n',
+  );
+  check("a program that uses the radio shows two boards", (await mb.locator('section[aria-label="micro:bit 1 simulator"]').count()) === 1 && (await mb.locator('section[aria-label="micro:bit 2 simulator"]').count()) === 1);
+  await mb.click("button:has-text('Run')");
+  await mbRunning();
+  await sleep(9000); // the second Python starts for the first time: it has to load the runtime
+  await mb.click('section[aria-label="micro:bit 1 simulator"] [aria-label="Button A"]');
+  await sleep(800);
+  check("a message sent on board 1 arrives on board 2", (await lit2("micro:bit 2")) === 16 && (await lit2("micro:bit 1")) === 0, `${await lit2("micro:bit 1")} / ${await lit2("micro:bit 2")}`);
+  await mb.click('section[aria-label="micro:bit 2 simulator"] [aria-label="Button A"]');
+  await sleep(800);
+  check("and back again", (await lit2("micro:bit 1")) === 16, String(await lit2("micro:bit 1")));
+  await mb.click("button:has-text('Stop')");
+  await mbIdle();
+  check("Stop ends both boards", /Stopped/.test(await mbConsole()));
+
+  // Different groups cannot hear each other.
+  await mbSetCode(
+    'from microbit import *\nimport radio\nradio.on()\nradio.config(group=1 if button_b.is_pressed() else 3)\nwhile True:\n    if button_a.was_pressed():\n        radio.send("hi")\n    if radio.receive() == "hi":\n        display.show(Image.HEART)\n    sleep(20)\n',
+  );
+  await mb.click("button:has-text('Run')");
+  await mbRunning();
+  await sleep(1500);
+  await mb.click('section[aria-label="micro:bit 1 simulator"] [aria-label="Button A"]');
+  await sleep(800);
+  check("two boards in the same group hear each other", (await lit2("micro:bit 2")) === 16);
+  await mb.click("button:has-text('Stop')");
+  await mbIdle();
+
+  // Hostile radio traffic.
+  await mbSetCode(
+    'from microbit import *\nimport os, radio\nradio.on()\nfd = os.open("/dev/rxdev", os.O_RDWR)\nfor bad in [b\'{"c":"radio","g":999,"ch":7,"h":"00"}\', b\'{"c":"radio","g":1,"ch":7,"h":"zz"}\', b\'{"c":"radio","g":1,"ch":7,"h":"\' + b"00" * 400 + b\'"}\', b\'{"c":"rx"}\', b\'{"c":"radio","g":"x"}\']:\n    os.write(fd, bad)\n    os.read(fd, 8192)\nfor i in range(3000):\n    radio.send("flood")\n    radio.receive()\ndisplay.show(Image.HAPPY)\nprint("radio survived")\n',
+  );
+  await mb.click("button:has-text('Run')");
+  await mbIdle(60000);
+  check("bad and flooding radio traffic is ignored and the page stays alive", /radio survived/.test(await mbConsole()) && mbErrors.length === 0, (await mbConsole()).slice(0, 200) + mbErrors.slice(0, 1));
 
   // An exercise on the scripted board, checked.
   await mb.click('h2 button:has-text("micro:bit")');
