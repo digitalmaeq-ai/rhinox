@@ -1,0 +1,112 @@
+.kit {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 14px;
+  padding: 14px;
+}
+
+.group h3 {
+  margin: 0 0 8px;
+  font-size: 0.8rem;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: #123b73;
+}
+
+.leds,
+.row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  align-items: center;
+}
+
+.led {
+  display: grid;
+  justify-items: center;
+  gap: 4px;
+  font-size: 0.78rem;
+  color: #334155;
+}
+
+.bulb {
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  border: 2px solid #0b1d3a;
+  display: block;
+  transition: opacity 40ms linear;
+}
+
+.push {
+  min-width: 78px;
+  min-height: 44px;
+  border: 2px solid #0b1d3a;
+  border-radius: 10px;
+  background: #e5eefb;
+  color: #0b1d3a;
+  font-weight: 700;
+  cursor: pointer;
+  touch-action: manipulation;
+  user-select: none;
+  -webkit-user-select: none;
+}
+
+.push:active {
+  background: #9cc2f5;
+  transform: translateY(1px);
+}
+
+.push:focus-visible {
+  outline: 3px solid #ffb020;
+  outline-offset: 2px;
+}
+
+.dial {
+  display: grid;
+  grid-template-columns: 2rem minmax(0, 1fr) 3.2rem;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.85rem;
+  margin-bottom: 6px;
+}
+
+.dial input {
+  width: 100%;
+  min-height: 28px;
+}
+
+.buzzer {
+  display: inline-grid;
+  place-items: center;
+  width: 38px;
+  height: 38px;
+  border-radius: 50%;
+  border: 2px solid #0b1d3a;
+  background: #2a3a55;
+  color: #cfe2ff;
+  font-size: 1.2rem;
+}
+
+.buzzer[data-on="1"] {
+  background: #ffb020;
+  color: #0b1d3a;
+}
+
+.mute {
+  font-size: 0.85rem;
+  display: inline-flex;
+  gap: 6px;
+  align-items: center;
+}
+
+.picker {
+  display: inline-flex;
+  gap: 6px;
+  align-items: center;
+  font-size: 0.85rem;
+}
+
+.picker select {
+  min-height: 36px;
+}

@@ -57,6 +57,20 @@ const nextConfig: NextConfig = {
         headers: [...isolation, { key: "Content-Security-Policy", value: pageCsp }],
       },
       {
+        // Arduino Studio: the page, its worker and the language engine get the same strict rules.
+        source: "/coding-robotics/arduino-studio",
+        headers: [...isolation, { key: "Content-Security-Policy", value: pageCsp }],
+      },
+      {
+        source: "/coding-robotics/code-studio/arduino-:name.js",
+        headers: [
+          ...isolation,
+          { key: "Cross-Origin-Resource-Policy", value: "same-origin" },
+          { key: "Content-Security-Policy", value: workerCsp },
+          { key: "Cache-Control", value: "public, max-age=0, must-revalidate" },
+        ],
+      },
+      {
         // The Python worker. It lives under the page's own path (not /code-studio/) so that
         // the offline service worker, whose scope is that path, may serve it.
         source: "/coding-robotics/code-studio/python-worker.js",

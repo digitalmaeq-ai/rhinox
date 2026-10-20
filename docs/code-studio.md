@@ -308,3 +308,29 @@ through a client-side link, the page reloads itself once to pick them up.
   Stop or timeout starts in about 2 s from cache.
 - Hosting: about 6 MB per new visitor, once. Plan bandwidth accordingly if many
   classes start together.
+
+## Arduino Studio (Stage 4.2)
+
+A separate page, `/coding-robotics/arduino-studio`, runs Arduino C++ programs on a simulated Uno kit.
+The Python Studio is not changed, except for a link and C++ colouring in the editor.
+
+**The language engine** (`public/coding-robotics/code-studio/arduino-vm.js`) reads a classroom subset of Arduino C++
+and walks it as a tree of plain objects. It never uses `eval` or `new Function`, so a learner's program is never run
+as JavaScript. It supports `setup`/`loop`, functions and recursion (64 deep), arrays, `#define`, `const`, `if`/`while`/`for`/`do`/`switch`,
+`String`, `Serial.print`/`println`, `pinMode`, `digitalRead`/`digitalWrite`, `analogRead`/`analogWrite`, `tone`/`noTone`, `delay`, `millis`, `random`,
+`map`/`constrain`/`min`/`max`/`abs`/`pow`/`sqrt`. Numbers follow the Uno: `int` is 16 bits, `long` is 32 bits, a `float` prints with 2 decimals.
+Not supported: pointers, classes, libraries, interrupts. Mistakes are explained with a line number, like a compiler.
+
+**The worker** (`arduino-worker.js`) runs the engine in its own thread. A new worker is made for every run and thrown away after it.
+It has the same header rules as the Python worker (COOP/COEP, `Cross-Origin-Resource-Policy: same-origin`, a CSP with `default-src 'none'`).
+Buttons and dials reach it through a shared buffer. It reports pin states (at most about 60 a second), Serial text (100,000 characters at most) and
+buzzer notes (60 a second at most). `lib/code-studio/arduino.ts` re-checks every message on the page, and `arduino-runner.ts` enforces a 30 minute limit and the Serial limit from outside the worker.
+Stop terminates the worker, so even `while(true){}` can be stopped.
+
+**The kit:** LEDs on pins 13 (built-in), 12, 11, 10, 9 (11, 10 and 9 can be dimmed with `analogWrite`), buttons on pins 2 and 3 (joined to ground, so use `INPUT_PULLUP` and a held button reads LOW;
+without the pull-up a held button reads HIGH), dials on A0 and A1, a buzzer on pin 8.
+
+| Test | What it checks |
+| --- | --- |
+| `npx tsx lib/code-studio/arduino.test.ts` | the language engine (11 groups of checks) |
+| `node scripts/arduino-browser-tests.cjs http://localhost:3000` | headers, blink, button, dial, Serial, buzzer, error messages, endless loops, Serial flood, recursion, recovery (24 checks) |

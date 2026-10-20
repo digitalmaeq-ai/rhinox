@@ -373,6 +373,7 @@ export default function CodeStudio({ savedId: initialSavedId, savedProject }: Pr
             <h1>Rhinox Code Studio</h1>
           </nav>
           <div className={styles.links}>
+            <Link href="/coding-robotics/arduino-studio">Arduino Studio</Link>
             <Link href="/coding-robotics/my-projects">My Projects</Link>
           </div>
         </header>

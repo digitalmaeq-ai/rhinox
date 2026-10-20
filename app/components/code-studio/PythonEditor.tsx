@@ -16,19 +16,21 @@ type Props = {
   readOnly?: boolean;
   /** Called when the learner presses Ctrl+Enter (Cmd+Enter on a Mac). */
   onRun?: () => void;
+  /** The language for colouring. Python unless told otherwise. */
+  language?: "python" | "cpp";
 };
 
 // The editor owns its text. It is deliberately not "controlled" by a value prop:
 // feeding every keystroke back through React state makes the wrapper overwrite
 // the editor with a slightly older copy, which drops characters when typing fast.
-export default function PythonEditor({ initialValue, onChange, readOnly = false, onRun }: Props) {
+export default function PythonEditor({ initialValue, onChange, readOnly = false, onRun, language = "python" }: Props) {
   const onRunRef = useRef(onRun);
   useEffect(() => {
     onRunRef.current = onRun;
   }, [onRun]);
   return (
     <Editor
-      language="python"
+      language={language}
       theme="rhinox"
       defaultValue={initialValue}
       onMount={(editor) => {
@@ -43,14 +45,14 @@ export default function PythonEditor({ initialValue, onChange, readOnly = false,
         lineNumbersMinChars: 3,
         scrollBeyondLastLine: false,
         automaticLayout: true,
-        tabSize: 4,
+        tabSize: language === "cpp" ? 2 : 4,
         insertSpaces: true,
         wordWrap: "on",
         padding: { top: 12, bottom: 12 },
         renderLineHighlight: "line",
         quickSuggestions: false,
         suggestOnTriggerCharacters: false,
-        ariaLabel: "Python code editor. Press Escape then Tab to leave the editor.",
+        ariaLabel: `${language === "cpp" ? "Arduino" : "Python"} code editor. Press Escape then Tab to leave the editor.`,
       }}
     />
   );
