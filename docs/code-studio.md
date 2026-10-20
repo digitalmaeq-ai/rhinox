@@ -3,6 +3,18 @@
 Route: `/coding-robotics/code-studio`. Python runs **in the learner's own browser**.
 There is no server-side code execution service.
 
+## Exercises
+
+Exercises are data, not code that runs Python: a task, a starter program, hints
+and checks (`lib/code-studio/exercise-kit.ts` has the shared types and helpers).
+There are five starters (`exercises.ts`), ten Year 7 exercises
+(`exercises-year7.ts`), eight Year 8 exercises (`exercises-year8.ts`) and eight Year 9
+exercises (`exercises-year9.ts`), each tagged with its curriculum term and week. To add a
+year, add a file like `exercises-year9.ts`, add the year to `ExerciseGroup` in the
+kit, list it in `GROUPS` in `ExercisePanel.tsx`, and add model solutions and
+wrong-answer tests to `exercises.test.ts`. Exercise ids are saved in learners'
+progress and projects, so never rename one.
+
 ## Pieces
 
 | Piece | Where | Notes |

@@ -481,3 +481,70 @@
     overflow-y: auto;
   }
 }
+
+.group {
+  margin-bottom: 10px;
+}
+
+.groupHeading {
+  margin: 0 0 6px;
+  font-size: 0.9rem;
+}
+
+.groupToggle {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  width: 100%;
+  min-height: 44px;
+  padding: 8px 12px;
+  border: 0;
+  border-radius: 10px;
+  background: #e4eefb;
+  color: #0e2a52;
+  font: inherit;
+  font-weight: 700;
+  text-align: left;
+  cursor: pointer;
+}
+
+.groupToggle:hover {
+  background: #d8e7fb;
+}
+
+.groupToggle:focus-visible {
+  outline: 3px solid #7fb1f5;
+  outline-offset: 2px;
+}
+
+.groupToggle::after {
+  content: "";
+  flex: none;
+  width: 8px;
+  height: 8px;
+  border-right: 2px solid currentColor;
+  border-bottom: 2px solid currentColor;
+  transform: rotate(45deg);
+  transition: transform 0.15s;
+}
+
+.groupToggle[aria-expanded="true"]::after {
+  transform: rotate(-135deg);
+}
+
+.groupCount {
+  margin-left: auto;
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: #44608a;
+}
+
+.lessonTag {
+  margin: 0 0 4px;
+  font-size: 0.78rem;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+  color: #44608a;
+}
