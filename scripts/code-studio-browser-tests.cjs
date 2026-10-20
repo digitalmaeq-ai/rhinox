@@ -551,6 +551,7 @@ except Exception as e:
   check("the board is hidden until a program or exercise needs it", (await mb.locator('section[aria-label="micro:bit simulator"]').count()) === 0);
   await mbSetCode("from microbit import *\ndisplay.show(Image.HEART)\n");
   check("importing microbit shows the board", (await mb.locator('section[aria-label="micro:bit simulator"]').count()) === 1);
+  check("a board program offers Download .py", (await mb.locator("button:has-text('Download .py')").count()) === 1);
   await mb.click("button:has-text('Run')");
   await mbIdle();
   check("show(Image.HEART) lights 16 lights on the board", (await mbLit()) === 16, String(await mbLit()));

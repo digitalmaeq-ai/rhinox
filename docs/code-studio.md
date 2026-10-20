@@ -143,9 +143,10 @@ that changes `Image` or the module changes nothing for the next run.
 is drive their own simulator (the checks above) or burn CPU until Stop; it cannot
 reach JavaScript. It does not add to the introspection risk listed below.
 
-**Exercises.** A new group, "micro:bit", has seven exercises tied to the Think, Move,
-Code! lessons (Hello, micro:bit!; Press A, Press B; Ike keeps count; Light level
-detective; If it's hot…; Ike's music box; Shake the dice). Each check lists the
+**Exercises.** A new group, "micro:bit", has ten exercises tied to the Think, Move,
+Code! lessons (Hello, micro:bit!; Scroll a message; Press A, Press B; Ike keeps count;
+Forever and count; Light level detective; If it's hot…; Ike's smart night light;
+Ike's music box; Shake the dice). "Download .py" saves a board program as `main.py` for a real micro:bit. Each check lists the
 events, then compares the pictures and notes the program produced.
 
 **Not in this stage yet:** radio between two boards, the accelerometer's exact
