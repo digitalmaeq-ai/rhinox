@@ -181,3 +181,88 @@
     width: 100%;
   }
 }
+
+/* Console text kinds */
+.out {
+  color: #1c2f4d;
+}
+
+.err {
+  color: #b42318;
+}
+
+.in {
+  color: #0b57c9;
+  font-weight: 600;
+}
+
+.info {
+  color: #5b6b82;
+  font-style: italic;
+}
+
+.inputRow {
+  display: grid;
+  gap: 6px;
+  padding: 10px 14px;
+  border-top: 1px solid #c4d6ee;
+  background: #fff;
+}
+
+.inputRow label {
+  font-size: 0.82rem;
+  font-weight: 700;
+  color: #123b73;
+}
+
+.inputRow div {
+  display: flex;
+  gap: 8px;
+}
+
+.inputRow input {
+  flex: 1;
+  min-width: 0;
+  padding: 9px 12px;
+  border: 1px solid #9fbbe2;
+  border-radius: 8px;
+  font: inherit;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+}
+
+.inputRow input:focus-visible {
+  outline: 3px solid #7fb1f5;
+  outline-offset: 1px;
+}
+
+.inputRow button {
+  padding: 9px 16px;
+  border: 0;
+  border-radius: 8px;
+  background: #0f6fde;
+  color: #fff;
+  font: inherit;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.stdin {
+  border-top: 1px solid #c4d6ee;
+  background: #fff;
+  padding: 8px 14px;
+  font-size: 0.86rem;
+  color: #2c4064;
+}
+
+.stdin summary {
+  cursor: pointer;
+  font-weight: 700;
+}
+
+.stdin textarea {
+  width: 100%;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  border: 1px solid #c4d6ee;
+  border-radius: 8px;
+  padding: 8px;
+}

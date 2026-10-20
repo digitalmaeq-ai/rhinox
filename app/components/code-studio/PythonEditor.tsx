@@ -1,6 +1,7 @@
 "use client";
 
 import Editor, { loader } from "@monaco-editor/react";
+import { useEffect, useRef } from "react";
 
 import { monaco } from "@/lib/code-studio/monaco-setup";
 
@@ -13,17 +14,26 @@ type Props = {
   initialValue: string;
   onChange: (value: string) => void;
   readOnly?: boolean;
+  /** Called when the learner presses Ctrl+Enter (Cmd+Enter on a Mac). */
+  onRun?: () => void;
 };
 
 // The editor owns its text. It is deliberately not "controlled" by a value prop:
 // feeding every keystroke back through React state makes the wrapper overwrite
 // the editor with a slightly older copy, which drops characters when typing fast.
-export default function PythonEditor({ initialValue, onChange, readOnly = false }: Props) {
+export default function PythonEditor({ initialValue, onChange, readOnly = false, onRun }: Props) {
+  const onRunRef = useRef(onRun);
+  useEffect(() => {
+    onRunRef.current = onRun;
+  }, [onRun]);
   return (
     <Editor
       language="python"
       theme="rhinox"
       defaultValue={initialValue}
+      onMount={(editor) => {
+        editor.addCommand(monaco.KeyMod.CtrlCmd | monaco.KeyCode.Enter, () => onRunRef.current?.());
+      }}
       onChange={(next) => onChange(next ?? "")}
       loading={<p style={{ color: "#cfe2ff", padding: 16 }}>Loading the editor…</p>}
       options={{

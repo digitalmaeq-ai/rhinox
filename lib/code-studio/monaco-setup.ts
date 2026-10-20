@@ -24,12 +24,10 @@ import "monaco-editor/editor/contrib/wordOperations/browser/wordOperations.js";
 import "monaco-editor/editor/standalone/browser/quickAccess/standaloneGotoLineQuickAccess.js";
 import "monaco-editor/languages/definitions/python/register.js";
 
-// Monaco asks for a worker for text diffing and word lookups. This one is our
-// own file, bundled by Next.js, and it has no network access of its own beyond
-// the same origin.
-(self as unknown as { MonacoEnvironment: unknown }).MonacoEnvironment = {
-  getWorker: () => new Worker(new URL("./editor.worker.ts", import.meta.url), { type: "module" }),
-};
+// Monaco can use a helper worker for background text work. This editor has no
+// language server, so we start none: the little work it needs (such as finding
+// words) runs on the page. That also means one fewer script outside our own
+// strict headers for the Python worker.
 
 monaco.editor.defineTheme("rhinox", {
   base: "vs-dark",
