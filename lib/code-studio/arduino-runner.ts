@@ -9,6 +9,9 @@ import {
   ARDUINO_RUN_LIMIT_MS,
   ARDUINO_WORKER_URL,
   cleanArduinoMessage,
+  cleanSimResult,
+  type SimResult,
+  type SimScript,
   type PinState,
 } from "./arduino";
 
@@ -114,6 +117,30 @@ export class ArduinoRunner {
 
   stop() {
     if (this.worker) this.end("stopped", null, 0);
+  }
+
+  /** A scripted run on a pretend clock, in a worker of its own. Resolves to null if it fails or takes too long. */
+  simulate(code: string, script: SimScript): Promise<SimResult | null> {
+    if (code.length > ARDUINO_MAX_CODE_CHARS) return Promise.resolve(null);
+    let worker: Worker;
+    try {
+      worker = new Worker(ARDUINO_WORKER_URL, { type: "module", name: "rhinox-arduino-check" });
+    } catch {
+      return Promise.resolve(null);
+    }
+    return new Promise<SimResult | null>((resolve) => {
+      const finish = (value: SimResult | null) => {
+        clearTimeout(timer);
+        worker.onmessage = null;
+        worker.onerror = null;
+        worker.terminate();
+        resolve(value);
+      };
+      const timer = setTimeout(() => finish(null), 15_000);
+      worker.onmessage = (event: MessageEvent) => finish(cleanSimResult(event.data));
+      worker.onerror = () => finish(null);
+      worker.postMessage({ kind: "simulate", code, script });
+    });
   }
 
   dispose() {

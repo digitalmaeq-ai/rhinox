@@ -89,3 +89,59 @@ export function brightness(state: PinState, pin: number): number {
   if (state.pwm[pin] >= 0) return state.pwm[pin] / 255;
   return state.level[pin] ? 1 : 0;
 }
+
+// ---- Scripted runs for exercise checks -----------------------------------------------
+export type SimEvent = { t: number; pin: number; down: boolean } | { t: number; dial: number; value: number };
+export type SimScript = { duration: number; events: SimEvent[] };
+export type SimTrace = {
+  pins: { t: number; pin: number; level: number; pwm: number }[];
+  serial: { t: number; text: string }[];
+  tones: { t: number; f: number; ms: number }[];
+};
+export type SimResult = { error: string | null; line: number; trace: SimTrace };
+
+const isInt = (v: unknown, min: number, max: number): v is number => typeof v === "number" && Number.isInteger(v) && v >= min && v <= max;
+
+/** Reduces what the worker sent back from a scripted run to plain, bounded data. */
+export function cleanSimResult(data: unknown): SimResult | null {
+  if (typeof data !== "object" || data === null) return null;
+  const m = data as Record<string, unknown>;
+  if (m.kind !== "trace" || typeof m.trace !== "object" || m.trace === null) return null;
+  const t = m.trace as Record<string, unknown>;
+  const pins: SimTrace["pins"] = [];
+  const serial: SimTrace["serial"] = [];
+  const tones: SimTrace["tones"] = [];
+  if (Array.isArray(t.pins)) {
+    for (const e of t.pins.slice(0, 2000)) {
+      const r = e as Record<string, unknown>;
+      if (r && isInt(r.t, 0, 1e7) && isInt(r.pin, 0, PIN_COUNT - 1) && isInt(r.level, 0, 1) && isInt(r.pwm, -1, 255)) pins.push({ t: r.t, pin: r.pin, level: r.level, pwm: r.pwm });
+    }
+  }
+  if (Array.isArray(t.serial)) {
+    for (const e of t.serial.slice(0, 2000)) {
+      const r = e as Record<string, unknown>;
+      if (r && isInt(r.t, 0, 1e7) && typeof r.text === "string" && r.text.length <= 4000) serial.push({ t: r.t, text: r.text });
+    }
+  }
+  if (Array.isArray(t.tones)) {
+    for (const e of t.tones.slice(0, 500)) {
+      const r = e as Record<string, unknown>;
+      if (r && isInt(r.t, 0, 1e7) && isInt(r.f, 0, 20000) && isInt(r.ms, 0, 60000)) tones.push({ t: r.t, f: r.f, ms: r.ms });
+    }
+  }
+  const error = typeof m.error === "string" ? m.error.slice(0, 400) : null;
+  const line = isInt(m.line, 0, 99999) ? m.line : 0;
+  return { error, line, trace: { pins, serial, tones } };
+}
+
+/** The level (0 to 1, PWM counted) of a pin at a time, read back from a trace. */
+export function levelAt(trace: SimTrace, pin: number, t: number): number {
+  let value = 0;
+  for (const e of trace.pins) if (e.pin === pin && e.t <= t) value = e.pwm >= 0 ? e.pwm / 255 : e.level;
+  return value;
+}
+
+/** Everything printed to Serial, joined. */
+export function serialOf(trace: SimTrace): string {
+  return trace.serial.map((e) => e.text).join("");
+}

@@ -5,6 +5,8 @@ import Link from "next/link";
 import { useCallback, useEffect, useRef, useState, useSyncExternalStore } from "react";
 
 import { ARDUINO_EXAMPLES } from "@/lib/code-studio/arduino-examples";
+import { ARDUINO_EXERCISES, getArduinoExercise } from "@/lib/code-studio/exercises-arduino";
+import { markCompleted, progressFromSnapshot, progressSnapshot, saveDraft, subscribeProgress } from "@/lib/code-studio/progress";
 import { ArduinoRunner } from "@/lib/code-studio/arduino-runner";
 import { emptyPins, type PinState } from "@/lib/code-studio/arduino";
 import { playTone, prepareAudio, stopTone } from "@/lib/code-studio/board-audio";
@@ -21,7 +23,13 @@ const noopSubscribe = () => () => {};
 const MAX_CONSOLE_CHARS = 20_000;
 
 export default function ArduinoStudio() {
-  const [exampleId, setExampleId] = useState(ARDUINO_EXAMPLES[0].id);
+  const [choice, setChoice] = useState(`ex:${ARDUINO_EXAMPLES[0].id}`);
+  const [hintsShown, setHintsShown] = useState(0);
+  const [checking, setChecking] = useState(false);
+  const [report, setReport] = useState<{ passed: boolean; lines: { name: string; ok: boolean; detail: string }[] } | null>(null);
+  const draftTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const progress = progressFromSnapshot(useSyncExternalStore(subscribeProgress, progressSnapshot, () => ""));
+  const exercise = choice.startsWith("ar:") ? getArduinoExercise(choice.slice(3)) : undefined;
   const [initialCode, setInitialCode] = useState(ARDUINO_EXAMPLES[0].code);
   const [editorKey, setEditorKey] = useState(0);
   const [pins, setPins] = useState<PinState>(emptyPins);
@@ -80,6 +88,7 @@ export default function ArduinoStudio() {
       runnerRef.current?.dispose();
       stopTone();
       if (buzzTimer.current) clearTimeout(buzzTimer.current);
+      if (draftTimer.current) clearTimeout(draftTimer.current);
     },
     [],
   );
@@ -104,17 +113,63 @@ export default function ArduinoStudio() {
     } else if (result.outcome === "stopped") setMessage("Stopped.");
   }, [getRunner]);
 
-  function choose(id: string) {
-    const example = ARDUINO_EXAMPLES.find((e) => e.id === id);
-    if (!example || running) return;
+  function choose(value: string) {
+    if (running || checking) return;
+    flushDraft();
     runnerRef.current?.stop();
-    setExampleId(id);
-    codeRef.current = example.code;
-    setInitialCode(example.code);
+    let code: string | undefined;
+    if (value.startsWith("ar:")) {
+      const ex = getArduinoExercise(value.slice(3));
+      if (!ex) return;
+      code = progress.drafts[ex.id] ?? ex.starter;
+    } else {
+      code = ARDUINO_EXAMPLES.find((e) => e.id === value.slice(3))?.code;
+    }
+    if (code === undefined) return;
+    setChoice(value);
+    codeRef.current = code;
+    setInitialCode(code);
     setEditorKey((k) => k + 1);
     setSerial("");
     setMessage("");
     setPins(emptyPins());
+    setHintsShown(0);
+    setReport(null);
+  }
+
+  function flushDraft() {
+    if (draftTimer.current) clearTimeout(draftTimer.current);
+    draftTimer.current = null;
+    if (exercise) saveDraft(exercise.id, codeRef.current);
+  }
+
+  function resetCode() {
+    if (!exercise || running) return;
+    codeRef.current = exercise.starter;
+    saveDraft(exercise.id, exercise.starter);
+    setInitialCode(exercise.starter);
+    setEditorKey((k) => k + 1);
+    setReport(null);
+  }
+
+  async function check() {
+    if (!exercise || running || checking) return;
+    setChecking(true);
+    setReport(null);
+    const lines: { name: string; ok: boolean; detail: string }[] = [];
+    for (const c of exercise.cases) {
+      const result = await getRunner().simulate(codeRef.current, c.script);
+      if (!result) lines.push({ name: c.name, ok: false, detail: "The check could not run. Reload the page and try again." });
+      else if (result.error) lines.push({ name: c.name, ok: false, detail: `Your program has an error: ${result.error}` });
+      else {
+        const problem = c.expect(result.trace);
+        lines.push({ name: c.name, ok: problem === null, detail: problem ?? "" });
+      }
+    }
+    const passed = lines.every((l) => l.ok);
+    if (passed) markCompleted(exercise.id);
+    setReport({ passed, lines });
+    setChecking(false);
   }
 
   function download() {
@@ -151,15 +206,35 @@ export default function ArduinoStudio() {
               Stop
             </button>
             <label style={{ display: "inline-flex", gap: 6, alignItems: "center", fontSize: "0.85rem" }}>
-              Example
-              <select value={exampleId} onChange={(e) => choose(e.target.value)} disabled={running} aria-label="Choose an example program">
-                {ARDUINO_EXAMPLES.map((e) => (
-                  <option key={e.id} value={e.id}>
-                    {e.title}
-                  </option>
-                ))}
+              Program
+              <select value={choice} onChange={(e) => choose(e.target.value)} disabled={running || checking} aria-label="Choose an example or exercise">
+                <optgroup label="Examples">
+                  {ARDUINO_EXAMPLES.map((e) => (
+                    <option key={e.id} value={`ex:${e.id}`}>
+                      {e.title}
+                    </option>
+                  ))}
+                </optgroup>
+                <optgroup label="Exercises">
+                  {ARDUINO_EXERCISES.map((e) => (
+                    <option key={e.id} value={`ar:${e.id}`}>
+                      {progress.completed.includes(e.id) ? "✓ " : ""}
+                      {e.title}
+                    </option>
+                  ))}
+                </optgroup>
               </select>
             </label>
+            {exercise && (
+              <>
+                <button type="button" onClick={() => void check()} disabled={running || checking}>
+                  {checking ? "Checking…" : "Check my work"}
+                </button>
+                <button type="button" onClick={resetCode} disabled={running || checking}>
+                  Reset
+                </button>
+              </>
+            )}
             <button type="button" onClick={download} title="Download this sketch as sketch.ino to open in the Arduino IDE">
               Download .ino
             </button>
@@ -167,6 +242,43 @@ export default function ArduinoStudio() {
               {isolated === false ? "Reload the page: it needs secure mode to run." : "Arduino Uno · runs until you press Stop · Ctrl+Enter runs"}
             </span>
           </div>
+
+          {exercise && (
+            <section className={styles.board} aria-label="Exercise" style={{ marginTop: 0, marginBottom: 12 }}>
+              <h2 className={styles.boardTitle}>
+                {exercise.title}
+                {progress.completed.includes(exercise.id) ? " · done" : ""}
+              </h2>
+              <div style={{ padding: 14, display: "grid", gap: 8 }}>
+                <p style={{ margin: 0 }}>{exercise.task}</p>
+                {exercise.hints.slice(0, hintsShown).map((hint, i) => (
+                  <p key={i} style={{ margin: 0, color: "#475569" }}>
+                    Hint {i + 1}: {hint}
+                  </p>
+                ))}
+                {hintsShown < exercise.hints.length && (
+                  <div>
+                    <button type="button" onClick={() => setHintsShown((n) => n + 1)}>
+                      Show a hint
+                    </button>
+                  </div>
+                )}
+                {report && (
+                  <div role="status" data-passed={report.passed ? "1" : "0"}>
+                    <strong>{report.passed ? "All checks passed. Well done!" : "Not quite yet."}</strong>
+                    <ul style={{ margin: "6px 0 0", paddingLeft: 18 }}>
+                      {report.lines.map((l) => (
+                        <li key={l.name}>
+                          {l.ok ? "✓" : "✗"} {l.name}
+                          {l.detail ? `: ${l.detail}` : ""}
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                )}
+              </div>
+            </section>
+          )}
 
           <div className={styles.split}>
             <section className={styles.editorPane} aria-label="Code editor">
@@ -176,6 +288,11 @@ export default function ArduinoStudio() {
                 initialValue={initialCode}
                 onChange={(value) => {
                   codeRef.current = value;
+                  if (exercise) {
+                    if (draftTimer.current) clearTimeout(draftTimer.current);
+                    const id = exercise.id;
+                    draftTimer.current = setTimeout(() => saveDraft(id, value), 600);
+                  }
                 }}
                 onRun={() => void run()}
               />

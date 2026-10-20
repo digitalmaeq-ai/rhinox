@@ -5,7 +5,7 @@
 // The only ways out of here are the messages below, and the page checks every one of them.
 // Inputs (buttons, dials) come from a shared buffer the page writes; delay() sleeps
 // for real, so a blinking LED blinks at the speed the program says.
-import { ArduinoError, Machine } from "./arduino-vm.js";
+import { ArduinoError, Machine, simulate } from "./arduino-vm.js";
 
 const PIN_COUNT = 20;
 const BUTTON_PINS = new Set([2, 3]);
@@ -19,6 +19,13 @@ let started = false;
 
 self.onmessage = (event) => {
   const data = event.data;
+  if (!started && data && data.kind === "simulate" && typeof data.code === "string" && data.code.length <= MAX_CODE_CHARS && data.script && typeof data.script === "object") {
+    started = true;
+    // A scripted run on a pretend clock, for exercise checks.
+    const result = simulate(data.code, data.script);
+    self.postMessage({ kind: "trace", error: result.error, line: result.line, trace: result.trace });
+    return;
+  }
   if (started || !data || data.kind !== "run" || typeof data.code !== "string" || data.code.length > MAX_CODE_CHARS) return;
   if (!(data.shared instanceof SharedArrayBuffer) || data.shared.byteLength !== 128) return;
   started = true;

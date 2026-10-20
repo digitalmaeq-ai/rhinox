@@ -1237,3 +1237,128 @@ export class Machine {
     }
   }
 }
+
+// ---- Scripted runs (used by exercise checks) -----------------------------------------
+// The program runs on a pretend clock, so a check that covers ten seconds of blinking takes
+// a few milliseconds. A script says when buttons are pressed and dials turned.
+//   script: { duration: ms, events: [{ t, pin, down } | { t, dial, value }] }
+// Returns { error, line, trace: { pins: [{t, pin, level, pwm}], serial: [{t, text}], tones: [{t, f, ms}] } }.
+export const SIM = { MAX_DURATION_MS: 120000, MAX_EVENTS: 200, MAX_STEPS: 3000000, MAX_TRACE: 2000 };
+
+class SimulationEnd {}
+
+export function simulate(source, script) {
+  const duration = Math.max(1, Math.min(SIM.MAX_DURATION_MS, Number(script?.duration) || 1000));
+  const events = (Array.isArray(script?.events) ? script.events : [])
+    .slice(0, SIM.MAX_EVENTS)
+    .filter((e) => e && Number.isFinite(e.t) && e.t >= 0)
+    .sort((a, b) => a.t - b.t);
+  const level = new Array(20).fill(0);
+  const pwm = new Array(20).fill(-1);
+  const mode = new Array(20).fill(0);
+  const held = new Array(20).fill(0);
+  const dials = [512, 512, 512, 512, 512, 512];
+  const trace = { pins: [], serial: [], tones: [] };
+  let now = 0;
+  let next = 0;
+  let steps = 0;
+  const apply = () => {
+    while (next < events.length && events[next].t <= now) {
+      const e = events[next];
+      next += 1;
+      if (Number.isInteger(e.pin) && e.pin >= 0 && e.pin < 20) held[e.pin] = e.down ? 1 : 0;
+      else if (Number.isInteger(e.dial) && e.dial >= 0 && e.dial < 6) dials[e.dial] = Math.max(0, Math.min(1023, Math.round(Number(e.value) || 0)));
+    }
+  };
+  const record = (pin) => {
+    if (trace.pins.length < SIM.MAX_TRACE) trace.pins.push({ t: Math.round(now), pin, level: level[pin], pwm: pwm[pin] });
+  };
+  const host = {
+    pinMode(pin, m) {
+      mode[pin] = m === 1 ? 1 : m === 2 ? 2 : 0;
+      if (m !== 1 && (level[pin] || pwm[pin] >= 0)) {
+        level[pin] = 0;
+        pwm[pin] = -1;
+        record(pin);
+      }
+    },
+    digitalWrite(pin, value) {
+      if (mode[pin] !== 1) return;
+      if (level[pin] !== value || pwm[pin] !== -1) {
+        level[pin] = value;
+        pwm[pin] = -1;
+        record(pin);
+      }
+    },
+    digitalRead(pin) {
+      apply();
+      if (mode[pin] === 1) return level[pin];
+      if (pin >= 14) return dials[pin - 14] >= 512 ? 1 : 0;
+      const pressed = held[pin] === 1;
+      return mode[pin] === 2 ? (pressed ? 0 : 1) : pressed ? 1 : 0;
+    },
+    analogRead(pin) {
+      apply();
+      return pin >= 14 ? dials[pin - 14] : 0;
+    },
+    analogWrite(pin, value) {
+      if (mode[pin] !== 1) return;
+      const lvl = [3, 5, 6, 9, 10, 11].includes(pin) ? (value > 0 ? 1 : 0) : value >= 128 ? 1 : 0;
+      const p = [3, 5, 6, 9, 10, 11].includes(pin) ? value : -1;
+      if (level[pin] !== lvl || pwm[pin] !== p) {
+        level[pin] = lvl;
+        pwm[pin] = p;
+        record(pin);
+      }
+    },
+    tone(pin, f, ms) {
+      if (pin === 8 && trace.tones.length < 500) trace.tones.push({ t: Math.round(now), f, ms });
+    },
+    noTone(pin) {
+      if (pin === 8 && trace.tones.length < 500) trace.tones.push({ t: Math.round(now), f: 0, ms: 0 });
+    },
+    serial(text) {
+      if (trace.serial.length < SIM.MAX_TRACE) trace.serial.push({ t: Math.round(now), text });
+    },
+    delay(ms) {
+      now += ms;
+      if (now >= duration) throw new SimulationEnd();
+      apply();
+    },
+    micros: () => now * 1000,
+    step() {
+      steps += 1;
+      if (steps > SIM.MAX_STEPS) throw new ArduinoError("the program is doing too much work without waiting (add a delay)");
+    },
+  };
+  let error = null;
+  let line = 0;
+  try {
+    const machine = new Machine(host);
+    machine.load(source);
+    apply();
+    machine.runSetup();
+    for (;;) {
+      const before = now;
+      machine.runLoop();
+      if (now === before) host.delay(1);
+    }
+  } catch (e) {
+    if (e instanceof ArduinoError) {
+      error = e.message;
+      line = e.line || 0;
+    } else if (!(e instanceof SimulationEnd)) {
+      error = "the simulator stopped unexpectedly";
+    }
+  }
+  return { error, line, trace };
+}
+
+/** The level (0 to 1, with PWM) of a pin at a time, read back from a trace. */
+export function levelAt(trace, pin, t) {
+  let value = 0;
+  for (const e of trace.pins) {
+    if (e.pin === pin && e.t <= t) value = e.pwm >= 0 ? e.pwm / 255 : e.level;
+  }
+  return value;
+}
