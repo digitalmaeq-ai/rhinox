@@ -1,5 +1,5 @@
-// One place for everything a learner makes in RhinoCode (robot programmes now,
-// games later). Projects live in the browser (localStorage), so nothing leaves
+// One place for everything a learner makes in RhinoCode (robot programmes,
+// games and Python programs). Projects live in the browser (localStorage), so nothing leaves
 // the device. The stored shape is versioned so it can move to an account
 // database later: the functions below are the only code that knows the format.
 //
@@ -7,7 +7,7 @@
 // time the store is written. The old key is left untouched, so nothing is lost
 // if the import ever needs to be repeated.
 
-export type ProjectKind = "robot-program" | "game";
+export type ProjectKind = "robot-program" | "game" | "python";
 
 export interface Project {
   id: string;
@@ -38,11 +38,12 @@ export const CHANGE_EVENT = "rhinocode-projects-changed";
 export const MAX_PER_KIND = 50;
 export const MAX_NAME = 40;
 
-const KINDS: ProjectKind[] = ["robot-program", "game"];
+const KINDS: ProjectKind[] = ["robot-program", "game", "python"];
 
 export const KIND_LABELS: Record<ProjectKind, string> = {
   "robot-program": "Robot programme",
   game: "Game",
+  python: "Python program",
 };
 
 function isProject(value: unknown): value is Project {
