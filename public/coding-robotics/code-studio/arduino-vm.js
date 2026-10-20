@@ -17,6 +17,8 @@
 // millis, random, map/constrain/min/max/abs/pow/sqrt, and Serial.print/println.
 // What is not: pointers, classes, templates, libraries other than the built-ins, interrupts.
 
+import { BOARDS, WL, WifiSim, canPwm, TOUCH_TOUCHED, TOUCH_UNTOUCHED, boardById, dialIndex, PIN_COUNT } from "./arduino-boards.js";
+
 export const LIMITS = {
   MAX_SOURCE_CHARS: 30000,
   MAX_CALL_DEPTH: 64,
@@ -55,10 +57,15 @@ const TYPE_NAMES = new Set([
 const MODIFIERS = new Set(["const", "static", "volatile", "extern", "register"]);
 
 // Which type of whole number a declared type is: [bits, signed]
+// How wide an int is depends on the board (16 bits on an Uno, 32 on an ESP32). One engine runs at a time per worker.
+let INT_BITS = 16;
+
 function intShape(type) {
   switch (type) {
-    case "int": case "short": case "int16_t": return [16, true];
-    case "unsigned int": case "word": case "uint16_t": case "unsigned short": return [16, false];
+    case "int": return [INT_BITS, true];
+    case "unsigned int": return [INT_BITS, false];
+    case "short": case "int16_t": return [16, true];
+    case "word": case "uint16_t": case "unsigned short": return [16, false];
     case "long": case "int32_t": return [32, true];
     case "unsigned long": case "uint32_t": case "size_t": return [32, false];
     case "byte": case "uint8_t": case "unsigned char": return [8, false];
@@ -722,6 +729,18 @@ const CONSTANTS = {
   HALF_PI: new F(Math.PI / 2), TWO_PI: new F(Math.PI * 2), NULL: 0,
 };
 
+function constantsFor(board) {
+  const c = { ...CONSTANTS, LED_BUILTIN: board.ledBuiltin };
+  if (board.id === "uno") return c;
+  for (const name of ["A0", "A1", "A2", "A3", "A4", "A5"]) delete c[name];
+  Object.assign(c, {
+    INPUT_PULLDOWN: 3, WIFI_STA: 1, WIFI_AP: 2, WL_NO_SHIELD: WL.NO_SHIELD, WL_IDLE_STATUS: WL.IDLE, WL_NO_SSID_AVAIL: WL.NO_SSID_AVAIL,
+    WL_CONNECTED: WL.CONNECTED, WL_CONNECT_FAILED: WL.CONNECT_FAILED, WL_CONNECTION_LOST: WL.CONNECTION_LOST, WL_DISCONNECTED: WL.DISCONNECTED,
+    T0: 4, T1: 0, T2: 2, T3: 15, T4: 13, T5: 12, T6: 14, T7: 27, T8: 33, T9: 32,
+  });
+  return c;
+}
+
 export class Machine {
   /**
    * host: {
@@ -730,8 +749,12 @@ export class Machine {
    *   serial(text), delay(ms), micros() -> number, step()
    * }
    */
-  constructor(host) {
+  constructor(host, board = BOARDS.uno) {
     this.host = host;
+    this.board = board;
+    INT_BITS = board.intBits;
+    this.constants = constantsFor(board);
+    this.ledc = new Map();
     this.program = null;
     this.globals = new Map();
     this.depth = 0;
@@ -936,11 +959,11 @@ export class Machine {
       case "str":
         return node.value;
       case "var": {
-        if (Object.prototype.hasOwnProperty.call(CONSTANTS, node.name)) {
+        if (Object.prototype.hasOwnProperty.call(this.constants, node.name)) {
           // A program's own variable of the same name wins over the built-in constant.
           for (let s = scope; s; s = s.parent) if (s.vars.has(node.name)) return s.vars.get(node.name).value;
           if (this.globals.has(node.name)) return this.globals.get(node.name).value;
-          return CONSTANTS[node.name];
+          return this.constants[node.name];
         }
         return this.lookup(scope, node.name, node.line).value;
       }
@@ -1107,8 +1130,17 @@ export class Machine {
 
   pin(value, line) {
     const pin = Math.trunc(value);
-    if (!Number.isInteger(pin) || pin < 0 || pin > 19) throw new ArduinoError("pin " + value + " does not exist on this board (use 0 to 13, or A0 to A5)", line);
+    if (!Number.isInteger(pin) || pin < 0 || pin > this.board.maxPin) {
+      throw new ArduinoError(
+        "pin " + value + " does not exist on this board (" + (this.board.id === "uno" ? "use 0 to 13, or A0 to A5" : "GPIO pins go from 0 to 39") + ")",
+        line,
+      );
+    }
     return pin;
+  }
+
+  needEsp(what, line) {
+    if (this.board.id !== "esp32") throw new ArduinoError("'" + what + "' is only available on the ESP32 board", line);
   }
 
   builtin(name, args, node, n, need) {
@@ -1118,8 +1150,34 @@ export class Machine {
       case "analogRead": {
         need(1);
         let pin = Math.trunc(n(0));
-        if (pin >= 0 && pin <= 5) pin += 14;
-        return Math.max(0, Math.min(1023, Math.trunc(host.analogRead(this.pin(pin, line)))));
+        if (this.board.id === "uno" && pin >= 0 && pin <= 5) pin += 14;
+        return Math.max(0, Math.min(this.board.adcMax, Math.trunc(host.analogRead(this.pin(pin, line)))));
+      }
+      case "touchRead": {
+        this.needEsp("touchRead", line);
+        need(1);
+        return Math.trunc(host.touchRead(this.pin(n(0), line)));
+      }
+      case "ledcAttach": {
+        this.needEsp("ledcAttach", line);
+        need(3);
+        const bits = Math.trunc(n(2));
+        if (bits < 1 || bits > 14) throw new ArduinoError("ledcAttach: the resolution must be between 1 and 14 bits", line);
+        const pin = this.pin(n(0), line);
+        this.ledc.set(pin, bits);
+        host.pinMode(pin, 1);
+        return 1;
+      }
+      case "ledcWrite": {
+        this.needEsp("ledcWrite", line);
+        need(2);
+        const pin = this.pin(n(0), line);
+        const bits = this.ledc.get(pin);
+        if (bits === undefined) throw new ArduinoError("ledcWrite: pin " + pin + " has no PWM yet (call ledcAttach(pin, frequency, resolution) in setup first)", line);
+        const top = 2 ** bits - 1;
+        const duty = Math.max(0, Math.min(top, Math.trunc(n(1))));
+        host.analogWrite(pin, Math.round((duty * 255) / top));
+        return undefined;
       }
       case "analogWrite": need(2); host.analogWrite(this.pin(n(0), line), Math.max(0, Math.min(255, Math.trunc(n(1))))); return undefined;
       case "tone": need(2); host.tone(this.pin(n(0), line), Math.max(0, Math.trunc(n(1))), args.length > 2 ? Math.max(0, Math.trunc(n(2))) : 0); return undefined;
@@ -1187,6 +1245,10 @@ export class Machine {
       const args = node.args.map((a) => this.eval(a, scope));
       return this.serial(node.name, args, line);
     }
+    if (node.target.kind === "var" && node.target.name === "WiFi" && !this.hasUserVar("WiFi", scope)) {
+      const wargs = node.args.map((a) => this.eval(a, scope));
+      return this.wifi(node.name, wargs, line);
+    }
     const target = this.eval(node.target, scope);
     const args = node.args.map((a) => this.eval(a, scope));
     if (typeof target !== "string") throw new ArduinoError("'" + node.name + "' is not a member of this value", line);
@@ -1208,6 +1270,32 @@ export class Machine {
       case "isEmpty": return target.length === 0 ? 1 : 0;
       default:
         throw new ArduinoError("'String' has no member named '" + node.name + "'", line);
+    }
+  }
+
+  hasUserVar(name, scope) {
+    for (let s = scope; s; s = s.parent) if (s.vars.has(name)) return true;
+    return this.globals.has(name);
+  }
+
+  wifi(name, args, line) {
+    this.needEsp("WiFi", line);
+    const wifi = this.host.wifi;
+    const text = (i) => (typeof args[i] === "string" ? args[i] : toText(args[i]));
+    switch (name) {
+      case "mode": wifi.mode(); return 1;
+      case "begin":
+        if (args.length < 1) throw new ArduinoError("WiFi.begin needs a network name: WiFi.begin(\"name\", \"password\")", line);
+        wifi.begin(text(0), args.length > 1 ? text(1) : "");
+        return undefined;
+      case "status": return wifi.status();
+      case "localIP": return wifi.ip();
+      case "SSID": return wifi.ssid();
+      case "RSSI": return wifi.rssi();
+      case "disconnect": wifi.disconnect(); return 1;
+      case "reconnect": wifi.reconnect(); return 1;
+      case "setAutoReconnect": return 1;
+      default: throw new ArduinoError("'WiFi' has no member named '" + name + "'", line);
     }
   }
 
@@ -1247,18 +1335,20 @@ export const SIM = { MAX_DURATION_MS: 120000, MAX_EVENTS: 200, MAX_STEPS: 300000
 
 class SimulationEnd {}
 
-export function simulate(source, script) {
+export function simulate(source, script, boardId = "uno") {
+  const board = boardById(boardId);
   const duration = Math.max(1, Math.min(SIM.MAX_DURATION_MS, Number(script?.duration) || 1000));
   const events = (Array.isArray(script?.events) ? script.events : [])
     .slice(0, SIM.MAX_EVENTS)
     .filter((e) => e && Number.isFinite(e.t) && e.t >= 0)
     .sort((a, b) => a.t - b.t);
-  const level = new Array(20).fill(0);
-  const pwm = new Array(20).fill(-1);
-  const mode = new Array(20).fill(0);
-  const held = new Array(20).fill(0);
-  const dials = [512, 512, 512, 512, 512, 512];
-  const trace = { pins: [], serial: [], tones: [] };
+  const level = new Array(PIN_COUNT).fill(0);
+  const pwm = new Array(PIN_COUNT).fill(-1);
+  const mode = new Array(PIN_COUNT).fill(0);
+  const held = new Array(PIN_COUNT).fill(0);
+  const dials = [Math.round(board.adcMax / 2), Math.round(board.adcMax / 2)];
+  const trace = { pins: [], serial: [], tones: [], wifi: [] };
+  let routerUp = true;
   let now = 0;
   let next = 0;
   let steps = 0;
@@ -1266,16 +1356,27 @@ export function simulate(source, script) {
     while (next < events.length && events[next].t <= now) {
       const e = events[next];
       next += 1;
-      if (Number.isInteger(e.pin) && e.pin >= 0 && e.pin < 20) held[e.pin] = e.down ? 1 : 0;
-      else if (Number.isInteger(e.dial) && e.dial >= 0 && e.dial < 6) dials[e.dial] = Math.max(0, Math.min(1023, Math.round(Number(e.value) || 0)));
+      if (Number.isInteger(e.pin) && e.pin >= 0 && e.pin < PIN_COUNT) held[e.pin] = e.down ? 1 : 0;
+      else if (Number.isInteger(e.dial) && e.dial >= 0 && e.dial < 2) dials[e.dial] = Math.max(0, Math.min(board.adcMax, Math.round(Number(e.value) || 0)));
+      else if (typeof e.router === "boolean") routerUp = e.router;
     }
   };
   const record = (pin) => {
     if (trace.pins.length < SIM.MAX_TRACE) trace.pins.push({ t: Math.round(now), pin, level: level[pin], pwm: pwm[pin] });
   };
+  const wifi = new WifiSim(() => now, () => routerUp);
+  let lastWifi = -1;
+  const noteWifi = () => {
+    const code = wifi.code;
+    if (code !== lastWifi) {
+      lastWifi = code;
+      if (trace.wifi.length < 200) trace.wifi.push({ t: Math.round(now), status: code });
+    }
+  };
   const host = {
     pinMode(pin, m) {
-      mode[pin] = m === 1 ? 1 : m === 2 ? 2 : 0;
+      if (m === 1 && board.inputOnly.includes(pin)) return;
+      mode[pin] = m === 1 ? 1 : m === 2 || m === 3 ? m : 0;
       if (m !== 1 && (level[pin] || pwm[pin] >= 0)) {
         level[pin] = 0;
         pwm[pin] = -1;
@@ -1293,18 +1394,26 @@ export function simulate(source, script) {
     digitalRead(pin) {
       apply();
       if (mode[pin] === 1) return level[pin];
-      if (pin >= 14) return dials[pin - 14] >= 512 ? 1 : 0;
+      const d = dialIndex(board, pin);
+      if (d >= 0) return dials[d] >= (board.adcMax + 1) / 2 ? 1 : 0;
       const pressed = held[pin] === 1;
+      // Kit buttons join the pin to ground: with a pull-up, held reads LOW; without, held reads HIGH.
       return mode[pin] === 2 ? (pressed ? 0 : 1) : pressed ? 1 : 0;
     },
     analogRead(pin) {
       apply();
-      return pin >= 14 ? dials[pin - 14] : 0;
+      const d = dialIndex(board, pin);
+      return d >= 0 ? dials[d] : 0;
+    },
+    touchRead(pin) {
+      apply();
+      return board.touchPins.includes(pin) && held[pin] === 1 ? TOUCH_TOUCHED : TOUCH_UNTOUCHED;
     },
     analogWrite(pin, value) {
       if (mode[pin] !== 1) return;
-      const lvl = [3, 5, 6, 9, 10, 11].includes(pin) ? (value > 0 ? 1 : 0) : value >= 128 ? 1 : 0;
-      const p = [3, 5, 6, 9, 10, 11].includes(pin) ? value : -1;
+      const pwmOk = canPwm(board, pin);
+      const lvl = pwmOk ? (value > 0 ? 1 : 0) : value >= 128 ? 1 : 0;
+      const p = pwmOk ? value : -1;
       if (level[pin] !== lvl || pwm[pin] !== p) {
         level[pin] = lvl;
         pwm[pin] = p;
@@ -1312,13 +1421,38 @@ export function simulate(source, script) {
       }
     },
     tone(pin, f, ms) {
-      if (pin === 8 && trace.tones.length < 500) trace.tones.push({ t: Math.round(now), f, ms });
+      if (pin === board.buzzerPin && trace.tones.length < 500) trace.tones.push({ t: Math.round(now), f, ms });
     },
     noTone(pin) {
-      if (pin === 8 && trace.tones.length < 500) trace.tones.push({ t: Math.round(now), f: 0, ms: 0 });
+      if (pin === board.buzzerPin && trace.tones.length < 500) trace.tones.push({ t: Math.round(now), f: 0, ms: 0 });
     },
     serial(text) {
       if (trace.serial.length < SIM.MAX_TRACE) trace.serial.push({ t: Math.round(now), text });
+    },
+    wifi: {
+      mode() {},
+      begin(ssid, pass) {
+        apply();
+        wifi.begin(ssid, pass);
+        noteWifi();
+      },
+      status() {
+        apply();
+        const code = wifi.status();
+        noteWifi();
+        return code;
+      },
+      ip: () => (apply(), wifi.status(), wifi.ip()),
+      ssid: () => (apply(), wifi.status(), wifi.ssid()),
+      rssi: () => (apply(), wifi.status(), wifi.rssi()),
+      disconnect() {
+        wifi.disconnect();
+        noteWifi();
+      },
+      reconnect() {
+        apply();
+        wifi.reconnect();
+      },
     },
     delay(ms) {
       now += ms;
@@ -1334,7 +1468,7 @@ export function simulate(source, script) {
   let error = null;
   let line = 0;
   try {
-    const machine = new Machine(host);
+    const machine = new Machine(host, board);
     machine.load(source);
     apply();
     machine.runSetup();

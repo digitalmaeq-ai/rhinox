@@ -2,8 +2,11 @@
 // Every Arduino exercise: the starter must fail its checks, the reference solution must pass, and wrong tries must fail.
 import assert from "node:assert/strict";
 
-import { simulate } from "../../public/coding-robotics/code-studio/arduino-vm.js";
+import { simulate as rawSimulate } from "../../public/coding-robotics/code-studio/arduino-vm.js";
+import type { SimResult } from "./arduino";
 import { ARDUINO_EXERCISES, type ArduinoExercise } from "./exercises-arduino";
+
+const simulate = (code: string, script: object, board?: string) => rawSimulate(code, script, board) as unknown as SimResult;
 
 const SOLUTIONS: Record<string, string> = {
   "ar-blink-fast": `void setup(){ pinMode(13, OUTPUT); } void loop(){ digitalWrite(13, HIGH); delay(250); digitalWrite(13, LOW); delay(250); }`,
@@ -14,6 +17,13 @@ const SOLUTIONS: Record<string, string> = {
   "ar-toggle": `bool ledOn=false; bool wasDown=false; void setup(){ pinMode(10,OUTPUT); pinMode(3,INPUT_PULLUP); } void loop(){ bool down = (digitalRead(3)==LOW); if (down && !wasDown) { ledOn = !ledOn; digitalWrite(10, ledOn); } wasDown = down; delay(10); }`,
   "ar-alarm": `void setup(){ pinMode(12,OUTPUT); } void loop(){ int level = analogRead(A1); if (level > 600) { digitalWrite(12,HIGH); tone(8,880); } else { digitalWrite(12,LOW); noTone(8); } delay(50); }`,
   "ar-sum": `void setup(){ Serial.begin(9600); int total=0; for(int i=1;i<=10;i++){ total = total + i; } Serial.println(total); } void loop(){}`,
+  "es-blink": `void setup(){ Serial.begin(115200); pinMode(2, OUTPUT); } void loop(){ digitalWrite(2, HIGH); Serial.println("LED on"); delay(500); digitalWrite(2, LOW); Serial.println("LED off"); delay(500); }`,
+  "es-touch": `void setup(){ pinMode(16, OUTPUT); } void loop(){ if (touchRead(4) < 40) digitalWrite(16, HIGH); else digitalWrite(16, LOW); delay(50); }`,
+  "es-percent": `void setup(){ Serial.begin(115200); } void loop(){ Serial.println(map(analogRead(34), 0, 4095, 0, 100)); delay(200); }`,
+  "es-fade": `void setup(){ ledcAttach(18, 5000, 8); } void loop(){ for (int duty = 0; duty <= 255; duty++) { ledcWrite(18, duty); delay(8); } }`,
+  "es-wifi": `void setup(){ Serial.begin(115200); pinMode(2, OUTPUT); WiFi.begin("RhinoxLab", "stem2026"); while (WiFi.status() != WL_CONNECTED) { delay(250); } Serial.println("Connected"); Serial.println(WiFi.localIP()); digitalWrite(2, HIGH); } void loop(){}`,
+  "es-wifi-light": `void setup(){ pinMode(16, OUTPUT); pinMode(17, OUTPUT); WiFi.begin("RhinoxGuest"); } void loop(){ bool ok = (WiFi.status() == WL_CONNECTED); digitalWrite(17, ok); digitalWrite(16, !ok); delay(100); }`,
+  "es-bigint": `int factorial(int n){ if (n <= 1) return 1; return n * factorial(n - 1); } void setup(){ Serial.begin(115200); Serial.println(factorial(10)); } void loop(){}`,
 };
 
 // Plausible wrong programs: each must fail at least one check of its exercise.
@@ -26,12 +36,19 @@ const WRONG: Record<string, string[]> = {
   "ar-toggle": [`void setup(){ pinMode(10,OUTPUT); pinMode(3,INPUT_PULLUP); } void loop(){ digitalWrite(10, digitalRead(3)==LOW); delay(10); }`],
   "ar-alarm": [`void setup(){ pinMode(12,OUTPUT); } void loop(){ if (analogRead(A1) > 600) digitalWrite(12,HIGH); else digitalWrite(12,LOW); delay(50); }`],
   "ar-sum": [`void setup(){ Serial.begin(9600); int t=0; for(int i=1;i<10;i++){ t=t+i; } Serial.println(t); } void loop(){}`],
+  "es-blink": [`void setup(){ pinMode(2, OUTPUT); } void loop(){ digitalWrite(2, HIGH); delay(500); digitalWrite(2, LOW); delay(500); }`],
+  "es-touch": [`void setup(){ pinMode(16, OUTPUT); } void loop(){ if (touchRead(4) > 40) digitalWrite(16, HIGH); else digitalWrite(16, LOW); delay(50); }`],
+  "es-percent": [`void setup(){ Serial.begin(115200); } void loop(){ Serial.println(analogRead(34)); delay(200); }`],
+  "es-fade": [`void setup(){ ledcAttach(18, 5000, 8); } void loop(){ ledcWrite(18, 255); delay(100); }`],
+  "es-wifi": [`void setup(){ Serial.begin(115200); pinMode(2, OUTPUT); WiFi.begin("RhinoxLab", "wrong"); while (WiFi.status() != WL_CONNECTED && millis() < 5000) { delay(250); } Serial.println("Connected"); Serial.println(WiFi.localIP()); digitalWrite(2, HIGH); } void loop(){}`],
+  "es-wifi-light": [`void setup(){ pinMode(16, OUTPUT); pinMode(17, OUTPUT); WiFi.begin("RhinoxGuest"); while (WiFi.status() != WL_CONNECTED) { delay(100); } digitalWrite(17, HIGH); } void loop(){}`],
+  "es-bigint": [`int factorial(int n){ if (n <= 1) return 1; return n * factorial(n - 1); } void setup(){ Serial.begin(115200); short r = factorial(10); Serial.println(r); } void loop(){}`],
 };
 
 function verdict(ex: ArduinoExercise, code: string): string[] {
   const problems: string[] = [];
   for (const c of ex.cases) {
-    const r = simulate(code, c.script);
+    const r = simulate(code, c.script, ex.board);
     if (r.error) problems.push(`${c.name}: error ${r.error}`);
     else {
       const p = c.expect(r.trace);
@@ -56,6 +73,26 @@ for (const ex of ARDUINO_EXERCISES) {
   console.log("ok  ", ex.id);
 }
 assert.equal(ids.size, Object.keys(SOLUTIONS).length);
+
+// The two boards really differ.
+const unoBig = simulate("void setup(){ int x = 32767; x = x + 1; Serial.println(x); } void loop(){}", { duration: 100, events: [] }, "uno");
+assert.equal(unoBig.trace.serial.map((e) => e.text).join("").trim(), "-32768");
+const espBig = simulate("void setup(){ int x = 32767; x = x + 1; Serial.println(x); } void loop(){}", { duration: 100, events: [] }, "esp32");
+assert.equal(espBig.trace.serial.map((e) => e.text).join("").trim(), "32768");
+assert.match(simulate("void setup(){ WiFi.begin(\"a\"); } void loop(){}", { duration: 100, events: [] }, "uno").error ?? "", /only available on the ESP32/);
+assert.match(simulate("void setup(){ touchRead(4); } void loop(){}", { duration: 100, events: [] }, "uno").error ?? "", /only available on the ESP32/);
+assert.match(simulate("void setup(){ digitalWrite(50, HIGH); } void loop(){}", { duration: 100, events: [] }, "esp32").error ?? "", /GPIO pins go from 0 to 39/);
+assert.match(simulate("void setup(){ ledcWrite(5, 10); } void loop(){}", { duration: 100, events: [] }, "esp32").error ?? "", /no PWM yet/);
+// Wi-Fi: wrong password fails, an unknown network is not found, and the router going away is noticed.
+const wifiCode = (begin: string) => `void setup(){ WiFi.begin(${begin}); } void loop(){ Serial.println(WiFi.status()); delay(500); }`;
+const lastStatus = (src: string, events = [] as never[]) => {
+  const r = simulate(src, { duration: 6000, events }, "esp32");
+  return Number(r.trace.serial.map((e) => e.text).join("").trim().split("\n").pop());
+};
+assert.equal(lastStatus(wifiCode('"RhinoxLab", "stem2026"')), 3);
+assert.equal(lastStatus(wifiCode('"RhinoxLab", "nope"')), 4);
+assert.equal(lastStatus(wifiCode('"Nowhere", "x"')), 1);
+assert.equal(lastStatus(wifiCode('"RhinoxGuest"')), 3);
 
 // The scripted run is bounded.
 const spin = simulate("void setup(){ while(true){} } void loop(){}", { duration: 1000, events: [] });

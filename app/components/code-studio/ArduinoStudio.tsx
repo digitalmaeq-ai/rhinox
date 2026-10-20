@@ -10,7 +10,7 @@ import { ARDUINO_EXAMPLES } from "@/lib/code-studio/arduino-examples";
 import { ARDUINO_EXERCISES, getArduinoExercise } from "@/lib/code-studio/exercises-arduino";
 import { markCompleted, progressFromSnapshot, progressSnapshot, saveDraft, subscribeProgress } from "@/lib/code-studio/progress";
 import { ArduinoRunner } from "@/lib/code-studio/arduino-runner";
-import { emptyPins, type PinState } from "@/lib/code-studio/arduino";
+import { BOARDS, WL, emptyPins, kitOf, type BoardId, type PinState } from "@/lib/code-studio/arduino";
 import { playTone, prepareAudio, stopTone } from "@/lib/code-studio/board-audio";
 
 import ArduinoBoard from "./ArduinoBoard";
@@ -30,6 +30,9 @@ type Props = { savedId?: string | null; saved?: ArduinoProjectData | null };
 export default function ArduinoStudio({ savedId: initialSavedId = null, saved = null }: Props) {
   const [savedId, setSavedId] = useState<string | null>(initialSavedId);
   const [notice, setNotice] = useState("");
+  const [board, setBoard] = useState<BoardId>(saved?.board ?? "uno");
+  const [wifi, setWifi] = useState<{ status: number; ssid: string }>({ status: WL.NO_SHIELD, ssid: "" });
+  const [router, setRouter] = useState(true);
   const [choice, setChoice] = useState(saved?.exerciseId ? `ar:${saved.exerciseId}` : saved ? "free" : `ex:${ARDUINO_EXAMPLES[0].id}`);
   const [hintsShown, setHintsShown] = useState(0);
   const [checking, setChecking] = useState(false);
@@ -45,7 +48,10 @@ export default function ArduinoStudio({ savedId: initialSavedId = null, saved = 
   const [message, setMessage] = useState("");
   const [buzzing, setBuzzing] = useState(false);
   const [muted, setMuted] = useState(false);
-  const [dials, setDials] = useState<[number, number]>([512, 512]);
+  const [dials, setDials] = useState<[number, number]>(() => {
+    const mid = Math.round(kitOf(saved?.board ?? "uno").adcMax / 2);
+    return [mid, mid];
+  });
   const codeRef = useRef(saved?.code ?? ARDUINO_EXAMPLES[0].code);
   const mutedRef = useRef(false);
   const runnerRef = useRef<ArduinoRunner | null>(null);
@@ -84,6 +90,7 @@ export default function ArduinoStudio({ savedId: initialSavedId = null, saved = 
           if (!mutedRef.current) playTone(frequency, ms || 1000);
           buzzTimer.current = setTimeout(() => setBuzzing(false), ms || 1000);
         },
+        onWifi: (status, ssid) => setWifi({ status, ssid }),
         onRunning: setRunning,
       });
     }
@@ -111,28 +118,40 @@ export default function ArduinoStudio({ savedId: initialSavedId = null, saved = 
     setMessage("");
     setPins(emptyPins());
     prepareAudio();
-    const result = await runner.run(codeRef.current);
+    setWifi({ status: WL.NO_SHIELD, ssid: "" });
+    const result = await runner.run(codeRef.current, board);
     stopTone();
     setBuzzing(false);
     if (result.outcome === "error") setMessage(`Error: ${result.error ?? "the program stopped"}`);
     else if (result.outcome === "timeout" || result.outcome === "output-limit" || result.outcome === "crashed" || result.outcome === "unavailable") {
       setMessage(result.error ?? "The program stopped.");
     } else if (result.outcome === "stopped") setMessage("Stopped.");
-  }, [getRunner]);
+  }, [getRunner, board]);
 
   function choose(value: string) {
     if (running || checking) return;
     flushDraft();
     runnerRef.current?.stop();
     let code: string | undefined;
+    let nextBoard: BoardId = board;
     if (value.startsWith("ar:")) {
       const ex = getArduinoExercise(value.slice(3));
       if (!ex) return;
       code = progress.drafts[ex.id] ?? ex.starter;
+      nextBoard = ex.board;
     } else {
-      code = ARDUINO_EXAMPLES.find((e) => e.id === value.slice(3))?.code;
+      const example = ARDUINO_EXAMPLES.find((e) => e.id === value.slice(3));
+      code = example?.code;
+      if (example) nextBoard = example.board;
     }
     if (code === undefined) return;
+    if (nextBoard !== board) {
+      const mid = Math.round(kitOf(nextBoard).adcMax / 2);
+      setDials([mid, mid]);
+      runnerRef.current?.useBoard(nextBoard);
+      setWifi({ status: WL.NO_SHIELD, ssid: "" });
+    }
+    setBoard(nextBoard);
     setChoice(value);
     setSavedId(null);
     setNotice("");
@@ -167,7 +186,7 @@ export default function ArduinoStudio({ savedId: initialSavedId = null, saved = 
     setReport(null);
     const lines: { name: string; ok: boolean; detail: string }[] = [];
     for (const c of exercise.cases) {
-      const result = await getRunner().simulate(codeRef.current, c.script);
+      const result = await getRunner().simulate(codeRef.current, c.script, board);
       if (!result) lines.push({ name: c.name, ok: false, detail: "The check could not run. Reload the page and try again." });
       else if (result.error) lines.push({ name: c.name, ok: false, detail: `Your program has an error: ${result.error}` });
       else {
@@ -187,7 +206,7 @@ export default function ArduinoStudio({ savedId: initialSavedId = null, saved = 
       setNotice(`This sketch is too long to save (the limit is ${ARDUINO_MAX_SAVED_CODE.toLocaleString("en")} characters).`);
       return;
     }
-    const data = toArduinoProjectData(exercise?.id ?? null, code);
+    const data = toArduinoProjectData(exercise?.id ?? null, code, board);
     if (savedId && getProject(savedId)) {
       updateProjectData(savedId, data);
       setNotice("Changes saved.");
@@ -239,18 +258,36 @@ export default function ArduinoStudio({ savedId: initialSavedId = null, saved = 
               Stop
             </button>
             <label style={{ display: "inline-flex", gap: 6, alignItems: "center", fontSize: "0.85rem" }}>
+              Board
+              <select
+                value={board}
+                onChange={(e) => {
+                  const first = ARDUINO_EXAMPLES.find((x) => x.board === e.target.value);
+                  if (first) choose(`ex:${first.id}`);
+                }}
+                disabled={running || checking}
+                aria-label="Choose a board"
+              >
+                {(Object.keys(BOARDS) as BoardId[]).map((id) => (
+                  <option key={id} value={id}>
+                    {BOARDS[id].name}
+                  </option>
+                ))}
+              </select>
+            </label>
+            <label style={{ display: "inline-flex", gap: 6, alignItems: "center", fontSize: "0.85rem" }}>
               Program
               <select value={choice} onChange={(e) => choose(e.target.value)} disabled={running || checking} aria-label="Choose an example or exercise">
                 {choice === "free" && <option value="free">My saved sketch</option>}
                 <optgroup label="Examples">
-                  {ARDUINO_EXAMPLES.map((e) => (
+                  {ARDUINO_EXAMPLES.filter((e) => e.board === board).map((e) => (
                     <option key={e.id} value={`ex:${e.id}`}>
                       {e.title}
                     </option>
                   ))}
                 </optgroup>
                 <optgroup label="Exercises">
-                  {ARDUINO_EXERCISES.map((e) => (
+                  {ARDUINO_EXERCISES.filter((e) => e.board === board).map((e) => (
                     <option key={e.id} value={`ar:${e.id}`}>
                       {progress.completed.includes(e.id) ? "✓ " : ""}
                       {e.title}
@@ -276,7 +313,7 @@ export default function ArduinoStudio({ savedId: initialSavedId = null, saved = 
               Download .ino
             </button>
             <span className={styles.note} role="status">
-              {notice || (isolated === false ? "Reload the page: it needs secure mode to run." : "Arduino Uno · runs until you press Stop · Ctrl+Enter runs")}
+              {notice || (isolated === false ? "Reload the page: it needs secure mode to run." : `${kitOf(board).name} · runs until you press Stop · Ctrl+Enter runs`)}
               {notice.startsWith("Saved") && (
                 <>
                   {" "}
@@ -351,6 +388,13 @@ export default function ArduinoStudio({ savedId: initialSavedId = null, saved = 
           </div>
 
           <ArduinoBoard
+            board={board}
+            wifi={wifi}
+            router={router}
+            onRouter={(up) => {
+              setRouter(up);
+              getRunner().setRouter(up);
+            }}
             pins={pins}
             running={running}
             buzzing={buzzing}

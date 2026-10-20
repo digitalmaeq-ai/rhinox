@@ -4,6 +4,9 @@
 import {
   ANALOG_BASE,
   ARDUINO_HARD_SERIAL_CAP,
+  ROUTER_SLOT,
+  boardById,
+  type BoardId,
   ARDUINO_INPUT_BYTES,
   ARDUINO_MAX_CODE_CHARS,
   ARDUINO_RUN_LIMIT_MS,
@@ -21,6 +24,7 @@ export type ArduinoHandlers = {
   onState: (state: PinState) => void;
   onSerial: (text: string) => void;
   onTone: (frequency: number, ms: number) => void;
+  onWifi?: (status: number, ssid: string) => void;
   onRunning: (running: boolean) => void;
 };
 
@@ -32,8 +36,10 @@ export class ArduinoRunner {
   private finish: ((result: ArduinoResult) => void) | null = null;
   private timer: ReturnType<typeof setTimeout> | null = null;
   private serial = "";
-  private held = new Array<number>(20).fill(0);
-  private dials = [512, 512, 512, 512, 512, 512];
+  private held = new Array<number>(40).fill(0);
+  private dials = [512, 512];
+  private router = 1;
+  private board: BoardId = "uno";
 
   constructor(private readonly handlers: ArduinoHandlers) {}
 
@@ -43,18 +49,33 @@ export class ArduinoRunner {
 
   /** Dial positions are remembered so a run that starts later still sees them. */
   setDial(analog: number, value: number) {
-    if (!Number.isInteger(analog) || analog < 0 || analog > 5) return;
-    this.dials[analog] = Math.max(0, Math.min(1023, Math.round(value)));
+    if (!Number.isInteger(analog) || analog < 0 || analog > 1) return;
+    this.dials[analog] = Math.max(0, Math.min(boardById(this.board).adcMax, Math.round(value)));
     if (this.input) Atomics.store(this.input, ANALOG_BASE + analog, this.dials[analog]);
   }
 
+  /** Switches the pretend Wi-Fi router on or off. */
+  setRouter(up: boolean) {
+    this.router = up ? 1 : 0;
+    if (this.input) Atomics.store(this.input, ROUTER_SLOT, this.router);
+  }
+
+  /** Dials are kept in the board's own units, so the page tells the runner which board it is on. */
+  useBoard(board: BoardId) {
+    if (board === this.board) return;
+    this.board = board;
+    const mid = Math.round(boardById(board).adcMax / 2);
+    this.dials = [mid, mid];
+  }
+
   setButton(pin: number, down: boolean) {
-    if (!Number.isInteger(pin) || pin < 0 || pin > 19) return;
+    if (!Number.isInteger(pin) || pin < 0 || pin > 39) return;
     this.held[pin] = down ? 1 : 0;
     if (this.input) Atomics.store(this.input, pin, this.held[pin]);
   }
 
-  run(code: string): Promise<ArduinoResult> {
+  run(code: string, board: BoardId = this.board): Promise<ArduinoResult> {
+    this.useBoard(board);
     this.stop();
     if (code.length > ARDUINO_MAX_CODE_CHARS) {
       return Promise.resolve({ outcome: "error", error: "the program is too long", line: 0, serial: "" });
@@ -72,6 +93,7 @@ export class ArduinoRunner {
     const input = new Int32Array(shared);
     this.held.forEach((v, i) => Atomics.store(input, i, v));
     this.dials.forEach((v, i) => Atomics.store(input, ANALOG_BASE + i, v));
+    Atomics.store(input, ROUTER_SLOT, this.router);
     this.input = input;
     let worker: Worker;
     try {
@@ -96,6 +118,9 @@ export class ArduinoRunner {
           case "tone":
             this.handlers.onTone(message.frequency, message.ms);
             break;
+          case "wifi":
+            this.handlers.onWifi?.(message.status, message.ssid);
+            break;
           case "serial":
             this.serial += message.text;
             this.handlers.onSerial(message.text);
@@ -111,7 +136,7 @@ export class ArduinoRunner {
       worker.onerror = () => {
         if (this.worker === worker) this.end("crashed", "The Arduino engine stopped working. Press Run to try again.", 0);
       };
-      worker.postMessage({ kind: "run", code, shared });
+      worker.postMessage({ kind: "run", code, shared, board: this.board });
     });
   }
 
@@ -120,7 +145,7 @@ export class ArduinoRunner {
   }
 
   /** A scripted run on a pretend clock, in a worker of its own. Resolves to null if it fails or takes too long. */
-  simulate(code: string, script: SimScript): Promise<SimResult | null> {
+  simulate(code: string, script: SimScript, board: BoardId = "uno"): Promise<SimResult | null> {
     if (code.length > ARDUINO_MAX_CODE_CHARS) return Promise.resolve(null);
     let worker: Worker;
     try {
@@ -139,7 +164,7 @@ export class ArduinoRunner {
       const timer = setTimeout(() => finish(null), 15_000);
       worker.onmessage = (event: MessageEvent) => finish(cleanSimResult(event.data));
       worker.onerror = () => finish(null);
-      worker.postMessage({ kind: "simulate", code, script });
+      worker.postMessage({ kind: "simulate", code, script, board });
     });
   }
 
