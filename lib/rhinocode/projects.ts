@@ -7,7 +7,7 @@
 // time the store is written. The old key is left untouched, so nothing is lost
 // if the import ever needs to be repeated.
 
-export type ProjectKind = "robot-program" | "game" | "python";
+export type ProjectKind = "robot-program" | "game" | "python" | "arduino";
 
 export interface Project {
   id: string;
@@ -38,12 +38,13 @@ export const CHANGE_EVENT = "rhinocode-projects-changed";
 export const MAX_PER_KIND = 50;
 export const MAX_NAME = 40;
 
-const KINDS: ProjectKind[] = ["robot-program", "game", "python"];
+const KINDS: ProjectKind[] = ["robot-program", "game", "python", "arduino"];
 
 export const KIND_LABELS: Record<ProjectKind, string> = {
   "robot-program": "Robot programme",
   game: "Game",
   python: "Python program",
+  arduino: "Arduino sketch",
 };
 
 function isProject(value: unknown): value is Project {

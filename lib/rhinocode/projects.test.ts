@@ -111,6 +111,14 @@ test("a Python program is saved, listed by kind, updated and deleted", () => {
   assert.equal(listProjects(undefined, kv).length, 1);
 });
 
+test("an Arduino sketch is saved under its own kind", () => {
+  const kv = memory();
+  const saved = createProject("arduino", "Blink", { version: 1, exerciseId: null, code: "void setup(){}" }, kv, 100);
+  createProject("python", "p", {}, kv, 200);
+  assert.deepEqual(listProjects("arduino", kv).map((p) => p.id), [saved.id]);
+  assert.equal(getProject(saved.id, kv)?.kind, "arduino");
+});
+
 test("unavailable storage does nothing and does not throw", () => {
   assert.deepEqual(listProjects(undefined, null), []);
   createProject("game", "x", {}, null);

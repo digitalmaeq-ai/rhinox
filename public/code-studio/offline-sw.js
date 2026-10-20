@@ -6,7 +6,7 @@
 // page (and the files that page loads), never the rest of the site.
 //
 // What it does:
-//   - The Code Studio page: network first (so a new version arrives as soon as
+//   - The Code Studio page and the Arduino Studio page: network first (so a new version arrives as soon as
 //     there is a connection), the saved copy when the network fails.
 //   - Files that never change (/_next/static/ and the self-hosted Python
 //     runtime in /pyodide/): saved copy first, then the network.
@@ -25,6 +25,7 @@
 const CACHE = "rhinox-code-studio-offline-v1";
 const CACHE_PREFIX = "rhinox-code-studio-offline-";
 const PAGE = "/coding-robotics/code-studio";
+const ARDUINO_PAGE = "/coding-robotics/code-studio/arduino";
 
 self.addEventListener("install", () => {
   self.skipWaiting();
@@ -102,7 +103,7 @@ self.addEventListener("fetch", (event) => {
     );
 
   if (request.mode === "navigate") {
-    if (path === PAGE) handle(() => networkFirst(request, PAGE));
+    if (path === PAGE || path === ARDUINO_PAGE) handle(() => networkFirst(request, path));
     return;
   }
   if (path.startsWith("/_next/static/") || path.startsWith("/pyodide/")) {

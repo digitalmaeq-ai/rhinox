@@ -3,11 +3,17 @@
 // (public/code-studio/offline-sw.js) hands them back when there is no internet.
 // Everything stays in this browser. Nothing here runs a learner's Python.
 import { MICROBIT_URL, PYODIDE_BASE, WORKER_URL } from "./limits";
+import { ARDUINO_WORKER_URL } from "./arduino";
+
+const ARDUINO_VM_URL = "/coding-robotics/code-studio/arduino-vm.js";
 
 /** The saved copy. Must match CACHE in public/code-studio/offline-sw.js (a test checks it). */
 export const OFFLINE_CACHE = "rhinox-code-studio-offline-v1";
 export const SW_URL = "/code-studio/offline-sw.js";
 export const PAGE_PATH = "/coding-robotics/code-studio";
+/** Arduino Studio lives under the Code Studio path, so the same service worker and saved copy cover it. */
+export const ARDUINO_PAGE_PATH = "/coding-robotics/code-studio/arduino";
+export type StudioKind = "python" | "arduino";
 /** The service worker only controls the Code Studio page, never the rest of the site. */
 export const SW_SCOPE = "/coding-robotics/code-studio";
 
@@ -33,15 +39,16 @@ export function isSaveable(address: string, origin: string): boolean {
 }
 
 /** The files that must be saved for Code Studio to run offline, in the order they are fetched. */
-export function requiredAddresses(): string[] {
+export function requiredAddresses(kind: StudioKind = "python"): string[] {
+  if (kind === "arduino") return [ARDUINO_PAGE_PATH, ARDUINO_WORKER_URL, ARDUINO_VM_URL, "/code-studio/manifest.webmanifest", "/code-studio/icon-192.png"];
   return [PAGE_PATH, WORKER_URL, MICROBIT_URL, ...PYODIDE_FILES.map((file) => `${PYODIDE_BASE}${file}`), "/code-studio/manifest.webmanifest", "/code-studio/icon-192.png"];
 }
 
 /** Adds the scripts, styles and pictures this page has already loaded (from the browser's own list), checked and without repeats. */
-export function allAddresses(loaded: readonly string[], origin: string): string[] {
+export function allAddresses(loaded: readonly string[], origin: string, kind: StudioKind = "python"): string[] {
   const seen = new Set<string>();
   const out: string[] = [];
-  for (const address of requiredAddresses()) {
+  for (const address of requiredAddresses(kind)) {
     if (!seen.has(address)) {
       seen.add(address);
       out.push(address);
@@ -74,11 +81,11 @@ export function offlineSupported(): boolean {
 }
 
 /** Whether the saved copy is complete: everything required is in the cache. */
-export async function isSaved(): Promise<boolean> {
+export async function isSaved(kind: StudioKind = "python"): Promise<boolean> {
   try {
     if (!(await caches.has(OFFLINE_CACHE))) return false;
     const cache = await caches.open(OFFLINE_CACHE);
-    for (const address of requiredAddresses()) {
+    for (const address of requiredAddresses(kind)) {
       if (!(await cache.match(address, { ignoreVary: true }))) return false;
     }
     return true;
@@ -96,18 +103,19 @@ async function keep(cache: Cache, address: string): Promise<void> {
   if (!response.ok || response.redirected || response.type !== "basic") {
     throw new Error(`Could not save ${address.split("?")[0]} (${response.status}).`);
   }
-  await cache.put(address.split("?")[0] === PAGE_PATH ? PAGE_PATH : address, response);
+  const bare = address.split("?")[0];
+  await cache.put(bare === PAGE_PATH || bare === ARDUINO_PAGE_PATH ? bare : address, response);
 }
 
 /** Saves everything needed. Calls onProgress(done, total) as it goes. Throws an Error with words a learner can read. */
-export async function saveForOffline(onProgress: (done: number, total: number) => void): Promise<void> {
+export async function saveForOffline(onProgress: (done: number, total: number) => void, kind: StudioKind = "python"): Promise<void> {
   if (!offlineSupported()) throw new Error("This browser cannot save Code Studio for offline use.");
   try {
     await navigator.serviceWorker.register(SW_URL, { scope: SW_SCOPE });
     await navigator.serviceWorker.ready;
     const cache = await caches.open(OFFLINE_CACHE);
-    const addresses = allAddresses(loadedAddresses(), window.location.origin);
-    const required = new Set(requiredAddresses());
+    const addresses = allAddresses(loadedAddresses(), window.location.origin, kind);
+    const required = new Set(requiredAddresses(kind));
     let done = 0;
     onProgress(0, addresses.length);
     // A few at a time: the Python runtime is a big file, so this keeps the page responsive.
@@ -132,7 +140,7 @@ export async function saveForOffline(onProgress: (done: number, total: number) =
     );
     if (failures.includes("quota")) throw new Error("There is not enough space on this device to save Code Studio.");
     if (failures.length > 0) throw new Error(failures[0]);
-    if (!(await isSaved())) throw new Error("The saved copy is incomplete. Check your connection and try again.");
+    if (!(await isSaved(kind))) throw new Error("The saved copy is incomplete. Check your connection and try again.");
     // Ask the browser to keep the copy (and the learner's work) when space runs low. It is allowed to say no.
     try {
       await navigator.storage?.persist?.();

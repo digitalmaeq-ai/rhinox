@@ -8,6 +8,7 @@ import {
   removeOfflineCopy,
   saveForOffline,
   type OfflineStatus,
+  type StudioKind,
 } from "@/lib/code-studio/offline";
 
 import styles from "./CodeStudio.module.css";
@@ -32,7 +33,7 @@ function subscribeOnline(onChange: () => void) {
 // "Save for offline use": keeps Code Studio in this browser so it opens and runs
 // with no internet, and lets it be installed like an app. Shown only in browsers
 // that can do it (secure page, service workers and cache storage).
-export default function OfflineBar() {
+export default function OfflineBar({ kind = "python" }: { kind?: StudioKind }) {
   const [status, setStatus] = useState<OfflineStatus>("checking");
   const [progress, setProgress] = useState({ done: 0, total: 0 });
   const [message, setMessage] = useState("");
@@ -44,7 +45,7 @@ export default function OfflineBar() {
   useEffect(() => {
     let live = true;
     if (!supported) return;
-    void isSaved().then((saved) => {
+    void isSaved(kind).then((saved) => {
       if (live) setStatus(saved ? "ready" : "not-saved");
     });
     const onPrompt = (event: Event) => {
@@ -63,14 +64,14 @@ export default function OfflineBar() {
       window.removeEventListener("beforeinstallprompt", onPrompt);
       window.removeEventListener("appinstalled", onInstalled);
     };
-  }, [supported]);
+  }, [supported, kind]);
 
   async function save() {
     setStatus("saving");
     setMessage("");
     setProgress({ done: 0, total: 0 });
     try {
-      await saveForOffline((done, total) => setProgress({ done, total }));
+      await saveForOffline((done, total) => setProgress({ done, total }), kind);
       setStatus("ready");
     } catch (error) {
       setStatus("error");
@@ -105,7 +106,7 @@ export default function OfflineBar() {
         <>
           <span>
             {online
-              ? "Want to code without internet? Save Code Studio on this device (about 15 MB)."
+              ? kind === "arduino" ? "Want to code without internet? Save Arduino Studio on this device (about 3 MB)." : "Want to code without internet? Save Code Studio on this device (about 15 MB)."
               : "You are offline, and Code Studio is not saved on this device yet."}
           </span>
           <button type="button" onClick={() => void save()} disabled={!online}>
@@ -125,8 +126,8 @@ export default function OfflineBar() {
         <>
           <span>
             {online
-              ? "Saved for offline use. Code Studio will open without internet. Your programs and files stay in this browser."
-              : "You are offline. Code Studio is running from the saved copy. My Projects and the rest of the site need internet."}
+              ? "Saved for offline use. This page will open without internet. Your programs and files stay in this browser."
+              : "You are offline. This page is running from the saved copy. My Projects and the rest of the site need internet."}
           </span>
           {installable && (
             <button type="button" onClick={() => void install()}>

@@ -10,7 +10,7 @@
 const { chromium } = require("playwright");
 
 const BASE = (process.argv[2] || "http://localhost:3000").replace(/\/$/, "");
-const URL = BASE + "/coding-robotics/arduino-studio";
+const URL = BASE + "/coding-robotics/code-studio/arduino";
 const results = [];
 function check(name, ok, detail = "") {
   results.push({ name, ok });
@@ -24,7 +24,7 @@ async function headersOf(path) {
 }
 
 (async () => {
-  const page0 = await headersOf("/coding-robotics/arduino-studio");
+  const page0 = await headersOf("/coding-robotics/code-studio/arduino");
   check("Arduino page is isolated and has a CSP", page0.coop === "same-origin" && page0.coep === "require-corp" && /connect-src 'self'/.test(page0.csp || ""));
   for (const f of ["arduino-worker.js", "arduino-vm.js"]) {
     const h = await headersOf("/coding-robotics/code-studio/" + f);
@@ -168,6 +168,46 @@ async function headersOf(path) {
   check("A check on an endless loop finishes with an explanation", await waitFor(async () => /too much work/.test(await page.locator('[role="status"][data-passed]').innerText().catch(() => "")), 25000));
   await pickExample("ar:ar-sum");
   check("Switching exercise keeps the page working", (await page.getByText("Add up with a loop").count()) > 0);
+
+  // Saving to My Projects
+  await pickExample("blink");
+  await page.getByRole("button", { name: "Save to My Projects" }).click();
+  check("A sketch can be saved to My Projects", await page.getByText(/Saved to My Projects/).first().waitFor({ timeout: 4000 }).then(() => true).catch(() => false));
+  await page.goto(BASE + "/coding-robotics/my-projects", { waitUntil: "load" });
+  check("My Projects lists it as an Arduino sketch", await page.getByText("Arduino sketch").first().waitFor({ timeout: 8000 }).then(() => true).catch(() => false));
+  const openLink = page.locator('a[href*="/coding-robotics/code-studio/arduino?project="]').first();
+  check("and links back to Arduino Studio", (await openLink.count()) === 1);
+  await openLink.click();
+  await page.waitForSelector(".monaco-editor", { timeout: 30000 });
+  check("Opening it brings the code back", await waitFor(async () => /Blink:\s+turn\s+the\s+built-in/.test(await page.locator(".monaco-editor .view-lines").innerText()), 5000));
+  await page.goto(BASE + "/coding-robotics/arduino-studio", { waitUntil: "load" });
+  check("The old address redirects to the new one", /\/coding-robotics\/code-studio\/arduino/.test(page.url()));
+
+  // Offline
+  const offline = await browser.newContext({ viewport: { width: 1280, height: 900 } });
+  const op = await offline.newPage();
+  await op.goto(URL, { waitUntil: "load" });
+  await op.waitForFunction(() => window.crossOriginIsolated === true, null, { timeout: 15000 }).catch(() => {});
+  await op.waitForSelector(".monaco-editor", { timeout: 30000 });
+  await op.getByRole("button", { name: "Save for offline use" }).click();
+  check("Arduino Studio can be saved for offline use", await op.getByText(/Saved for offline use/).first().waitFor({ timeout: 60000 }).then(() => true).catch(() => false));
+  await op.reload({ waitUntil: "load" });
+  await sleep(1500);
+  await offline.setOffline(true);
+  await op.goto(URL, { waitUntil: "load" }).catch(() => {});
+  const editorOffline = await op.waitForSelector(".monaco-editor", { timeout: 30000 }).then(() => true).catch(() => false);
+  check("The page opens with no internet", editorOffline);
+  await op.getByRole("button", { name: /^Run$/ }).click().catch(() => {});
+  const litOffline = await (async () => {
+    const end = Date.now() + 6000;
+    while (Date.now() < end) {
+      if ((await op.locator('[data-pin="13"]').getAttribute("data-lit").catch(() => null)) === "1") return true;
+      await sleep(100);
+    }
+    return false;
+  })();
+  check("and the Blink example runs offline", litOffline);
+  await offline.close();
 
   // Python Studio is not disturbed
   await page.goto(BASE + "/coding-robotics/code-studio", { waitUntil: "load" });
