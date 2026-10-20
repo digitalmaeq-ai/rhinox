@@ -207,6 +207,196 @@ except Exception as e:
   r = await run('print("alive after recursion")', 90000);
   check("page works after runaway recursion", r.text.includes("alive after recursion"));
 
+  // ---------- 7b. Files (open(), the Files panel, limits, storage) ----------
+  const FILES_KEY = "rhinox-code-studio-files";
+  const storedFiles = () => page.evaluate((key) => JSON.parse(localStorage.getItem(key) || "[]"), FILES_KEY);
+  const panel = page.locator("details", { hasText: "My files" });
+  const openPanel = async () => {
+    if (!(await panel.evaluate((d) => d.open))) await panel.locator("summary").click();
+  };
+
+  await page.evaluate((key) => localStorage.removeItem(key), FILES_KEY);
+  r = await run('with open("results.csv", "w") as f:\n    f.write("run,secs\\n1,22\\n")\nprint("written")', 60000);
+  check("a program can write results.csv", r.text.includes("written") && /Files updated: results\.csv/.test(r.text), r.text.replace(/\s+/g, " ").slice(0, 100));
+  check("the file is kept in this browser", (await storedFiles()).some((f) => f.name === "results.csv" && f.text === "run,secs\n1,22\n"));
+  await openPanel();
+  check("the Files panel lists the file", (await panel.innerText()).includes("results.csv"));
+  await panel.locator("button", { hasText: "View" }).click();
+  check("View shows the contents", (await panel.locator("pre").innerText()).includes("1,22"));
+
+  const downloadPromise = page.waitForEvent("download");
+  await panel.locator("button", { hasText: "Download" }).click();
+  const download = await downloadPromise;
+  check("Download gives results.csv", download.suggestedFilename() === "results.csv");
+
+  r = await run('with open("results.csv", "a") as f:\n    f.write("2,24\\n")\nprint(open("results.csv").read())', 60000);
+  check("a later run adds to the same file", /run,secs\s+1,22\s+2,24/.test(r.text));
+
+  await page.reload({ waitUntil: "networkidle" });
+  await page.waitForSelector(".monaco-editor");
+  await sleep(1500);
+  check("the file is still there after reloading the page", (await storedFiles()).some((f) => f.name === "results.csv" && f.text.endsWith("2,24\n")));
+
+  // Stopped or timed-out runs do not change files.
+  r = await run('open("results.csv", "w").write("WIPED")\nwhile True:\n    pass', 60000);
+  check("a run that times out leaves the files as they were", /ran for more than 10 seconds/.test(r.text) && (await storedFiles()).find((f) => f.name === "results.csv").text.endsWith("2,24\n"));
+
+  // Path tricks and odd names
+  for (const bad of ["../secret.csv", "/etc/passwd", "sub/x.csv", "x.exe", ".hidden.csv"]) {
+    r = await run(`open(${JSON.stringify(bad)}, "w").write("x")`);
+    check(`file name ${bad} is refused`, /PermissionError|Rhinox Code Studio only opens files/.test(r.text) && !(await storedFiles()).some((f) => f.name === bad));
+  }
+  r = await run('print(open("/etc/passwd").read()[:10])');
+  check("files outside the program's own cannot be read", /PermissionError/.test(r.text));
+  r = await run("import pathlib");
+  check("pathlib is refused", /does not allow importing 'pathlib'/.test(r.text));
+
+  // Flooding: the file stops at the limit and the page stays healthy.
+  r = await run('f = open("big.txt", "w")\nwhile True:\n    f.write("x" * 1000)', 60000);
+  const big = (await storedFiles()).find((f) => f.name === "big.txt");
+  check("a file cannot grow past its limit", /OSError/.test(r.text) && big && big.text.length <= 200000, r.text.replace(/\s+/g, " ").slice(-80));
+  r = await run('for n in range(30):\n    open("f%d.txt" % n, "w").write("x")', 60000);
+  check("there is a limit on how many files exist", /OSError/.test(r.text) && (await storedFiles()).length <= 20, String((await storedFiles()).length));
+  const stored = await storedFiles();
+  check("all files together stay under the total limit", stored.reduce((n, f) => n + f.text.length, 0) <= 1000000);
+
+  // Storage that holds junk is cleaned, not trusted.
+  await page.evaluate(
+    (key) =>
+      localStorage.setItem(
+        key,
+        JSON.stringify([
+          { name: "../evil.csv", text: "x" },
+          { name: "huge.csv", text: "x".repeat(300000) },
+          { name: "ok.csv", text: "a,b" },
+          { name: 5, text: "x" },
+          "nonsense",
+        ]),
+      ),
+    FILES_KEY,
+  );
+  await page.reload({ waitUntil: "networkidle" });
+  await page.waitForSelector(".monaco-editor");
+  await sleep(1500);
+  await openPanel();
+  const listed = await panel.innerText();
+  check("junk in storage is dropped, valid files are kept", listed.includes("ok.csv") && !listed.includes("evil.csv") && !listed.includes("huge.csv"));
+  r = await run("import os\nprint(sorted(os.listdir()))");
+  check("a program only sees the valid files", /\['ok\.csv'\]/.test(r.text), r.text.replace(/\s+/g, " ").slice(0, 80));
+  await page.evaluate((key) => localStorage.setItem(key, "{not json"), FILES_KEY);
+  await page.reload({ waitUntil: "networkidle" });
+  await page.waitForSelector(".monaco-editor");
+  await sleep(1500);
+  r = await run('print("fine")', 60000);
+  check("unreadable file storage does not break the page", r.text.includes("fine"));
+
+  // Upload, size checks, delete
+  await openPanel();
+  const fileInput = panel.locator('input[type="file"]');
+  await fileInput.setInputFiles({ name: "my data.csv", mimeType: "text/csv", buffer: Buffer.from("name,score\nAda,9\n") });
+  await sleep(300);
+  check("a CSV from the computer can be added (name tidied)", (await panel.innerText()).includes("my_data.csv") && (await storedFiles()).some((f) => f.name === "my_data.csv"));
+  await fileInput.setInputFiles({ name: "evil.exe", mimeType: "application/octet-stream", buffer: Buffer.from("MZ") });
+  await sleep(300);
+  check("an unsuitable file type is refused with a reason", /cannot be used/.test(await panel.innerText()) && !(await storedFiles()).some((f) => f.name === "evil.exe"));
+  await fileInput.setInputFiles({ name: "huge.csv", mimeType: "text/csv", buffer: Buffer.alloc(900000, "a") });
+  await sleep(500);
+  check("a file that is too big is refused", /too big|too long/.test(await panel.innerText()) && !(await storedFiles()).some((f) => f.name === "huge.csv"));
+  await fileInput.setInputFiles({ name: "bin.csv", mimeType: "text/csv", buffer: Buffer.from([65, 0, 66]) });
+  await sleep(300);
+  check("a file with binary data is refused", /not a text file/.test(await panel.innerText()) && !(await storedFiles()).some((f) => f.name === "bin.csv"));
+
+  r = await run('import csv\nwith open("my_data.csv", newline="") as f:\n    print(list(csv.DictReader(f)))', 60000);
+  check("a program can read an uploaded CSV with the csv module", /'name': 'Ada', 'score': '9'/.test(r.text), r.text.replace(/\s+/g, " ").slice(0, 100));
+
+  await panel.locator("li", { hasText: "my_data.csv" }).locator("button", { hasText: "Delete" }).click();
+  check("Delete asks first", (await storedFiles()).some((f) => f.name === "my_data.csv"));
+  await panel.locator("button", { hasText: "Yes, delete" }).click();
+  check("Delete removes the file", !(await storedFiles()).some((f) => f.name === "my_data.csv"));
+  await fileInput.setInputFiles([
+    { name: "one.txt", mimeType: "text/plain", buffer: Buffer.from("1") },
+    { name: "two.txt", mimeType: "text/plain", buffer: Buffer.from("2") },
+  ]);
+  await sleep(300);
+  check("several files can be added at once", (await storedFiles()).length === 2);
+  await panel.locator("button", { hasText: "Delete all files" }).click();
+  await panel.locator("button", { hasText: /Yes, delete all/ }).click();
+  check("Delete all empties the area", (await storedFiles()).length === 0);
+
+  // Checks bring their own files and never touch the learner's.
+  await page.evaluate((key) => localStorage.setItem(key, JSON.stringify([{ name: "mine.txt", text: "keep me" }])), FILES_KEY);
+  await page.reload({ waitUntil: "networkidle" });
+  await page.waitForSelector(".monaco-editor");
+  await sleep(1500);
+  await page.click('h2 button:has-text("Year 9")');
+  await page.click('button:has-text("Log it in Python")');
+  await sleep(500);
+  const solution =
+    'count = int(input())\ncorrect = 0\nwith open("results.csv", "a") as f:\n    for n in range(1, count + 1):\n        r = input()\n        if r == "right":\n            correct += 1\n        f.write(f"{n},{r}\\n")\nprint(f"Saved {count} results")\nprint(f"Correct: {correct}")\n';
+  await setCode("exec(" + JSON.stringify(solution) + ")");
+  await page.click("button:has-text('Check my answer')");
+  await page.waitForSelector("text=Well done", { timeout: 90000 });
+  const afterCheck = await storedFiles();
+  check("Check passes a correct file program", true);
+  check("Check does not change or add to the learner's own files", afterCheck.length === 1 && afterCheck[0].name === "mine.txt" && afterCheck[0].text === "keep me", JSON.stringify(afterCheck).slice(0, 100));
+  await page.evaluate((key) => localStorage.removeItem(key), FILES_KEY);
+  // The page was reloaded above, so start the lag monitor again.
+  await page.evaluate(() => {
+    window.__maxLag = 0;
+    let last = performance.now();
+    setInterval(() => {
+      const now = performance.now();
+      window.__maxLag = Math.max(window.__maxLag, now - last - 50);
+      last = now;
+    }, 50);
+  });
+
+  // ---------- 7c. Charts (the charts module and the Charts section) ----------
+  const chartsSection = page.locator('section[aria-label="Charts drawn by your program"]');
+  r = await run('import charts\ncharts.bar_chart(["Ada", "Tolu", "Chi"], [9, 7.5, 10], "Scores", "Name", "Points")\nprint("drawn")', 60000);
+  check("a program can draw a bar chart", r.text.includes("drawn") && /chart was drawn/.test(r.text) && (await chartsSection.count()) === 1, r.text.replace(/\s+/g, " ").slice(0, 100));
+  check("the chart is an image with a description", /Bar chart "Scores" with 3 points/.test(await chartsSection.locator("svg").getAttribute("aria-label")));
+  check("the chart shows its title, labels and values", await chartsSection.locator("svg").evaluate((svg) => ["Scores", "Ada", "Tolu", "Chi", "Name", "Points", "7.5"].every((t) => svg.textContent.includes(t))));
+  check("the bars are drawn", (await chartsSection.locator("svg rect").count()) >= 4);
+  await chartsSection.locator("summary", { hasText: "Show the numbers" }).click();
+  check("the numbers are available as a table", (await chartsSection.locator("table").innerText()).includes("Tolu") && (await chartsSection.locator("table").innerText()).includes("7.5"));
+  const svgDownload = page.waitForEvent("download");
+  await chartsSection.locator("button", { hasText: "Download as SVG" }).click();
+  check("a chart can be downloaded as SVG", (await svgDownload).suggestedFilename() === "chart-1.svg");
+
+  r = await run('import charts\ncharts.line_chart(range(1, 6), [3, 5, 4, 8, 6], "Times")', 60000);
+  check("a program can draw a line chart", /Line chart "Times" with 5 points/.test(await chartsSection.locator("svg").getAttribute("aria-label")) && (await chartsSection.locator("svg polyline").count()) === 1);
+
+  // Hostile text is drawn as text, never as markup.
+  await page.evaluate(() => { window.__xss = 0; });
+  r = await run('import charts\nbad = "<img src=x onerror=window.__xss=1><script>window.__xss=2</script>"\ncharts.bar_chart([bad, "</text><circle id=pwn>"], [1, 2], bad, bad, bad)', 60000);
+  check("hostile labels are shown as text, not run as markup", (await page.evaluate(() => window.__xss)) === 0 && (await chartsSection.locator("img, script, #pwn").count()) === 0 && (await chartsSection.locator("svg").evaluate((svg) => svg.textContent.includes("<img src=x"))));
+
+  r = await run('import charts\ncharts.bar_chart(["a", "b"], [1])');
+  check("bad chart data gives a clear error and draws nothing", /same length/.test(r.text) && (await chartsSection.count()) === 0);
+  r = await run('import charts\ncharts.bar_chart(["a"], [1])\nwhile True:\n    pass', 60000);
+  check("a run that times out draws no chart", /ran for more than 10 seconds/.test(r.text) && (await chartsSection.count()) === 0);
+  r = await run('import charts\nfor i in range(6):\n    charts.bar_chart(["a"], [i])', 60000);
+  check("there is a limit on how many charts a program can draw", /at most 5 charts/.test(r.text));
+  r = await run('import charts\ncharts.bar_chart(["a"], [1])');
+  r = await run('print("no chart this time")');
+  check("charts from an earlier run are cleared", (await chartsSection.count()) === 0);
+  r = await run('import charts\ncharts.bar_chart(list(range(100)), list(range(100)))\ncharts.line_chart(list(range(100)), [x * x for x in range(100)], "Big")', 60000);
+  check("a chart with 100 bars still draws and the page stays healthy", (await chartsSection.locator("svg").count()) === 2);
+
+  await page.evaluate((key) => localStorage.setItem(key, JSON.stringify([{ name: "mine.txt", text: "keep me" }])), "rhinox-code-studio-files");
+  const year9 = page.locator('h2 button:has-text("Year 9")');
+  if ((await year9.getAttribute("aria-expanded")) !== "true") await year9.click();
+  await page.click('button:has-text("Chart the test log")');
+  await sleep(500);
+  const chartSolution =
+    'import charts\nwith open("test_log.txt") as file:\n    lines = file.read().splitlines()\nruns = []\nseconds = []\nfor line in lines[1:]:\n    if line.strip() == "":\n        continue\n    parts = line.split(",")\n    runs.append(parts[0])\n    seconds.append(int(parts[1]))\ncharts.line_chart(runs, seconds, "Test times", "Run", "Seconds")\n';
+  await setCode("exec(" + JSON.stringify(chartSolution) + ")");
+  await page.click("button:has-text('Check my answer')");
+  await page.waitForSelector("text=Well done", { timeout: 90000 });
+  check("Check passes a correct chart program, and draws nothing on the page", (await chartsSection.count()) === 0);
+  await page.evaluate((key) => localStorage.removeItem(key), "rhinox-code-studio-files");
+
   // ---------- 8. Page responsiveness and cleanliness ----------
   const maxLag = await page.evaluate(() => window.__maxLag);
   check("the page thread was never blocked for long during all of the above", maxLag < 500, "worst lag " + Math.round(maxLag) + " ms");

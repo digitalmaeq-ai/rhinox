@@ -5,7 +5,7 @@
 // themselves are not here; these exercises practise the same thinking in Python.
 // Each one is data, like the others.
 
-import { linesCase, returnCase, type CheckCase, type Exercise } from "./exercise-kit";
+import { chartCase, filesCase, linesCase, returnCase, type CheckCase, type Exercise } from "./exercise-kit";
 
 // ---- Term 1, Week 5: Design the algorithm -----------------------------------
 
@@ -315,6 +315,178 @@ lines = [input() for _ in range(count)]
   ],
 };
 
+
+// ---- Term 2, Week 5: Log It in Python -----------------------------------------
+
+function logItCase(label: string, answers: string[], existing: string | null): CheckCase {
+  const rows = answers.map((answer, index) => `${index + 1},${answer}`);
+  const correct = answers.filter((answer) => answer === "right").length;
+  return filesCase({
+    label,
+    stdin: [String(answers.length), ...answers],
+    files: existing === null ? undefined : [{ name: "results.csv", text: existing }],
+    printed: [`Saved ${answers.length} results`, `Correct: ${correct}`],
+    file: { name: "results.csv", lines: [...(existing ?? "").split("\n").filter(Boolean), ...rows] },
+  });
+}
+
+const logIt: Exercise = {
+  id: "y9-log-it",
+  group: "Year 9",
+  lesson: "Term 2, Week 5",
+  title: "Log it in Python",
+  summary: "Save test results to results.csv and count the correct ones.",
+  instructions: [
+    "Your team tests the robot's sensor several times. Write a program that keeps a log of the results in a file called results.csv.",
+    "The program asks how many tests there were, then asks for each result: right or wrong. For each test it adds one line to results.csv with the test number and the result, like 1,right",
+    "The file keeps what was already in it, so use the add mode: open(\"results.csv\", \"a\")",
+    "At the end, print two lines. For 3 tests with the answers right, wrong, right:",
+    "Saved 3 results",
+    "Correct: 2",
+    "The file is kept in your browser. Open \"My files\" under the editor to see it.",
+  ],
+  starter: `count = int(input("How many tests? "))
+correct = 0
+# Open results.csv in add mode, then ask for each result and write a line.
+# with open("results.csv", "a") as file:
+#     file.write("1,right\\n")
+`,
+  hints: [
+    'Add mode "a" puts new lines at the end of the file. Write mode "w" would wipe what was there.',
+    'Use f"{number},{result}\\n" to build one line, and file.write(...) to save it. The \\n starts a new line.',
+    'Count the correct ones with a number that goes up by 1 when result == "right".',
+    "Print the two summary lines after the loop.",
+  ],
+  cases: [
+    logItCase("3 tests, new file", ["right", "wrong", "right"], null),
+    logItCase("2 tests, file already has a line", ["wrong", "wrong"], "9,right\n"),
+    logItCase("1 test", ["right"], null),
+  ],
+};
+
+// ---- Term 3, Week 5: Read test_log.txt ----------------------------------------
+
+function readLogCase(rows: [number, number, number][], trailingBlank: boolean): CheckCase {
+  const secs = rows.map((r) => r[1]);
+  const average = secs.reduce((a, b) => a + b, 0) / secs.length;
+  const errors = rows.reduce((a, r) => a + r[2], 0);
+  const text = ["run,seconds,errors", ...rows.map((r) => r.join(","))].join("\n") + (trailingBlank ? "\n\n" : "\n");
+  return filesCase({
+    label: `${rows.length} runs in test_log.txt`,
+    stdin: [],
+    files: [{ name: "test_log.txt", text }],
+    printed: [`Average time: ${average.toFixed(1)} seconds`, `Total errors: ${errors}`],
+  });
+}
+
+const readTestLog: Exercise = {
+  id: "y9-read-test-log",
+  group: "Year 9",
+  lesson: "Term 3, Week 5",
+  title: "Read test_log.txt",
+  summary: "Open a file of test runs and summarise it.",
+  instructions: [
+    "The team's test log is saved in a file called test_log.txt. The first line is a heading: run,seconds,errors. Every other line is one test run, such as 1,22,0 (run 1 took 22 seconds with no errors).",
+    "To try your program, add a file called test_log.txt under \"My files\" below the editor (a CSV or text file from your computer works), or write one with a short program first. The checker brings its own test_log.txt, so your own files are never changed by Check.",
+    "Read the file, skip the heading line, and print two lines. For runs of 22, 24 and 23 seconds with 0, 1 and 2 errors:",
+    "Average time: 23.0 seconds",
+    "Total errors: 3",
+    "Print the average to one decimal place.",
+  ],
+  starter: `with open("test_log.txt") as file:
+    lines = file.read().splitlines()
+# lines[0] is the heading. The test runs start at lines[1].
+`,
+  hints: [
+    'file.read().splitlines() gives a list with one text item per line. lines[1:] leaves out the heading.',
+    'There may be an empty line at the end of the file. Skip lines that are empty: if line.strip() == "": continue',
+    'line.split(",") turns "1,22,0" into ["1", "22", "0"]. The parts are text, so use int(...).',
+    "Average = total seconds / number of runs. Print it with :.1f.",
+  ],
+  cases: [
+    readLogCase(
+      [
+        [1, 22, 0],
+        [2, 24, 1],
+        [3, 23, 2],
+      ],
+      false,
+    ),
+    readLogCase(
+      [
+        [1, 30, 0],
+        [2, 20, 0],
+      ],
+      true,
+    ),
+    readLogCase([[1, 19, 4]], false),
+  ],
+};
+
+// ---- Term 3, Week 5: Chart the test log ---------------------------------------
+
+function chartLogCase(rows: [number, number, number][], trailingBlank: boolean): CheckCase {
+  const text = ["run,seconds,errors", ...rows.map((r) => r.join(","))].join("\n") + (trailingBlank ? "\n\n" : "\n");
+  return chartCase({
+    label: `${rows.length} run${rows.length === 1 ? "" : "s"} in test_log.txt`,
+    files: [{ name: "test_log.txt", text }],
+    chart: {
+      kind: "line",
+      title: "Test times",
+      xLabel: "Run",
+      yLabel: "Seconds",
+      labels: rows.map((r) => String(r[0])),
+      values: rows.map((r) => r[1]),
+    },
+  });
+}
+
+const chartTestLog: Exercise = {
+  id: "y9-chart-test-log",
+  group: "Year 9",
+  lesson: "Term 3, Week 5",
+  title: "Chart the test log",
+  summary: "Read test_log.txt and draw the times as a line chart.",
+  instructions: [
+    "A chart shows at a glance whether the robot is getting faster. Read test_log.txt (heading run,seconds,errors, then one line per run) and draw a line chart of the seconds for each run.",
+    "Code Studio has a charts module. After import charts, this draws a line chart: charts.line_chart(run_numbers, seconds, \"Test times\", \"Run\", \"Seconds\")",
+    "The first two values are the lists for the x and y axes, then the title, then the label under the chart, then the label beside it. Use exactly the title and labels above.",
+    "The chart appears in the Charts section under the editor. Add your own test_log.txt under \"My files\" to try it. The checker brings its own.",
+  ],
+  starter: `import charts
+
+with open("test_log.txt") as file:
+    lines = file.read().splitlines()
+# lines[0] is the heading. Build a list of run numbers and a list of seconds,
+# then draw the chart with charts.line_chart(...).
+`,
+  hints: [
+    'Make two empty lists first: runs = [] and seconds = []. For each line after the heading, parts = line.split(",") then runs.append(parts[0]) and seconds.append(int(parts[1])).',
+    "Skip empty lines with: if line.strip() == \"\": continue",
+    'Finish with charts.line_chart(runs, seconds, "Test times", "Run", "Seconds").',
+  ],
+  cases: [
+    chartLogCase(
+      [
+        [1, 22, 0],
+        [2, 24, 1],
+        [3, 23, 2],
+      ],
+      false,
+    ),
+    chartLogCase(
+      [
+        [1, 30, 0],
+        [2, 20, 0],
+        [3, 18, 1],
+        [4, 25, 0],
+      ],
+      true,
+    ),
+    chartLogCase([[1, 19, 4]], false),
+  ],
+};
+
 export const YEAR_9_EXERCISES: Exercise[] = [
   lineDecision,
   compareVersions,
@@ -323,5 +495,8 @@ export const YEAR_9_EXERCISES: Exercise[] = [
   confidenceRule,
   fairnessCheck,
   debugAverage,
+  logIt,
   testLog,
+  readTestLog,
+  chartTestLog,
 ];

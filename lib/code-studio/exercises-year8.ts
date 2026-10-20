@@ -4,7 +4,7 @@
 // is Echiche's Arduino projects, so a learner can practise the Python half of
 // each project here, before or after the Arduino lesson. Each one is data.
 
-import { lastLineCase, linesCase, returnCase, type CheckCase, type Exercise } from "./exercise-kit";
+import { chartCase, filesCase, lastLineCase, linesCase, returnCase, type CheckCase, type Exercise } from "./exercise-kit";
 
 // ---- Term 1, Week 5: Python functions ---------------------------------------
 
@@ -271,4 +271,91 @@ print(car_action(45))
   ],
 };
 
-export const YEAR_8_EXERCISES: Exercise[] = [change, percent, nightLight, listStats, passwordCheck, accuracy, smartBin, keepDistance];
+
+// ---- Term 2, Week 11: Climate data report -----------------------------------
+
+function saveReadingsCase(label: string, readings: number[], existing: string | null): CheckCase {
+  return filesCase({
+    label,
+    stdin: [String(readings.length), ...readings.map(String)],
+    files: existing === null ? undefined : [{ name: "climate.txt", text: existing }],
+    printed: [`Saved ${readings.length} reading${readings.length === 1 ? "" : "s"}`, `Warmest: ${Math.max(...readings)}`],
+    file: { name: "climate.txt", lines: readings.map(String) },
+  });
+}
+
+const saveReadings: Exercise = {
+  id: "y8-save-readings",
+  group: "Year 8",
+  lesson: "Term 2, Week 11",
+  title: "Save the readings",
+  summary: "Write temperature readings to a file, one per line.",
+  instructions: [
+    "Echiche's weather station gives whole-number temperature readings. Write a program that saves them in a file called climate.txt, so they are still there next time.",
+    "The program asks how many readings there are, then asks for each one. Write each reading on its own line in climate.txt. Start the file fresh every time: use write mode, open(\"climate.txt\", \"w\").",
+    "Then print how many readings were saved and the warmest one. For 3 readings 28, 31 and 29:",
+    "Saved 3 readings",
+    "Warmest: 31",
+    "The file is kept in your browser. Open \"My files\" under the editor to see it.",
+  ],
+  starter: `count = int(input("How many readings? "))
+readings = []
+# Ask for each reading and add it to the list as a whole number.
+# Then open climate.txt in write mode and write one reading per line.
+`,
+  hints: [
+    'for i in range(count): then readings.append(int(input())) collects the numbers.',
+    'with open("climate.txt", "w") as file: opens the file. Inside it, file.write(str(reading) + "\\n") writes one line.',
+    "max(readings) gives the warmest reading.",
+    'Say "reading" for 1 and "readings" for more: Saved 1 reading, Saved 3 readings.',
+  ],
+  cases: [
+    saveReadingsCase("3 readings, new file", [28, 31, 29], null),
+    saveReadingsCase("2 readings, replaces an old file", [25, 27], "old\nold again\n"),
+    saveReadingsCase("1 reading", [30], null),
+  ],
+};
+
+function chartReadingsCase(readings: number[]): CheckCase {
+  return chartCase({
+    label: `${readings.length} reading${readings.length === 1 ? "" : "s"} in climate.txt`,
+    files: [{ name: "climate.txt", text: readings.join("\n") + "\n" }],
+    chart: {
+      kind: "bar",
+      title: "Daily temperatures",
+      xLabel: "Day",
+      yLabel: "Degrees",
+      labels: readings.map((_, i) => `Day ${i + 1}`),
+      values: readings,
+    },
+  });
+}
+
+const chartReadings: Exercise = {
+  id: "y8-chart-readings",
+  group: "Year 8",
+  lesson: "Term 2, Week 11",
+  title: "Chart the readings",
+  summary: "Read climate.txt and draw a bar chart of the temperatures.",
+  instructions: [
+    "Echiche's climate report needs a chart. Read the readings from climate.txt (one whole number on each line) and draw a bar chart with one bar for each day.",
+    "Code Studio has a charts module. After import charts, this draws a bar chart: charts.bar_chart(labels, values, \"Daily temperatures\", \"Day\", \"Degrees\")",
+    "labels is a list of names for the bars: \"Day 1\", \"Day 2\" and so on. values is the list of temperatures as numbers. Use exactly the title and labels above.",
+    "The chart appears in the Charts section under the editor. Add your own climate.txt under \"My files\" to try it (or run your \"Save the readings\" program first). The checker brings its own.",
+  ],
+  starter: `import charts
+
+with open("climate.txt") as file:
+    lines = file.read().split()
+# lines is a list of text items such as "28". Turn them into numbers,
+# make a label for each day, and draw the chart with charts.bar_chart(...).
+`,
+  hints: [
+    "Make two lists: labels and values. Use for number, line in enumerate(lines, 1): to count the days from 1.",
+    'f"Day {number}" makes a label like Day 3. int(line) turns the text into a number.',
+    'Finish with charts.bar_chart(labels, values, "Daily temperatures", "Day", "Degrees").',
+  ],
+  cases: [chartReadingsCase([28, 31, 29]), chartReadingsCase([25, 27, 30, 26, 24]), chartReadingsCase([30])],
+};
+
+export const YEAR_8_EXERCISES: Exercise[] = [change, percent, nightLight, listStats, passwordCheck, accuracy, smartBin, keepDistance, saveReadings, chartReadings];

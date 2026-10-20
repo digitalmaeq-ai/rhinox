@@ -47,14 +47,19 @@ async function makeRunner(): Promise<CheckRunner> {
   pyodide.setStderr({ write: (b: Uint8Array) => ((err += new TextDecoder().decode(b)), b.length) });
   pyodide.setStdin({ stdin: () => (lines.length ? lines.shift()! : null), isatty: false });
   return {
-    async run(code, stdin) {
+    async run(code, stdin, options) {
       lines = [...stdin];
       out = "";
       err = "";
       limitHit = false;
       let ok = false;
+      let files: { name: string; text: string }[] = [];
+      let charts: RunCapture["charts"] = [];
       try {
-        ok = runPython(code) === true;
+        const reply = JSON.parse(runPython(code, JSON.stringify(options.files ?? [])));
+        ok = reply.ok === true;
+        files = reply.files;
+        charts = reply.charts;
       } catch {
         ok = false;
       }
@@ -63,7 +68,7 @@ async function makeRunner(): Promise<CheckRunner> {
       } catch {
         // a flush after the output limit was hit is discarded, as in the worker
       }
-      const capture: RunCapture & { ms: number } = { outcome: limitHit ? "output-limit" : ok ? "ok" : "error", stdout: out, stderr: err, ms: 0 };
+      const capture: RunCapture & { ms: number } = { outcome: limitHit ? "output-limit" : ok ? "ok" : "error", stdout: out, stderr: err, ms: 0, files, charts };
       return capture;
     },
   };
@@ -232,6 +237,68 @@ c = int(input())
 average = (a + b + c) / 3
 print("Average:", average)
 `,
+  "y8-save-readings": `count = int(input())
+readings = []
+for i in range(count):
+    readings.append(int(input()))
+with open("climate.txt", "w") as file:
+    for reading in readings:
+        file.write(str(reading) + "\\n")
+word = "reading" if count == 1 else "readings"
+print(f"Saved {count} {word}")
+print(f"Warmest: {max(readings)}")
+`,
+  "y9-log-it": `import csv
+count = int(input())
+correct = 0
+with open("results.csv", "a", newline="") as file:
+    writer = csv.writer(file)
+    for number in range(1, count + 1):
+        result = input()
+        if result == "right":
+            correct += 1
+        writer.writerow([number, result])
+print(f"Saved {count} results")
+print(f"Correct: {correct}")
+`,
+  "y9-read-test-log": `with open("test_log.txt") as file:
+    lines = file.read().splitlines()
+seconds = 0
+errors = 0
+runs = 0
+for line in lines[1:]:
+    if line.strip() == "":
+        continue
+    parts = line.split(",")
+    seconds += int(parts[1])
+    errors += int(parts[2])
+    runs += 1
+print(f"Average time: {seconds / runs:.1f} seconds")
+print(f"Total errors: {errors}")
+`,
+  "y8-chart-readings": `import charts
+with open("climate.txt") as file:
+    lines = file.read().split()
+labels = []
+values = []
+for number, line in enumerate(lines, 1):
+    labels.append(f"Day {number}")
+    values.append(int(line))
+charts.bar_chart(labels, values, "Daily temperatures", "Day", "Degrees")
+`,
+  "y9-chart-test-log": `import charts
+with open("test_log.txt") as file:
+    lines = file.read().splitlines()
+runs = []
+seconds = []
+for line in lines[1:]:
+    if line.strip() == "":
+        continue
+    parts = line.split(",")
+    runs.append(parts[0])
+    seconds.append(int(parts[1]))
+charts.line_chart(runs, seconds, "Test times", "Run", "Seconds")
+`,
   "y9-test-log": `count = int(input())
 lines = [input() for _ in range(count)]
 seconds = 0
@@ -257,15 +324,15 @@ function exerciseStarter(id: string): string {
 async function main() {
   const runner = await makeRunner();
 
-  await test("there are five starters and ten, eight and eight exercises for Years 7, 8 and 9, each with a starter, hints and checks", () => {
-    assert.equal(EXERCISES.length, 31);
+  await test("there are five starters and ten, ten and eleven exercises for Years 7, 8 and 9, each with a starter, hints and checks", () => {
+    assert.equal(EXERCISES.length, 36);
     assert.equal(EXERCISES.filter((e) => e.group === "Starter").length, 5);
     assert.equal(EXERCISES.filter((e) => e.group === "Year 7").length, 10);
-    assert.equal(EXERCISES.filter((e) => e.group === "Year 8").length, 8);
-    assert.equal(EXERCISES.filter((e) => e.group === "Year 9").length, 8);
+    assert.equal(EXERCISES.filter((e) => e.group === "Year 8").length, 10);
+    assert.equal(EXERCISES.filter((e) => e.group === "Year 9").length, 11);
     assert.ok(EXERCISES.filter((e) => e.group !== "Starter").every((e) => e.lesson && /^Term [123], Week \d+$/.test(e.lesson)));
     const ids = new Set(EXERCISES.map((e) => e.id));
-    assert.equal(ids.size, 31);
+    assert.equal(ids.size, 36);
     for (const e of EXERCISES) {
       assert.ok(e.starter.length > 0 && e.hints.length >= 2 && e.cases.length >= 1 && e.instructions.length >= 1, e.id);
       assert.ok(SOLUTIONS[e.id], `solution for ${e.id}`);
@@ -416,6 +483,47 @@ async function main() {
     await failsWith("y9-fairness-check", 'pairs = [item.split(":") for item in input().split(",")]\nprint("dim: 50%")', /should be:|missing/);
     await failsWith("y9-debug-average", exerciseStarter("y9-debug-average"), /Line 1 should be: Average: 20\.0/);
     await failsWith("y9-test-log", 'count = int(input())\nlines = [input() for _ in range(count)]\nprint("Average time: 0.0 seconds")\nprint("Total errors: 0")', /should be: Average time/);
+  });
+
+
+  await test("files: common wrong answers are explained", async () => {
+    const logHeader = 'count = int(input())\ncorrect = 0\n';
+    // Write mode wipes the old line: the second case must catch it.
+    await failsWith("y9-log-it", logHeader + 'with open("results.csv", "w") as f:\n    for n in range(1, count + 1):\n        r = input()\n        correct += r == "right"\n        f.write(f"{n},{r}\\n")\nprint(f"Saved {count} results")\nprint(f"Correct: {correct}")\n', /line 1 should be: 9,right|missing line 1/);
+    // Never creates the file.
+    await failsWith("y9-log-it", 'count = int(input())\nfor n in range(count):\n    input()\nprint(f"Saved {count} results")\nprint("Correct: 0")', /Correct: |did not create results\.csv/);
+    await failsWith("y9-log-it", logHeader + 'with open("results.csv", "a") as f:\n    for n in range(1, count + 1):\n        r = input()\n        correct += r == "right"\n        f.write(f"{n},{r}\\n")\nprint(f"Saved {count} results")\nprint(f"Correct: {correct + 1}")\n', /Correct:/);
+    await failsWith("y9-log-it", logHeader + 'with open("results.csv", "a") as f:\n    for n in range(count):\n        r = input()\n        correct += r == "right"\n        f.write(f"{n},{r}\\n")\nprint(f"Saved {count} results")\nprint(f"Correct: {correct}")\n', /line 1 should be: 1,/);
+    await failsWith("y9-read-test-log", 'open("test_log.txt").read()', /did not print anything/);
+    await failsWith("y9-read-test-log", 'lines = open("test_log.txt").read().splitlines()\nprint("Average time: 0.0 seconds")\nprint("Total errors: 0")', /should be: Average time/);
+    await failsWith("y9-read-test-log", 'open("other.csv")', /FileNotFoundError|error/i);
+    await failsWith("y8-save-readings", 'n = int(input())\nr = [int(input()) for _ in range(n)]\nprint(f"Saved {n} readings")\nprint(f"Warmest: {max(r)}")', /did not create climate\.txt|Saved 1 reading/);
+    // Append mode keeps the old lines, but the exercise asks for a fresh file.
+    await failsWith("y8-save-readings", 'n = int(input())\nr = [int(input()) for _ in range(n)]\nwith open("climate.txt", "a") as f:\n    for x in r:\n        f.write(str(x) + "\\n")\nprint(f"Saved {n} reading" + ("" if n == 1 else "s"))\nprint(f"Warmest: {max(r)}")', /extra line|should be: 25/);
+  });
+
+  await test("files: a check starts from its own files and never needs the learner's", async () => {
+    const report = await runChecks(runner, getExercise("y9-read-test-log")!, SOLUTIONS["y9-read-test-log"]);
+    assert.equal(report.passed, true);
+    // The same program with no test_log.txt of its own fails: files do not leak between checks.
+    const bare = await runner.run('import os\nprint(os.listdir())', [], { scripted: true, quiet: true });
+    assert.equal(bare.stdout.trim(), "[]");
+  });
+
+
+  await test("charts: common wrong answers are explained", async () => {
+    const readLog = 'import charts\nlines = open("test_log.txt").read().splitlines()[1:]\nruns = [l.split(",")[0] for l in lines if l.strip()]\nsecs = [int(l.split(",")[1]) for l in lines if l.strip()]\n';
+    await failsWith("y9-chart-test-log", readLog + "print(secs)", /did not draw a chart/);
+    await failsWith("y9-chart-test-log", readLog + 'charts.bar_chart(runs, secs, "Test times", "Run", "Seconds")', /line_chart/);
+    await failsWith("y9-chart-test-log", readLog + 'charts.line_chart(runs, secs, "test times", "Run", "Seconds")', /capital letters in the chart title/);
+    await failsWith("y9-chart-test-log", readLog + 'charts.line_chart(runs, secs, "Test times")', /x_label\) should be: Run/);
+    await failsWith("y9-chart-test-log", readLog + 'charts.line_chart(runs, secs, "Test times", "Run", "Errors")', /y_label\) should be: Seconds/);
+    await failsWith("y9-chart-test-log", readLog + 'charts.line_chart(runs[1:], secs[1:], "Test times", "Run", "Seconds")', /should show \d points/);
+    await failsWith("y9-chart-test-log", readLog + 'charts.line_chart(runs, [s + 1 for s in secs], "Test times", "Run", "Seconds")', /Value 1 should be: 22/);
+    await failsWith("y9-chart-test-log", readLog + 'charts.line_chart(runs, secs[:-1], "Test times", "Run", "Seconds")', /same length/);
+    await failsWith("y9-chart-test-log", readLog + 'charts.line_chart(runs, secs, "Test times", "Run", "Seconds")\ncharts.line_chart(runs, secs, "Test times", "Run", "Seconds")', /drew 2 charts/);
+    await failsWith("y8-chart-readings", 'import charts\nv = [int(x) for x in open("climate.txt").read().split()]\ncharts.bar_chart(v, v, "Daily temperatures", "Day", "Degrees")', /Label 1 should be: Day 1/);
+    await failsWith("y8-chart-readings", 'import charts\nv = [int(x) for x in open("climate.txt").read().split()]\ncharts.bar_chart([f"Day {i+1}" for i in range(len(v))], v, "Temperatures", "Day", "Degrees")', /title should be: Daily temperatures/);
   });
 
   console.log(`\n${passed} tests passed`);

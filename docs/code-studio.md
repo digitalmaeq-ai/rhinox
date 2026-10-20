@@ -8,12 +8,64 @@ There is no server-side code execution service.
 Exercises are data, not code that runs Python: a task, a starter program, hints
 and checks (`lib/code-studio/exercise-kit.ts` has the shared types and helpers).
 There are five starters (`exercises.ts`), ten Year 7 exercises
-(`exercises-year7.ts`), eight Year 8 exercises (`exercises-year8.ts`) and eight Year 9
+(`exercises-year7.ts`), ten Year 8 exercises (`exercises-year8.ts`) and eleven Year 9
 exercises (`exercises-year9.ts`), each tagged with its curriculum term and week. To add a
 year, add a file like `exercises-year9.ts`, add the year to `ExerciseGroup` in the
 kit, list it in `GROUPS` in `ExercisePanel.tsx`, and add model solutions and
 wrong-answer tests to `exercises.test.ts`. Exercise ids are saved in learners'
 progress and projects, so never rename one.
+
+## Files and CSV (Stage 2.2)
+
+Programs can use `open()` with `"r"`, `"w"` and `"a"` (text only), and the `csv`
+module. The files are **not real files**:
+
+- The page owns them (`lib/code-studio/files.ts`, kept in `localStorage` under
+  `rhinox-code-studio-files`) and sends a copy with every run. The worker keeps
+  them in a Python dictionary, and gives the learner a replacement `open()` that
+  only knows that dictionary. Whatever is left after the run is sent back and
+  **checked again by the page** (`cleanFiles`) before it is kept.
+- Names are flat and simple (`^[A-Za-z0-9][A-Za-z0-9_.-]{0,39}$`, ending in `.csv`,
+  `.txt`, `.tsv`, `.json`, `.md` or `.log`). Paths, `..`, hidden names, other
+  extensions and file numbers are refused. Binary and `+` and `x` modes are refused.
+- Limits: 20 files, 200,000 characters each, 1,000,000 in all, 50 open at once.
+  A program that goes over gets an `OSError` instead of a crash. The limits are
+  written in `limits.ts` and in the worker; a test checks they match.
+- `os.path.exists`, `os.path.isfile`, `os.path.getsize`, `os.listdir`,
+  `os.remove` and `os.unlink` look at the same files while a program runs and are
+  put back afterwards. `pathlib`, `shutil`, `tempfile`, `glob`, `fnmatch` and
+  `fileinput` cannot be imported.
+- A run that is stopped, times out or crashes does not change the files. A run
+  that fails with a Python error keeps what it had written.
+- Exercise checks give each case its own starting files (`CheckCase.files`) and
+  read the files left behind (`RunCapture.files`). A check never reads or changes
+  the learner's own files.
+- The Files panel (`FilesPanel.tsx`) lists, views, downloads (CSV with a
+  byte-order mark so spreadsheets read it), adds from the computer (size,
+  name and binary checks) and deletes (asks first) files.
+- Residual: `io.open` and `os` calls we have not replaced still act on the
+  worker's temporary in-memory file system. Nothing there is saved or sent out,
+  and it is thrown away when the worker restarts.
+
+## Charts (Stage 2.3)
+
+`import charts` gives a program `bar_chart(labels, values, title, x_label, y_label)`
+and `line_chart(x_values, y_values, title, x_label, y_label)`.
+
+- The worker only **collects plain data** (a kind, text labels and finite numbers).
+  It does not draw anything and gives the program no way to send markup.
+- The page checks that data again (`cleanCharts` in `lib/code-studio/charts.ts`:
+  kind, matching lengths, finite numbers, at most 5 charts and 100 points, text cut
+  to length) and **draws the SVG itself** in React (`ChartsPanel.tsx`). Labels and
+  titles are text nodes, so a label such as `<img onerror=...>` is shown as text.
+- A run that does not finish (timeout, Stop, crash) draws no chart. The charts are
+  not stored: they are cleared on the next run.
+- Every chart has a text description, a "Show the numbers" table, and a download as
+  SVG. Exercise checks read the chart data (`RunCapture.charts`), so a check never
+  draws on the page.
+- The `charts` module object is rebuilt for every run, so a program that changes it
+  does not affect the next run. Limits are in `limits.ts` and in the worker; a test
+  checks that they match.
 
 ## Pieces
 
@@ -102,9 +154,11 @@ Run all three before changing the worker, the CSP or `next.config.ts`:
 
 | Test | How to run | What it covers |
 | --- | --- | --- |
-| `lib/code-studio/sandbox.test.ts` | `npx tsx lib/code-studio/sandbox.test.ts` | Python layer, real Python in Node: 15 blocked imports, 8 escape attempts, import machinery restored, stdlib still works, no state carried between runs, MemoryError, RecursionError |
+| `lib/code-studio/sandbox.test.ts` | `npx tsx lib/code-studio/sandbox.test.ts` | Python layer, real Python in Node (70 checks): 15 blocked imports, 8 escape attempts, import machinery restored, stdlib still works, no state carried between runs, MemoryError, RecursionError; files: write/read/append, csv module, 13 refused names, no reading outside the files, refused modes, size, count and handle limits, limits match `limits.ts` |
+| `lib/code-studio/charts.test.ts` | `npx tsx lib/code-studio/charts.test.ts` | Page-side chart rules: junk dropped, text cut, limits, axis scale |
+| `lib/code-studio/files.test.ts` | `npx tsx lib/code-studio/files.test.ts` | The page-side file rules: names, cleaning, limits, storage, downloads |
 | `lib/code-studio/exercises.test.ts` | `npx tsx lib/code-studio/exercises.test.ts` | Every exercise: correct solutions pass, wrong ones fail; project and progress storage |
-| `scripts/code-studio-browser-tests.cjs` | build and start the site, `npm install --no-save playwright`, then `node scripts/code-studio-browser-tests.cjs http://localhost:3000` | Real browser, 42 checks: headers on Code Studio and 8 other pages, blocked modules, network, endless loop (stopped at ~10 s), Stop, output flooding (with and without newlines), memory, recursion, recovery after each, page never blocked for long (worst 316 ms), no requests leave the site, in-site navigation ends up isolated |
+| `scripts/code-studio-browser-tests.cjs` | build and start the site, `npm install --no-save playwright`, then `node scripts/code-studio-browser-tests.cjs http://localhost:3000` | Real browser, 88 checks (including charts: draw, hostile labels, errors, timeouts, limits, clearing; and files: write, view, download, upload, delete, reload, timeouts, path tricks, flooding, junk in storage, checks leave learner files alone): headers on Code Studio and 8 other pages, blocked modules, network, endless loop (stopped at ~10 s), Stop, output flooding (with and without newlines), memory, recursion, recovery after each, page never blocked for long (worst 316 ms), no requests leave the site, in-site navigation ends up isolated |
 
 Measured on the production build: `os.system("echo hi")` prints nothing in the
 browser worker; a 1.5 GB allocation succeeds (known residual risk above);

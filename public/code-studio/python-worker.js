@@ -8,11 +8,11 @@
 // See docs/code-studio.md for what it does and does not protect.
 //
 // Messages in  : { type: "init", baseUrl, inputBuffer }
-//                { type: "run", id, code, stdinLines, scripted }
+//                { type: "run", id, code, stdinLines, scripted, files }
 // Messages out : { type: "ready" } | { type: "fatal", message }
 //                { type: "out", stream: "stdout" | "stderr", text }
 //                { type: "input-request" }
-//                { type: "done", id, ok, outputLimit, ms, heapMB }
+//                { type: "done", id, ok, outputLimit, ms, heapMB, files, charts }
 
 const MAX_OUTPUT_CHARS = 100000; // everything one run may print
 const MAX_INPUT_CHARS = 2000; // one line typed into input()
@@ -81,7 +81,7 @@ function readInputLine() {
 }
 
 const PYTHON_SETUP = String.raw`
-import builtins, linecache, sys, traceback
+import builtins, io, json, linecache, os, re, sys, traceback, types
 
 # Modules a learner's program may not import. Network, process and
 # introspection tools are excluded so the program stays a plain Python exercise.
@@ -92,6 +92,7 @@ BLOCKED = frozenset([
     "xmlrpc", "webbrowser", "subprocess", "multiprocessing", "threading",
     "ctypes", "_ctypes", "gc", "importlib", "pkgutil", "zipimport", "runpy",
     "code", "codeop", "pty", "signal", "resource",
+    "pathlib", "shutil", "tempfile", "glob", "fnmatch", "fileinput",
 ])
 _real_import = builtins.__import__
 
@@ -118,7 +119,276 @@ def _take_bridge_finders():
             taken.append((index, sys.meta_path.pop(index)))
     return list(reversed(taken))
 
-def run(source):
+# ---- Files -----------------------------------------------------------------
+# A program's files are NOT real files. They are kept in this dictionary: the
+# page hands them over at the start of a run and takes them back at the end.
+# open() is replaced by a version that only knows this dictionary, so a program
+# cannot reach any other file. Keep these limits equal to lib/code-studio/limits.ts
+# (a test checks that they match).
+MAX_FILES = 20
+MAX_FILE_CHARS = 200000
+MAX_TOTAL_FILE_CHARS = 1000000
+MAX_FILE_NAME_CHARS = 40
+MAX_OPEN_FILES = 50
+FILE_EXTENSIONS = (".csv", ".txt", ".tsv", ".json", ".md", ".log")
+_NAME = re.compile("^[A-Za-z0-9][A-Za-z0-9_.-]{0,39}$")
+_dumps = json.dumps
+_loads = json.loads
+_StringIO = io.StringIO
+_Unsupported = io.UnsupportedOperation
+_files = {}
+_sizes = {}
+_handles = set()
+
+def _good_name(name):
+    if not isinstance(name, str) or not _NAME.match(name):
+        return False
+    lower = name.lower()
+    return any(lower.endswith(e) and len(lower) > len(e) for e in FILE_EXTENSIONS)
+
+def _check_name(name):
+    if isinstance(name, bytes) or not isinstance(name, str):
+        name = str(name)
+    if not _good_name(name):
+        raise PermissionError(
+            1,
+            "Rhinox Code Studio only opens files with simple names, like results.csv "
+            "(letters, numbers, dots, dashes or underscores; ending in .csv, .txt, .tsv, .json, .md or .log)",
+            name,
+        )
+    return name
+
+def _room_error(what):
+    return OSError(28, what)
+
+class _FileHandle(_StringIO):
+    def __init__(self, name, mode, initial, newline):
+        _StringIO.__init__(self, initial, newline)
+        self.name = name
+        self.mode = mode
+        self._can_write = mode != "r"
+        self._size = len(initial)
+        if self._can_write:
+            self.seek(0, 2)
+            _handles.add(self)
+
+    def readable(self):
+        return not self._can_write
+
+    def writable(self):
+        return self._can_write
+
+    def write(self, text):
+        if not self._can_write:
+            raise _Unsupported("not writable")
+        if not isinstance(text, str):
+            raise TypeError("write() argument must be str, not " + type(text).__name__)
+        size = self._size + len(text)
+        if size > MAX_FILE_CHARS:
+            raise _room_error("File too large: a file can hold at most " + str(MAX_FILE_CHARS) + " characters in Rhinox Code Studio")
+        _sizes[self.name] = size
+        if sum(_sizes.values()) > MAX_TOTAL_FILE_CHARS:
+            _sizes[self.name] = self._size
+            raise _room_error("No room left: all files together can hold at most " + str(MAX_TOTAL_FILE_CHARS) + " characters in Rhinox Code Studio")
+        self._size = size
+        return _StringIO.write(self, text)
+
+    def writelines(self, lines):
+        for line in lines:
+            self.write(line)
+
+    def _need_read(self):
+        if self._can_write:
+            raise _Unsupported("not readable")
+
+    def read(self, *args):
+        self._need_read()
+        return _StringIO.read(self, *args)
+
+    def readline(self, *args):
+        self._need_read()
+        return _StringIO.readline(self, *args)
+
+    def readlines(self, *args):
+        self._need_read()
+        return _StringIO.readlines(self, *args)
+
+    def __next__(self):
+        self._need_read()
+        line = _StringIO.readline(self)
+        if not line:
+            raise StopIteration
+        return line
+
+    def _commit(self):
+        if self._can_write and not self.closed:
+            _files[self.name] = self.getvalue()
+            _sizes[self.name] = len(_files[self.name])
+            self._size = _sizes[self.name]
+
+    def flush(self):
+        self._commit()
+        return _StringIO.flush(self)
+
+    def close(self):
+        if not self.closed:
+            self._commit()
+            _handles.discard(self)
+        _StringIO.close(self)
+
+def _open(file, mode="r", buffering=-1, encoding=None, errors=None, newline=None, closefd=True, opener=None):
+    if isinstance(file, int) or opener is not None:
+        raise PermissionError(1, "Rhinox Code Studio only opens files by name")
+    name = _check_name(file)
+    if not isinstance(mode, str):
+        raise TypeError("open() argument 'mode' must be str, not " + type(mode).__name__)
+    letters = set(mode)
+    if "b" in letters:
+        raise ValueError("Rhinox Code Studio opens text files only: remove the 'b' from the mode")
+    if "+" in letters or len(mode) != len(letters) or not letters or not letters <= set("rwat") or sum(c in "rwa" for c in mode) != 1:
+        raise ValueError("invalid mode: '" + mode + "'. Use 'r' to read, 'w' to write or 'a' to add to the end of a file")
+    kind = "r" if "r" in letters else ("w" if "w" in letters else "a")
+    if newline not in (None, "", "\n", "\r", "\r\n"):
+        raise ValueError("illegal newline value: " + repr(newline))
+    if kind == "r":
+        if name not in _files:
+            raise FileNotFoundError(2, "No such file or directory", name)
+        return _FileHandle(name, "r", _files[name], newline)
+    if len(_handles) >= MAX_OPEN_FILES:
+        raise OSError(24, "Too many open files: close files with f.close() or use with open(...)")
+    if name not in _files and len(_files) >= MAX_FILES:
+        raise _room_error("Too many files: Rhinox Code Studio keeps at most " + str(MAX_FILES) + " files")
+    if kind == "w":
+        _files[name] = ""
+        _sizes[name] = 0
+        return _FileHandle(name, "w", "", newline)
+    _files.setdefault(name, "")
+    _sizes[name] = len(_files[name])
+    return _FileHandle(name, "a", _files[name], newline)
+
+# os.path.exists, os.listdir and os.remove are pointed at the same files while
+# a program runs, then put back.
+
+def _flat(path):
+    return path if isinstance(path, str) and path in _files else None
+
+def _make_os_patches():
+    real = {"exists": os.path.exists, "isfile": os.path.isfile, "getsize": os.path.getsize,
+            "listdir": os.listdir, "remove": os.remove, "unlink": os.unlink}
+    def exists(path):
+        return True if _flat(path) else real["exists"](path)
+    def isfile(path):
+        return True if _flat(path) else real["isfile"](path)
+    def getsize(path):
+        if _flat(path):
+            return len(_files[path].encode("utf-8"))
+        return real["getsize"](path)
+    def listdir(path="."):
+        if path in (".", ""):
+            return sorted(_files)
+        return real["listdir"](path)
+    def remove(path, *args, **kwargs):
+        if _flat(path):
+            del _files[path]
+            _sizes.pop(path, None)
+            return None
+        raise FileNotFoundError(2, "No such file or directory", path)
+    return real, {"exists": exists, "isfile": isfile, "getsize": getsize,
+                  "listdir": listdir, "remove": remove, "unlink": remove}
+
+# ---- Charts ----------------------------------------------------------------
+# "import charts" gives a program bar_chart and line_chart. They only collect
+# plain data (labels and numbers). The page checks it again and draws the
+# picture itself. Keep these limits equal to lib/code-studio/limits.ts (a test
+# checks that they match).
+MAX_CHARTS = 5
+MAX_CHART_POINTS = 100
+MAX_CHART_TEXT = 60
+MAX_LABEL_CHARS = 24
+_charts = []
+
+def _plain_text(value, limit):
+    if value is None:
+        return ""
+    return str(value)[:limit]
+
+def _as_list(values, what):
+    if isinstance(values, (str, bytes, dict)) or not hasattr(values, "__iter__"):
+        raise TypeError(what + " must be a list, like [1, 2, 3]")
+    return list(values)
+
+def _numbers(values, what):
+    out = []
+    for value in _as_list(values, what):
+        if isinstance(value, bool) or not isinstance(value, (int, float)):
+            raise TypeError(what + " must hold numbers only, but it has " + repr(value)[:30])
+        if value != value or value in (float("inf"), float("-inf")):
+            raise ValueError(what + " must hold ordinary numbers, not nan or infinity")
+        if abs(value) > 1e15:
+            raise ValueError(what + " has a number that is too big to draw")
+        out.append(value)
+    return out
+
+def _add_chart(kind, labels, values, title, x_label, y_label, label_name, value_name):
+    names = [_plain_text(item, MAX_LABEL_CHARS) for item in _as_list(labels, label_name)]
+    numbers = _numbers(values, value_name)
+    if len(names) != len(numbers):
+        raise ValueError(label_name + " and " + value_name + " must be the same length (" + str(len(names)) + " and " + str(len(numbers)) + ")")
+    if not numbers:
+        raise ValueError("There is nothing to draw: " + value_name + " is empty")
+    if len(numbers) > MAX_CHART_POINTS:
+        raise ValueError("A chart can show at most " + str(MAX_CHART_POINTS) + " " + ("bars" if kind == "bar" else "points"))
+    if len(_charts) >= MAX_CHARTS:
+        raise ValueError("A program can draw at most " + str(MAX_CHARTS) + " charts")
+    _charts.append({
+        "kind": kind,
+        "title": _plain_text(title, MAX_CHART_TEXT),
+        "xLabel": _plain_text(x_label, MAX_CHART_TEXT),
+        "yLabel": _plain_text(y_label, MAX_CHART_TEXT),
+        "labels": names,
+        "values": numbers,
+    })
+
+def bar_chart(labels, values, title="", x_label="", y_label=""):
+    """Draw a bar chart: one bar for each label, as tall as its value."""
+    _add_chart("bar", labels, values, title, x_label, y_label, "labels", "values")
+
+def line_chart(x_values, y_values, title="", x_label="", y_label=""):
+    """Draw a line chart: one point for each x value (a number or a name), joined by a line."""
+    _add_chart("line", x_values, y_values, title, x_label, y_label, "x_values", "y_values")
+
+def _make_charts_module():
+    # A fresh module for every run, so a program that changes it cannot affect the next one.
+    module = types.ModuleType("charts")
+    module.__doc__ = "Rhinox Code Studio charts: bar_chart(labels, values, title) and line_chart(x_values, y_values, title)."
+    module.bar_chart = bar_chart
+    module.line_chart = line_chart
+    return module
+
+def _load_files(files_json):
+    _files.clear()
+    _sizes.clear()
+    _handles.clear()
+    try:
+        items = _loads(files_json)
+    except Exception:
+        items = []
+    total = 0
+    for item in items if isinstance(items, list) else []:
+        if (isinstance(item, dict) and _good_name(item.get("name")) and isinstance(item.get("text"), str)
+                and item["name"] not in _files and len(_files) < MAX_FILES
+                and len(item["text"]) <= MAX_FILE_CHARS and total + len(item["text"]) <= MAX_TOTAL_FILE_CHARS):
+            _files[item["name"]] = item["text"]
+            _sizes[item["name"]] = len(item["text"])
+            total += len(item["text"])
+
+def run(source, files_json="[]"):
+    _load_files(files_json)
+    del _charts[:]
+    sys.modules["charts"] = _make_charts_module()
+    real_os, fake_os = _make_os_patches()
+    os.path.exists, os.path.isfile, os.path.getsize = fake_os["exists"], fake_os["isfile"], fake_os["getsize"]
+    os.listdir, os.remove, os.unlink = fake_os["listdir"], fake_os["remove"], fake_os["unlink"]
     hidden = {
         name: sys.modules.pop(name)
         for name in list(sys.modules)
@@ -133,6 +403,7 @@ def run(source):
     before = set(sys.modules)
     user_builtins = dict(vars(builtins))
     user_builtins["__import__"] = _guarded_import
+    user_builtins["open"] = _open
     for unsafe in ("breakpoint", "help", "exit", "quit"):
         user_builtins.pop(unsafe, None)
     namespace = {"__name__": "__main__", "__builtins__": user_builtins}
@@ -160,7 +431,14 @@ def run(source):
         sys.path_hooks[:] = saved_hooks
         sys.path_importer_cache.clear()
         linecache.cache.pop("main.py", None)
-    return ok
+        for handle in list(_handles):
+            try:
+                handle.close()
+            except BaseException:
+                pass
+        os.path.exists, os.path.isfile, os.path.getsize = real_os["exists"], real_os["isfile"], real_os["getsize"]
+        os.listdir, os.remove, os.unlink = real_os["listdir"], real_os["remove"], real_os["unlink"]
+    return _dumps({"ok": ok, "files": [{"name": n, "text": _files[n]} for n in sorted(_files)], "charts": list(_charts)})
 `;
 
 async function init(baseUrl, shared) {
@@ -205,7 +483,7 @@ function heapMB() {
   }
 }
 
-function run(id, code, lines, isScripted) {
+function run(id, code, lines, isScripted, files) {
   scripted = isScripted === true;
   outChars = 0;
   limitHit = false;
@@ -213,8 +491,13 @@ function run(id, code, lines, isScripted) {
   pendingLines = Array.isArray(lines) ? lines.slice(0, 500).map(String) : [];
   const started = performance.now();
   let ok = false;
+  let outFiles = null; // null: the page keeps the files it already has
+  let outCharts = [];
   try {
-    ok = runPython(code) === true;
+    const reply = JSON.parse(runPython(code, JSON.stringify(Array.isArray(files) ? files : [])));
+    ok = reply.ok === true;
+    outFiles = Array.isArray(reply.files) ? reply.files : null;
+    outCharts = Array.isArray(reply.charts) ? reply.charts : [];
   } catch (error) {
     if (!limitHit) queue.stderr += "Internal error: " + String(error && error.message ? error.message : error) + "\n";
   }
@@ -226,7 +509,7 @@ function run(id, code, lines, isScripted) {
     /* the streams were already shut by the output limit */
   }
   flush();
-  post({ type: "done", id, ok, outputLimit: limitHit, ms: Math.round(performance.now() - started), heapMB: heapMB() });
+  post({ type: "done", id, ok, outputLimit: limitHit, ms: Math.round(performance.now() - started), heapMB: heapMB(), files: outFiles, charts: outCharts });
 }
 
 self.onmessage = (event) => {
@@ -237,6 +520,6 @@ self.onmessage = (event) => {
       post({ type: "fatal", message: String(error && error.message ? error.message : error) }),
     );
   } else if (message.type === "run" && runPython) {
-    run(message.id, String(message.code).slice(0, 100000), message.stdinLines, message.scripted);
+    run(message.id, String(message.code).slice(0, 100000), message.stdinLines, message.scripted, message.files);
   }
 };

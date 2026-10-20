@@ -548,3 +548,247 @@
   text-transform: uppercase;
   color: #44608a;
 }
+
+/* The exercise list scrolls on its own, so the task and its buttons stay in view. */
+.exerciseNav {
+  max-height: clamp(150px, 30dvh, 280px);
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  padding-right: 4px;
+}
+
+/* ---- My files ---- */
+.files {
+  margin-top: 12px;
+  border: 1px solid #c4d6ee;
+  border-radius: 12px;
+  background: #fff;
+  color: #2c4064;
+}
+
+.files > summary {
+  cursor: pointer;
+  padding: 10px 14px;
+  font-weight: 700;
+  color: #123b73;
+}
+
+.filesCount {
+  font-weight: 500;
+  color: #4a6590;
+}
+
+.filesBody {
+  display: grid;
+  gap: 10px;
+  padding: 0 14px 14px;
+  font-size: 0.9rem;
+}
+
+.filesIntro,
+.filesEmpty,
+.filesMessage {
+  margin: 0;
+}
+
+.filesEmpty {
+  color: #4a6590;
+  font-size: 0.84rem;
+}
+
+.filesMessage:empty {
+  display: none;
+}
+
+.fileList {
+  display: grid;
+  gap: 6px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.fileList li {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px 12px;
+  padding: 8px 10px;
+  border: 1px solid #dbe6f5;
+  border-radius: 8px;
+  background: #f4f8fd;
+}
+
+.fileName {
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  font-weight: 700;
+  overflow-wrap: anywhere;
+}
+
+.fileSize {
+  color: #4a6590;
+  font-size: 0.82rem;
+}
+
+.fileActions {
+  display: inline-flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-left: auto;
+}
+
+.files button {
+  padding: 6px 12px;
+  border: 1px solid #9fbbe2;
+  border-radius: 8px;
+  background: #fff;
+  color: #123b73;
+  font: inherit;
+  font-size: 0.84rem;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.files button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.files button:focus-visible,
+.files input:focus-visible,
+.fileView pre:focus-visible {
+  outline: 3px solid #7fb1f5;
+  outline-offset: 1px;
+}
+
+.files .danger {
+  border-color: #b3261e;
+  background: #b3261e;
+  color: #fff;
+}
+
+.fileView h3 {
+  margin: 0 0 4px;
+  font-size: 0.9rem;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+}
+
+.fileView pre {
+  margin: 0;
+  max-height: 220px;
+  overflow: auto;
+  padding: 10px 12px;
+  border: 1px solid #c4d6ee;
+  border-radius: 8px;
+  background: #f4f8fd;
+  font-size: 0.82rem;
+  white-space: pre;
+}
+
+.fileTools {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px 14px;
+}
+
+.upload {
+  display: grid;
+  gap: 4px;
+  font-weight: 600;
+  font-size: 0.84rem;
+}
+
+.upload input {
+  font: inherit;
+  font-size: 0.84rem;
+  max-width: 100%;
+}
+
+/* ---- Charts ---- */
+.charts {
+  margin-top: 12px;
+  border: 1px solid #c4d6ee;
+  border-radius: 12px;
+  background: #fff;
+  overflow: hidden;
+}
+
+.chartsTitle {
+  margin: 0;
+  padding: 9px 14px;
+  font-size: 0.82rem;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: #123b73;
+  background: #e5eefb;
+  border-bottom: 1px solid #c4d6ee;
+}
+
+.chartGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 380px), 1fr));
+  gap: 14px;
+  padding: 14px;
+}
+
+.chart {
+  margin: 0;
+  display: grid;
+  gap: 8px;
+  min-width: 0;
+}
+
+.chart svg {
+  width: 100%;
+  height: auto;
+  border: 1px solid #dbe6f5;
+  border-radius: 8px;
+}
+
+.chart figcaption {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 8px;
+  font-size: 0.86rem;
+  color: #2c4064;
+}
+
+.chart summary {
+  cursor: pointer;
+  font-weight: 600;
+}
+
+.chart table {
+  margin-top: 6px;
+  border-collapse: collapse;
+  font-size: 0.82rem;
+}
+
+.chart th,
+.chart td {
+  padding: 3px 12px 3px 0;
+  text-align: left;
+  border-bottom: 1px solid #e5eefb;
+}
+
+.chart button {
+  padding: 6px 12px;
+  border: 1px solid #9fbbe2;
+  border-radius: 8px;
+  background: #fff;
+  color: #123b73;
+  font: inherit;
+  font-size: 0.84rem;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.chart button:focus-visible,
+.chart summary:focus-visible {
+  outline: 3px solid #7fb1f5;
+  outline-offset: 1px;
+}

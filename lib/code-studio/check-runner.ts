@@ -2,12 +2,13 @@
 // in (not imported) so this file can be tested without a browser.
 import type { CheckCase, Exercise, RunCapture } from "./exercises";
 import { runProblem } from "./exercises";
+import type { ProgramFile } from "./files";
 
 export interface CheckRunner {
   run(
     code: string,
     stdinLines: string[],
-    options: { scripted: true; quiet: true },
+    options: { scripted: true; quiet: true; files?: ProgramFile[] },
   ): Promise<RunCapture & { ms: number }>;
 }
 
@@ -42,7 +43,12 @@ export async function runChecks(runner: CheckRunner, exercise: Exercise, code: s
 }
 
 async function runCase(runner: CheckRunner, testCase: CheckCase, code: string) {
-  const result = await runner.run(code + (testCase.append ?? ""), testCase.stdin, { scripted: true, quiet: true });
+  const result = await runner.run(code + (testCase.append ?? ""), testCase.stdin, {
+    scripted: true,
+    quiet: true,
+    // A check starts from its own files, so it never reads or changes the learner's.
+    files: testCase.files ?? ([] as ProgramFile[]),
+  });
   // A program that hangs or is stopped would hang again on every case: end the check.
   const stop = ["stopped", "timeout", "crashed", "failed-to-start", "output-limit"].includes(result.outcome);
   const message = testCase.evaluate(result);
