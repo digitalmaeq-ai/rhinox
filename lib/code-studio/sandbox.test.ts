@@ -11,7 +11,7 @@ import { join } from "node:path";
 
 import { loadPyodide } from "pyodide";
 
-const worker = readFileSync(join(process.cwd(), "public/code-studio/python-worker.js"), "utf8");
+const worker = readFileSync(join(process.cwd(), "public/coding-robotics/code-studio/python-worker.js"), "utf8");
 const setup = /const PYTHON_SETUP = String\.raw`([\s\S]*?)`;/.exec(worker)?.[1];
 assert.ok(setup, "could not find PYTHON_SETUP in the worker");
 

@@ -67,6 +67,41 @@ and `line_chart(x_values, y_values, title, x_label, y_label)`.
   does not affect the next run. Limits are in `limits.ts` and in the worker; a test
   checks that they match.
 
+## Offline use and installing (Stage 2.4)
+
+Code Studio can be saved on a device so it opens and runs with **no internet**, and
+installed like an app. Nothing is saved until the learner presses "Save for offline use".
+
+- `lib/code-studio/offline.ts` (the page side) keeps the page, the Python worker, the
+  self-hosted Python runtime (about 13 MB) and the scripts, styles and pictures the page
+  loaded in the browser's cache `rhinox-code-studio-offline-v1`. Only this site's own
+  static addresses are kept (`isSaveable`); other sites, `/api/` and other pages are never saved.
+- `public/code-studio/offline-sw.js` is the service worker. Its **scope is
+  `/coding-robotics/code-studio` only** (the header `Service-Worker-Allowed` in
+  `next.config.ts` allows exactly that), so it never controls the rest of the site. Until the
+  cache exists it passes every request straight through. The page: network first, saved copy
+  if the network fails. Immutable files (`/_next/static/`, `/pyodide/`): saved copy first.
+- **The Python worker lives at `/coding-robotics/code-studio/python-worker.js`**, inside the
+  service worker's scope. Browsers only let a service worker serve a *worker script* that is
+  in its scope, so the worker could not be served offline from its old place. Do not move it.
+- Cached answers keep their headers, so the offline page is still cross-origin isolated
+  (`input()` keeps working) and the worker keeps its own CSP.
+- `public/code-studio/manifest.webmanifest` (linked from the page's metadata) lets browsers
+  offer "Install". The page also shows its own "Install as an app" button when the browser
+  allows it. The scope and start URL are the Code Studio page only.
+- Learner work (progress, drafts, projects, files) is in `localStorage`, so it works offline
+  too. "Remove saved copy" deletes the cache and the service worker, never the learner's work.
+  After saving, the page asks the browser to keep the storage (`navigator.storage.persist()`).
+- Not available offline: My Projects, the rest of the site, and the first-ever visit (nothing
+  saved yet). The service worker is only registered in production builds.
+- Security of the worker file itself: it only handles same-origin GET requests, ignores
+  `/api/`, `_rsc` and every other site, and keeps only complete `200` answers of type "basic".
+  A Next.js upgrade changes the file names under `/_next/static/`; the new page (network first)
+  then saves the new ones on the next "Save", and old versions of the cache are removed when
+  the cache name changes.
+- A later USB-folder version (Milestone 3) needs a different approach (a small local server or
+  a packaged app), because browsers do not run service workers from `file://`.
+
 ## Pieces
 
 | Piece | Where | Notes |
@@ -74,7 +109,7 @@ and `line_chart(x_values, y_values, title, x_label, y_label)`.
 | Editor | `lib/code-studio/monaco-setup.ts`, `app/components/code-studio/PythonEditor.tsx` | Monaco core plus Python colouring only, bundled by Next.js (no CDN, no copied files). |
 | Page | `app/components/code-studio/CodeStudio.tsx` | Run, Stop, Reset, console, input line. |
 | Controller | `lib/code-studio/runner.ts`, `limits.ts` | Owns the worker. Enforces the time limit **from outside** the worker. Treats every message from the worker as untrusted. |
-| Worker | `public/code-studio/python-worker.js` | Served as a plain file so it can have its own headers. Runs Pyodide (CPython compiled to WebAssembly). |
+| Worker | `public/coding-robotics/code-studio/python-worker.js` | Served as a plain file so it can have its own headers. Runs Pyodide (CPython compiled to WebAssembly). |
 | Runtime files | `public/pyodide/<version>/` | Copied from `node_modules/pyodide` by `scripts/copy-code-studio-assets.mjs` on every `predev`/`prebuild`. Git-ignored. |
 | Headers | `next.config.ts` | Route-scoped. See below. |
 
@@ -156,9 +191,10 @@ Run all three before changing the worker, the CSP or `next.config.ts`:
 | --- | --- | --- |
 | `lib/code-studio/sandbox.test.ts` | `npx tsx lib/code-studio/sandbox.test.ts` | Python layer, real Python in Node (70 checks): 15 blocked imports, 8 escape attempts, import machinery restored, stdlib still works, no state carried between runs, MemoryError, RecursionError; files: write/read/append, csv module, 13 refused names, no reading outside the files, refused modes, size, count and handle limits, limits match `limits.ts` |
 | `lib/code-studio/charts.test.ts` | `npx tsx lib/code-studio/charts.test.ts` | Page-side chart rules: junk dropped, text cut, limits, axis scale |
+| `lib/code-studio/offline.test.ts` | `npx tsx lib/code-studio/offline.test.ts` | Cache name and page path agree between page and service worker, runtime file list matches the build, manifest, only own static addresses are saved |
 | `lib/code-studio/files.test.ts` | `npx tsx lib/code-studio/files.test.ts` | The page-side file rules: names, cleaning, limits, storage, downloads |
 | `lib/code-studio/exercises.test.ts` | `npx tsx lib/code-studio/exercises.test.ts` | Every exercise: correct solutions pass, wrong ones fail; project and progress storage |
-| `scripts/code-studio-browser-tests.cjs` | build and start the site, `npm install --no-save playwright`, then `node scripts/code-studio-browser-tests.cjs http://localhost:3000` | Real browser, 88 checks (including charts: draw, hostile labels, errors, timeouts, limits, clearing; and files: write, view, download, upload, delete, reload, timeouts, path tricks, flooding, junk in storage, checks leave learner files alone): headers on Code Studio and 8 other pages, blocked modules, network, endless loop (stopped at ~10 s), Stop, output flooding (with and without newlines), memory, recursion, recovery after each, page never blocked for long (worst 316 ms), no requests leave the site, in-site navigation ends up isolated |
+| `scripts/code-studio-browser-tests.cjs` | build and start the site, `npm install --no-save playwright`, then `node scripts/code-studio-browser-tests.cjs http://localhost:3000` | Real browser, 111 checks (including offline: save, reload with the network off, run Python, files and charts offline, scope, remove; plus a manual run with the server really stopped) (including charts: draw, hostile labels, errors, timeouts, limits, clearing; and files: write, view, download, upload, delete, reload, timeouts, path tricks, flooding, junk in storage, checks leave learner files alone): headers on Code Studio and 8 other pages, blocked modules, network, endless loop (stopped at ~10 s), Stop, output flooding (with and without newlines), memory, recursion, recovery after each, page never blocked for long (worst 316 ms), no requests leave the site, in-site navigation ends up isolated |
 
 Measured on the production build: `os.system("echo hi")` prints nothing in the
 browser worker; a 1.5 GB allocation succeeds (known residual risk above);

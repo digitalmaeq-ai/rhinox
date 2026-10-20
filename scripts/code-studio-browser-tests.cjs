@@ -38,7 +38,7 @@ async function headersOf(path) {
   check("Code Studio page sends COOP same-origin", studio.coop === "same-origin", studio.coop);
   check("Code Studio page sends COEP require-corp", studio.coep === "require-corp", studio.coep);
   check("Code Studio page has a CSP with connect-src 'self'", /connect-src 'self'/.test(studio.csp || ""));
-  const worker = await headersOf("/code-studio/python-worker.js");
+  const worker = await headersOf("/coding-robotics/code-studio/python-worker.js");
   check("Python worker has COOP/COEP", worker.coop === "same-origin" && worker.coep === "require-corp");
   check("Python worker CSP forbids eval and other origins", /script-src 'self' 'wasm-unsafe-eval'/.test(worker.csp || "") && !/unsafe-eval'(?!.*wasm)/.test((worker.csp || "").replace("'wasm-unsafe-eval'", "")) && /default-src 'none'/.test(worker.csp || ""));
   for (const path of ["/", "/coding-robotics", "/coding-robotics/robot-lab", "/coding-robotics/game-creator", "/coding-robotics/my-projects", "/shop", "/explore", "/education"]) {
@@ -412,6 +412,103 @@ except Exception as e:
   await second.waitForSelector(".monaco-editor", { timeout: 30000 });
   await sleep(2500);
   check("arriving by an in-site link still ends up isolated (page reloads once)", await second.evaluate(() => crossOriginIsolated === true));
+
+  // ---------- 10. Offline use: save, go offline, reload, still works ----------
+  const swHeaders = await fetch(BASE + "/code-studio/offline-sw.js");
+  check("the service worker may only control the Code Studio page", swHeaders.headers.get("service-worker-allowed") === "/coding-robotics/code-studio");
+  const manifestResponse = await fetch(BASE + "/code-studio/manifest.webmanifest");
+  const manifest = await manifestResponse.json();
+  check("the install manifest is served and points at the page", manifestResponse.status === 200 && manifest.start_url === "/coding-robotics/code-studio" && manifest.scope === "/coding-robotics/code-studio", manifestResponse.headers.get("content-type"));
+  for (const icon of manifest.icons) {
+    const iconResponse = await fetch(BASE + icon.src);
+    check(`manifest icon ${icon.sizes} exists`, iconResponse.status === 200 && /image\/png/.test(iconResponse.headers.get("content-type") || ""));
+  }
+
+  const offlineContext = await browser.newContext({ viewport: { width: 1280, height: 800 } });
+  const offlinePage = await offlineContext.newPage();
+  const offlineErrors = [];
+  offlinePage.on("pageerror", (e) => offlineErrors.push(e.message));
+  await offlinePage.goto(BASE + "/coding-robotics/code-studio", { waitUntil: "networkidle" });
+  await offlinePage.waitForSelector(".monaco-editor");
+  await sleep(2000);
+  check("the page links its manifest", (await offlinePage.locator('link[rel="manifest"]').getAttribute("href")) === "/code-studio/manifest.webmanifest");
+  check("nothing is registered or saved until the learner asks", (await offlinePage.evaluate(async () => (await navigator.serviceWorker.getRegistrations()).length + (await caches.keys()).length)) === 0);
+  const bar = offlinePage.locator('[role="status"]', { hasText: "offline" }).first();
+  check("the page offers to save for offline use", /Save Code Studio on this device/.test(await bar.innerText()));
+  await offlinePage.click("button:has-text('Save for offline use')");
+  await offlinePage.waitForSelector("text=Saved for offline use", { timeout: 180000 });
+  const cached = await offlinePage.evaluate(async () => {
+    const cache = await caches.open("rhinox-code-studio-offline-v1");
+    return (await cache.keys()).map((r) => new URL(r.url).pathname);
+  });
+  check("the page, the worker, the Python runtime and the page's scripts are saved", ["/coding-robotics/code-studio", "/coding-robotics/code-studio/python-worker.js"].every((p) => cached.includes(p)) && cached.some((p) => p.endsWith("pyodide.asm.wasm")) && cached.some((p) => p.endsWith("python_stdlib.zip")) && cached.filter((p) => p.startsWith("/_next/static/")).length > 3, cached.length + " files");
+  const registration = await offlinePage.evaluate(async () => {
+    const r = await navigator.serviceWorker.getRegistration("/coding-robotics/code-studio");
+    return r ? new URL(r.scope).pathname : null;
+  });
+  check("the service worker is scoped to the Code Studio page only", registration === "/coding-robotics/code-studio", String(registration));
+
+  // Run once online so the editor and worker files are all requested through the worker, then go offline.
+  await offlinePage.reload({ waitUntil: "networkidle" });
+  await offlinePage.waitForSelector(".monaco-editor");
+  await sleep(2000);
+  check("after saving, the service worker controls the Code Studio page", await offlinePage.evaluate(() => navigator.serviceWorker.controller !== null));
+
+  await offlineContext.setOffline(true);
+  const reachable = await offlinePage.evaluate(() => fetch("/robots.txt", { cache: "no-store" }).then(() => true, () => false));
+  check("the network really is off for this test", reachable === false);
+  await offlinePage.reload({ waitUntil: "domcontentloaded" });
+  await offlinePage.waitForSelector(".monaco-editor", { timeout: 60000 });
+  await sleep(2000);
+  check("offline: the page opens from the saved copy", await offlinePage.locator("h1", { hasText: "Rhinox Code Studio" }).count() === 1);
+  check("offline: the page is still cross-origin isolated (input() keeps working)", await offlinePage.evaluate(() => crossOriginIsolated === true));
+  check("offline: the page says it is running from the saved copy", /running from the saved copy/.test(await offlinePage.locator('[role="status"]', { hasText: "offline" }).first().innerText()));
+
+  async function offlineRun(code) {
+    await offlinePage.click(".monaco-editor .view-lines");
+    await offlinePage.keyboard.press("Control+A");
+    await offlinePage.keyboard.press("Delete");
+    await offlinePage.keyboard.insertText("exec(" + JSON.stringify(code) + ")");
+    await offlinePage.click("button:has-text('Run')");
+    await offlinePage.waitForFunction(() => {
+      const run = [...document.querySelectorAll("button")].find((b) => /^(Run|Starting)/.test(b.textContent));
+      return run && run.textContent === "Run" && !run.disabled;
+    }, null, { timeout: 90000 });
+    return offlinePage.evaluate(() => document.querySelector('[role="log"]').innerText);
+  }
+  let out = await offlineRun('print("hello from offline")');
+  check("offline: Python starts and runs a program", out.includes("hello from offline"), out.replace(/\s+/g, " ").slice(0, 100));
+  await offlinePage.click(".monaco-editor .view-lines");
+  await offlinePage.keyboard.press("Control+A");
+  await offlinePage.keyboard.press("Delete");
+  await offlinePage.keyboard.insertText("exec(" + JSON.stringify('name = input("Name? ")\nprint("Hi", name)') + ")");
+  await offlinePage.click("button:has-text('Run')");
+  await offlinePage.waitForSelector("#rx-input", { timeout: 60000 });
+  check("offline: input() waits for the learner", true);
+  await offlinePage.fill("#rx-input", "Ada");
+  await offlinePage.click("button:has-text('Send')");
+  await offlinePage.waitForSelector("text=Hi Ada", { timeout: 30000 });
+  check("offline: the typed answer reaches the program", true);
+  out = await offlineRun('import charts\nwith open("o.csv", "w") as f:\n    f.write("1,2\\n")\ncharts.bar_chart(["a"], [1], "Offline chart")\nprint(open("o.csv").read().strip())');
+  check("offline: files and charts work", out.includes("1,2") && (await offlinePage.locator('section[aria-label="Charts drawn by your program"]').count()) === 1);
+  out = await offlineRun('import socket');
+  check("offline: the security rules are the same", /does not allow importing 'socket'/.test(out));
+  check("offline: no page errors", offlineErrors.length === 0, offlineErrors.slice(0, 2).join(" | "));
+
+  await offlineContext.setOffline(false);
+  const otherPage = await offlineContext.newPage();
+  await otherPage.goto(BASE + "/shop", { waitUntil: "domcontentloaded" });
+  check("other pages of the site are not controlled by the service worker", (await otherPage.evaluate(() => navigator.serviceWorker.controller)) === null);
+  await otherPage.close();
+
+  await offlinePage.reload({ waitUntil: "networkidle" });
+  await offlinePage.waitForSelector(".monaco-editor");
+  await sleep(1500);
+  await offlinePage.click("button:has-text('Remove saved copy')");
+  await offlinePage.waitForSelector("text=Save Code Studio on this device", { timeout: 20000 });
+  check("Remove saved copy deletes the copy and the service worker", (await offlinePage.evaluate(async () => (await navigator.serviceWorker.getRegistrations()).length + (await caches.keys()).length)) === 0);
+  check("removing the copy keeps the learner's own work", await offlinePage.evaluate(() => Boolean(localStorage.getItem("rhinox-code-studio-files") || localStorage.getItem("rhinox-code-studio"))));
+  await offlineContext.close();
 
   await browser.close();
   const failed = results.filter((x) => !x.ok);

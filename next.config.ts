@@ -57,6 +57,17 @@ const nextConfig: NextConfig = {
         headers: [...isolation, { key: "Content-Security-Policy", value: pageCsp }],
       },
       {
+        // The Python worker. It lives under the page's own path (not /code-studio/) so that
+        // the offline service worker, whose scope is that path, may serve it.
+        source: "/coding-robotics/code-studio/python-worker.js",
+        headers: [
+          ...isolation,
+          { key: "Cross-Origin-Resource-Policy", value: "same-origin" },
+          { key: "Content-Security-Policy", value: workerCsp },
+          { key: "Cache-Control", value: "public, max-age=0, must-revalidate" },
+        ],
+      },
+      {
         source: "/code-studio/:path*",
         headers: [
           ...isolation,
@@ -64,6 +75,12 @@ const nextConfig: NextConfig = {
           { key: "Content-Security-Policy", value: workerCsp },
           { key: "Cache-Control", value: "public, max-age=0, must-revalidate" },
         ],
+      },
+      {
+        // The offline service worker lives in /code-studio/ but may only control
+        // the Code Studio page, never the rest of the site.
+        source: "/code-studio/offline-sw.js",
+        headers: [{ key: "Service-Worker-Allowed", value: "/coding-robotics/code-studio" }],
       },
       {
         // The version is in the path, so these files never change.

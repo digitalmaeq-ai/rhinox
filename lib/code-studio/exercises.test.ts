@@ -1,7 +1,7 @@
 // Run with:  npx tsx lib/code-studio/exercises.test.ts
 //
 // Runs every exercise's checks against real Python (Pyodide, in Node) using the
-// same setup code as the browser worker (public/code-studio/python-worker.js).
+// same setup code as the browser worker (public/coding-robotics/code-studio/python-worker.js).
 import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 import { join } from "node:path";
@@ -20,7 +20,7 @@ async function test(name: string, fn: () => void | Promise<void>) {
   console.log("ok  ", name);
 }
 
-const worker = readFileSync(join(process.cwd(), "public/code-studio/python-worker.js"), "utf8");
+const worker = readFileSync(join(process.cwd(), "public/coding-robotics/code-studio/python-worker.js"), "utf8");
 const setup = /const PYTHON_SETUP = String\.raw`([\s\S]*?)`;/.exec(worker)?.[1];
 assert.ok(setup, "could not find PYTHON_SETUP in the worker");
 

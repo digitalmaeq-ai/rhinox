@@ -18,6 +18,7 @@ import { createProject, getProject, updateProjectData } from "@/lib/rhinocode/pr
 
 import ExercisePanel from "./ExercisePanel";
 import ChartsPanel from "./ChartsPanel";
+import OfflineBar from "./OfflineBar";
 import FilesPanel from "./FilesPanel";
 import styles from "./CodeStudio.module.css";
 
@@ -286,6 +287,8 @@ export default function CodeStudio({ savedId: initialSavedId, savedProject }: Pr
             <Link href="/coding-robotics/my-projects">My Projects</Link>
           </div>
         </header>
+
+        <OfflineBar />
 
         <div className={styles.layout}>
           <ExercisePanel

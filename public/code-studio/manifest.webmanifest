@@ -1,0 +1,16 @@
+{
+  "name": "Rhinox Code Studio",
+  "short_name": "Code Studio",
+  "description": "Write and run real Python in your browser, even without internet once saved for offline use.",
+  "id": "/coding-robotics/code-studio",
+  "start_url": "/coding-robotics/code-studio",
+  "scope": "/coding-robotics/code-studio",
+  "display": "standalone",
+  "orientation": "any",
+  "background_color": "#0b1f33",
+  "theme_color": "#0b1f33",
+  "icons": [
+    { "src": "/code-studio/icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
+    { "src": "/brand/rhinox-app-icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" }
+  ]
+}

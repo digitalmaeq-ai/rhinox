@@ -1,6 +1,6 @@
 // Limits that keep a learner's program from taking the page down. They are
 // shared by the page-side runner and described in docs/code-studio.md.
-// The Python worker (public/code-studio/python-worker.js) has matching output
+// The Python worker (public/coding-robotics/code-studio/python-worker.js) has matching output
 // and input caps, because it cannot import from this file.
 
 /** A program that runs longer than this (not counting time spent waiting at input()) is stopped. */
@@ -35,7 +35,9 @@ export const FILE_EXTENSIONS = [".csv", ".txt", ".tsv", ".json", ".md", ".log"] 
 /** Where the self-hosted runtime lives. The version is in the path so caching can be permanent. */
 export const PYODIDE_BASE = `/pyodide/${process.env.NEXT_PUBLIC_PYODIDE_VERSION ?? "unknown"}/`;
 
-export const WORKER_URL = "/code-studio/python-worker.js";
+// Inside the Code Studio page's own path, so the offline service worker (whose scope is that
+// path) is allowed to serve it. Browsers only let a service worker serve a worker script in its scope.
+export const WORKER_URL = "/coding-robotics/code-studio/python-worker.js";
 
 /** Charts a program can draw (bar and line). The Python worker has matching numbers. */
 export const MAX_CHARTS = 5;

@@ -792,3 +792,45 @@
   outline: 3px solid #7fb1f5;
   outline-offset: 1px;
 }
+
+/* ---- Offline ---- */
+.offline {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px 12px;
+  margin: 0 0 12px;
+  padding: 8px 12px;
+  border: 1px solid #c4d6ee;
+  border-radius: 10px;
+  background: #f4f8fd;
+  color: #2c4064;
+  font-size: 0.86rem;
+}
+
+.offline button {
+  padding: 6px 12px;
+  border: 1px solid #9fbbe2;
+  border-radius: 8px;
+  background: #fff;
+  color: #123b73;
+  font: inherit;
+  font-size: 0.84rem;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.offline button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.offline button:focus-visible {
+  outline: 3px solid #7fb1f5;
+  outline-offset: 1px;
+}
+
+.offline progress {
+  flex: 1 1 160px;
+  max-width: 280px;
+}
