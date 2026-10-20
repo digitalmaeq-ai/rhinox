@@ -38,6 +38,12 @@ that. What matters is that the worst case stays inside the learner's own tab.
    `micropip`, `socket`, `ssl`, `urllib`, `http`, `subprocess`, `multiprocessing`,
    `threading`, `ctypes`, `gc`, `importlib`, `asyncio` and a few more. The
    runtime's own modules are also removed from `sys.modules` while a program runs.
+   The finder that makes `import js` work is switched off during a run, so even
+   Python's real `__import__` (reached through `import builtins`,
+   `print.__self__.__import__` or `importlib`) answers `No module named 'js'`.
+   The import machinery (`sys.meta_path`, `sys.path`, `sys.path_hooks`) is saved
+   before and restored after every run, so a program that empties it cannot break
+   later runs.
 6. **No package installs.** Only the standard library is available.
 7. **Worker response headers** (CSP `default-src 'none'; script-src 'self'
    'wasm-unsafe-eval'; connect-src 'self'`): the worker may load scripts and
@@ -51,8 +57,11 @@ that. What matters is that the worst case stays inside the learner's own tab.
 
 ### Known residual risks (not fixed in Milestone 1)
 
-- **Not a complete sandbox.** Python introspection tricks (for example walking
-  `object.__subclasses__()`) might reach the JavaScript bridge. If one did, the
+- **Not a complete sandbox.** Deeper Python introspection tricks (for example
+  walking `object.__subclasses__()` to find the bridge's finder class and put it
+  back) might reach the JavaScript bridge. The one attempt of this kind in the
+  test suite did not succeed in the browser, but we do not claim it is
+  impossible. If one did, the
   program would still find no network functions and no DOM, and the CSP would
   block other origins, but it could still, for example, post fake messages to the
   page (the page validates them) or burn CPU until the time limit.
@@ -67,10 +76,27 @@ that. What matters is that the worst case stays inside the learner's own tab.
 - **Monkeypatching.** A program can change Python's standard library behaviour for
   later runs in the same worker. This affects only that learner's tab and is
   cleared whenever the worker restarts.
+- **Learner can only attack themselves today.** There is no project sharing, so
+  nobody else ever runs another person's code. If sharing or teacher-view of
+  student code is added, this must be reviewed first.
 - **CPU.** A tight loop can use a full core for up to 10 s.
 - **Support.** Needs module workers and WebAssembly (current Chrome, Edge,
   Firefox, Safari). `input()` waiting needs cross-origin isolation; without it a
   "Program input" box is shown instead.
+
+## Security tests (repeatable)
+
+Run all three before changing the worker, the CSP or `next.config.ts`:
+
+| Test | How to run | What it covers |
+| --- | --- | --- |
+| `lib/code-studio/sandbox.test.ts` | `npx tsx lib/code-studio/sandbox.test.ts` | Python layer, real Python in Node: 15 blocked imports, 8 escape attempts, import machinery restored, stdlib still works, no state carried between runs, MemoryError, RecursionError |
+| `lib/code-studio/exercises.test.ts` | `npx tsx lib/code-studio/exercises.test.ts` | Every exercise: correct solutions pass, wrong ones fail; project and progress storage |
+| `scripts/code-studio-browser-tests.cjs` | build and start the site, `npm install --no-save playwright`, then `node scripts/code-studio-browser-tests.cjs http://localhost:3000` | Real browser, 42 checks: headers on Code Studio and 8 other pages, blocked modules, network, endless loop (stopped at ~10 s), Stop, output flooding (with and without newlines), memory, recursion, recovery after each, page never blocked for long (worst 316 ms), no requests leave the site, in-site navigation ends up isolated |
+
+Measured on the production build: `os.system("echo hi")` prints nothing in the
+browser worker; a 1.5 GB allocation succeeds (known residual risk above);
+a program that empties `sys.meta_path` and `sys.path` does not affect the next run.
 
 ## Cross-origin isolation (COOP/COEP)
 

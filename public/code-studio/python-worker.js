@@ -108,12 +108,28 @@ def _guarded_import(name, globals=None, locals=None, fromlist=(), level=0):
 # sys.modules cannot be used to look them up. Pyodide keeps its own references.
 _HIDDEN = ("js", "pyodide", "pyodide_js", "_pyodide", "_pyodide_core", "micropip", "pyodide_http")
 
+def _take_bridge_finders():
+    # The finder that makes "import js" work is switched off while a program
+    # runs (and put back by the saved copy of sys.meta_path), so even the real
+    # __import__ cannot reach the JavaScript bridge by name. (Python introspection could still rebuild it: see docs/code-studio.md.)
+    taken = []
+    for index, finder in reversed(list(enumerate(sys.meta_path))):
+        if type(finder).__name__ == "JsFinder":
+            taken.append((index, sys.meta_path.pop(index)))
+    return list(reversed(taken))
+
 def run(source):
     hidden = {
         name: sys.modules.pop(name)
         for name in list(sys.modules)
         if name.partition(".")[0] in _HIDDEN
     }
+    # Import machinery is saved and put back after the run, so a program that
+    # empties sys.meta_path or edits sys.path cannot break the runs after it.
+    saved_meta_path = list(sys.meta_path)
+    saved_path = list(sys.path)
+    saved_hooks = list(sys.path_hooks)
+    _take_bridge_finders()
     before = set(sys.modules)
     user_builtins = dict(vars(builtins))
     user_builtins["__import__"] = _guarded_import
@@ -139,6 +155,10 @@ def run(source):
         for name in set(sys.modules) - before:
             sys.modules.pop(name, None)
         sys.modules.update(hidden)
+        sys.meta_path[:] = saved_meta_path
+        sys.path[:] = saved_path
+        sys.path_hooks[:] = saved_hooks
+        sys.path_importer_cache.clear()
         linecache.cache.pop("main.py", None)
     return ok
 `;
