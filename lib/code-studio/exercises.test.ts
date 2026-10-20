@@ -32,7 +32,18 @@ async function makeRunner(): Promise<CheckRunner> {
   let lines: string[] = [];
   let out = "";
   let err = "";
-  pyodide.setStdout({ write: (b: Uint8Array) => ((out += new TextDecoder().decode(b)), b.length) });
+  // Like the real worker, a program that prints more than the limit is stopped.
+  let limitHit = false;
+  pyodide.setStdout({
+    write: (b: Uint8Array) => {
+      out += new TextDecoder().decode(b);
+      if (out.length > 100_000) {
+        limitHit = true;
+        throw new Error("OutputLimit");
+      }
+      return b.length;
+    },
+  });
   pyodide.setStderr({ write: (b: Uint8Array) => ((err += new TextDecoder().decode(b)), b.length) });
   pyodide.setStdin({ stdin: () => (lines.length ? lines.shift()! : null), isatty: false });
   return {
@@ -40,14 +51,19 @@ async function makeRunner(): Promise<CheckRunner> {
       lines = [...stdin];
       out = "";
       err = "";
+      limitHit = false;
       let ok = false;
       try {
         ok = runPython(code) === true;
       } catch {
         ok = false;
       }
-      pyodide.runPython("import sys\nsys.stdout.flush()\nsys.stderr.flush()");
-      const capture: RunCapture & { ms: number } = { outcome: ok ? "ok" : "error", stdout: out, stderr: err, ms: 0 };
+      try {
+        pyodide.runPython("import sys\nsys.stdout.flush()\nsys.stderr.flush()");
+      } catch {
+        // a flush after the output limit was hit is discarded, as in the worker
+      }
+      const capture: RunCapture & { ms: number } = { outcome: limitHit ? "output-limit" : ok ? "ok" : "error", stdout: out, stderr: err, ms: 0 };
       return capture;
     },
   };
@@ -74,15 +90,182 @@ else:
 
 print(celsius_to_fahrenheit(100))
 `,
+  "y7-plan-then-type": 'print("Switch on")\nprint("Check the battery")\nprint("Drive forward")\nprint("Stop")\n',
+  "y7-fix-errors": 'print("Robot ready")\nprint("Battery full")\nprint("Moving off")\n',
+  "y7-market-counter": `oranges = int(input())
+mangoes = int(input())
+total = oranges + mangoes
+print(f"You sold {total} fruits.")
+`,
+  "y7-robot-speed": `name = input()
+speed = int(input())
+print(f"{name} moves {speed * 10} cm in 10 seconds.")
+`,
+  "y7-for-steps": `steps = int(input())
+for i in range(1, steps + 1):
+    print(f"Step {i}")
+print("Done!")
+`,
+  "y7-countdown": `count = int(input())
+while count > 0:
+    print(count)
+    count = count - 1
+print("Lift off!")
+`,
+  "y7-distance-decision": `distance = int(input())
+if distance < 10:
+    print("Stop")
+elif distance < 30:
+    print("Slow down")
+else:
+    print("Go")
+`,
+  "y7-battery-light": `battery = int(input())
+if battery >= 60:
+    print("Green")
+elif battery >= 20:
+    print("Amber")
+else:
+    print("Red")
+`,
+  "y7-robot-functions": `def forward(steps):
+    print(f"Moving forward {steps} steps")
+
+def turn_left():
+    print("Turning left")
+`,
+  "y8-naira-change": "def change(price, paid):\n    return paid - price\n",
+  "y8-light-percent": "def percent(reading):\n    return round(reading / 1023 * 100)\n",
+  "y8-night-light": "def is_dark(reading, threshold):\n    return reading < threshold\n",
+  "y8-list-stats": `temps = [int(x) for x in input().split(",")]
+total = 0
+highest = temps[0]
+lowest = temps[0]
+for t in temps:
+    total = total + t
+    if t > highest:
+        highest = t
+    if t < lowest:
+        lowest = t
+average = total / len(temps)
+print(f"Total: {total}")
+print(f"Highest: {highest}")
+print(f"Lowest: {lowest}")
+print(f"Average: {average:.1f}")
+`,
+  "y8-password-length": `password = input()
+if len(password) >= 12:
+    print("Good length")
+else:
+    print("Too short")
+`,
+  "y8-accuracy": `results = input().split(",")
+correct = results.count("right")
+print(f"Accuracy: {correct / len(results) * 100:.0f}%")
+`,
+  "y8-smart-bin": `def bin_action(hand_near, bin_full):
+    if hand_near:
+        if bin_full:
+            return "Flash red"
+        else:
+            return "Open lid"
+    else:
+        return "Stay closed"
+`,
+  "y8-keep-distance": `def car_action(distance):
+    if distance > 30:
+        return "forward"
+    elif distance < 20:
+        return "backward"
+    else:
+        return "stop"
+`,
+  "y9-line-decision": `def line_action(left_black, right_black):
+    if left_black and right_black:
+        return "forward"
+    elif left_black and not right_black:
+        return "turn left"
+    elif right_black and not left_black:
+        return "turn right"
+    else:
+        return "stop"
+`,
+  "y9-compare-versions": `a = [float(x) for x in input().split(",")]
+b = [float(x) for x in input().split(",")]
+avg_a = sum(a) / len(a)
+avg_b = sum(b) / len(b)
+print(f"Average A: {avg_a:.1f}")
+print(f"Average B: {avg_b:.1f}")
+if avg_a < avg_b:
+    print("Better: A")
+elif avg_b < avg_a:
+    print("Better: B")
+else:
+    print("Better: tie")
+`,
+  "y9-truth-table": `print("A B AND OR")
+for a in [0, 1]:
+    for b in [0, 1]:
+        print(a, b, a and b, a or b)
+`,
+  "y9-stop-guard": 'def can_go(command, on_stop_line):\n    return command == "F" and not on_stop_line\n',
+  "y9-confidence-rule": `def sort_leaf(label, confidence):
+    if confidence < 70:
+        return "ask a person"
+    if label == "healthy":
+        return "left basket"
+    return "right basket"
+`,
+  "y9-fairness-check": `pairs = [item.split(":") for item in input().split(",")]
+totals = {}
+rights = {}
+for group, result in pairs:
+    totals[group] = totals.get(group, 0) + 1
+    if result == "right":
+        rights[group] = rights.get(group, 0) + 1
+for group in sorted(totals):
+    print(f"{group}: {rights.get(group, 0) / totals[group] * 100:.0f}%")
+`,
+  "y9-debug-average": `a = int(input())
+b = int(input())
+c = int(input())
+average = (a + b + c) / 3
+print("Average:", average)
+`,
+  "y9-test-log": `count = int(input())
+lines = [input() for _ in range(count)]
+seconds = 0
+errors = 0
+for line in lines:
+    run, s, e = line.split(",")
+    seconds += int(s)
+    errors += int(e)
+print(f"Average time: {seconds / count:.1f} seconds")
+print(f"Total errors: {errors}")
+`,
+  "y7-distance-travelled": `def distance_travelled(speed, seconds):
+    return speed * seconds
+
+print(distance_travelled(5, 10))
+`,
 };
+
+function exerciseStarter(id: string): string {
+  return getExercise(id)!.starter;
+}
 
 async function main() {
   const runner = await makeRunner();
 
-  await test("there are exactly five exercises, each with a starter, hints and checks", () => {
-    assert.equal(EXERCISES.length, 5);
+  await test("there are five starters and ten, eight and eight exercises for Years 7, 8 and 9, each with a starter, hints and checks", () => {
+    assert.equal(EXERCISES.length, 31);
+    assert.equal(EXERCISES.filter((e) => e.group === "Starter").length, 5);
+    assert.equal(EXERCISES.filter((e) => e.group === "Year 7").length, 10);
+    assert.equal(EXERCISES.filter((e) => e.group === "Year 8").length, 8);
+    assert.equal(EXERCISES.filter((e) => e.group === "Year 9").length, 8);
+    assert.ok(EXERCISES.filter((e) => e.group !== "Starter").every((e) => e.lesson && /^Term [123], Week \d+$/.test(e.lesson)));
     const ids = new Set(EXERCISES.map((e) => e.id));
-    assert.equal(ids.size, 5);
+    assert.equal(ids.size, 31);
     for (const e of EXERCISES) {
       assert.ok(e.starter.length > 0 && e.hints.length >= 2 && e.cases.length >= 1 && e.instructions.length >= 1, e.id);
       assert.ok(SOLUTIONS[e.id], `solution for ${e.id}`);
@@ -186,6 +369,53 @@ async function main() {
     assert.deepEqual(parseProgress(JSON.stringify({ completed: [1, "a"], drafts: { a: 1, b: "ok" } })), { completed: ["a"], drafts: { b: "ok" } });
     assert.ok(data[PROGRESS_KEY]);
     assert.equal(progressSnapshot(null), "");
+  });
+
+  await test("year 7: common wrong answers are explained, not just failed", async () => {
+    await failsWith("y7-plan-then-type", 'print("Switch on")\nprint("Drive forward")\nprint("Check the battery")\nprint("Stop")', /Line 2 should be/);
+    await failsWith("y7-plan-then-type", 'print("switch on")\nprint("Check the battery")\nprint("Drive forward")\nprint("Stop")', /capital letters/);
+    await failsWith("y7-fix-errors", 'print("Robot ready"\nprint("Battery full")\nprint("Moving off")', /error/i);
+    await failsWith("y7-market-counter", 'a = int(input())\nb = int(input())\nprint(f"You sold {a} fruits.")', /Expected the program to print/);
+    await failsWith("y7-robot-speed", 'name = input()\nspeed = input()\nprint(f"{name} moves {speed * 10}")', /repeated ten times/);
+    await failsWith("y7-for-steps", 'n = int(input())\nfor i in range(n):\n    print(f"Step {i}")\nprint("Done!")', /Line 1 should be: Step 1/);
+    await failsWith("y7-for-steps", 'n = int(input())\nfor i in range(1, n + 1):\n    print(f"Step {i}")', /Line \d+ is missing/);
+    await failsWith("y7-countdown", "count = int(input())\nwhile count > 0:\n    print(count)\nprint(\"Lift off!\")", /too long|ran for|printed far too much/i);
+    await failsWith("y7-countdown", 'count = int(input())\nwhile count > 1:\n    print(count)\n    count = count - 1\nprint("Lift off!")', /missing|should be/);
+    await failsWith("y7-distance-decision", 'd = int(input())\nif d <= 10:\n    print("Stop")\nelif d < 30:\n    print("Slow down")\nelse:\n    print("Go")', /Stop|Slow down/);
+    await failsWith("y7-distance-decision", 'd = int(input())\nprint("Go")', /should print Stop/);
+    await failsWith("y7-battery-light", 'b = int(input())\nif b > 60:\n    print("Green")\nelif b >= 20:\n    print("Amber")\nelse:\n    print("Red")', /Green/);
+    await failsWith("y7-robot-functions", "def forward(steps):\n    print(steps)\n", /should be: Moving forward/);
+    await failsWith("y7-robot-functions", "def forward(steps):\n    print(f\"Moving forward {steps} steps\")\n", /turn_left/);
+    await failsWith("y7-robot-functions", "def forward():\n    print(\"Moving forward\")\ndef turn_left():\n    print(\"Turning left\")\n", /wrong number/);
+    await failsWith("y7-distance-travelled", "def distance_travelled(speed, seconds):\n    print(speed * seconds)\n", /gave back nothing/);
+    await failsWith("y7-distance-travelled", "def distance_travelled(speed, seconds):\n    return speed + seconds\n", /should give/);
+  });
+
+  await test("year 8: common wrong answers are explained", async () => {
+    await failsWith("y8-naira-change", "def change(price, paid):\n    return price - paid\n", /should give 150/);
+    await failsWith("y8-naira-change", "def change(price, paid):\n    print(paid - price)\n", /gave back nothing/);
+    await failsWith("y8-light-percent", "def percent(reading):\n    return int(reading / 1023 * 100)\n", /percent\(767\) should give 75/);
+    await failsWith("y8-light-percent", "def percent(reading):\n    return reading / 1023\n", /should give/);
+    await failsWith("y8-night-light", "def is_dark(reading, threshold):\n    return reading <= threshold\n", /is_dark\(300, 300\) should give False/);
+    await failsWith("y8-night-light", "def is_dark(reading):\n    return reading < 300\n", /wrong number of values/);
+    await failsWith("y8-list-stats", 'temps = [int(x) for x in input().split(",")]\nprint(f"Total: {sum(temps)}")', /Line 2 is missing/);
+    await failsWith("y8-list-stats", 'temps = [int(x) for x in input().split(",")]\nprint(f"Total: {sum(temps)}")\nprint(f"Highest: {max(temps)}")\nprint(f"Lowest: {min(temps)}")\nprint(f"Average: {sum(temps) // len(temps)}")', /Line 4 should be: Average: 30\.3/);
+    await failsWith("y8-password-length", 'p = input()\nif len(p) > 12:\n    print("Good length")\nelse:\n    print("Too short")', /12 characters|Good length/);
+    await failsWith("y8-accuracy", 'r = input().split(",")\nc = r.count("right")\nprint(f"Accuracy: {c / len(r) * 100}%")', /Accuracy: 75%|Accuracy: 100%|Accuracy: 33%|Accuracy: 67%/);
+    await failsWith("y8-smart-bin", 'def bin_action(hand_near, bin_full):\n    if bin_full:\n        return "Flash red"\n    if hand_near:\n        return "Open lid"\n    return "Stay closed"\n', /bin_action\(False, True\) should give 'Stay closed'/);
+    await failsWith("y8-keep-distance", 'def car_action(distance):\n    if distance >= 30:\n        return "forward"\n    elif distance < 20:\n        return "backward"\n    return "stop"\n', /car_action\(30\) should give 'stop'/);
+  });
+
+  await test("year 9: common wrong answers are explained", async () => {
+    await failsWith("y9-line-decision", 'def line_action(left_black, right_black):\n    if left_black:\n        return "turn left"\n    if right_black:\n        return "turn right"\n    return "stop"\n', /line_action\(True, True\) should give 'forward'/);
+    await failsWith("y9-compare-versions", 'a = [float(x) for x in input().split(",")]\nb = [float(x) for x in input().split(",")]\nprint(f"Average A: {sum(a):.1f}")\nprint(f"Average B: {sum(b):.1f}")\nprint("Better: A")', /Line 1 should be: Average A: 23\.0/);
+    await failsWith("y9-truth-table", 'print("A B AND OR")\nfor a in [0, 1]:\n    for b in [0, 1]:\n        print(a, b, a and b, a and b)', /Line 3 should be: 0 1 0 1/);
+    await failsWith("y9-truth-table", 'print("A B AND OR")', /Line 2 is missing/);
+    await failsWith("y9-stop-guard", 'def can_go(command, on_stop_line):\n    return command == "F"\n', /can_go\(.F., True\) should give False/);
+    await failsWith("y9-confidence-rule", 'def sort_leaf(label, confidence):\n    if confidence <= 70:\n        return "ask a person"\n    return "left basket" if label == "healthy" else "right basket"\n', /sort_leaf\('healthy', 70\) should give 'left basket'/);
+    await failsWith("y9-fairness-check", 'pairs = [item.split(":") for item in input().split(",")]\nprint("dim: 50%")', /should be:|missing/);
+    await failsWith("y9-debug-average", exerciseStarter("y9-debug-average"), /Line 1 should be: Average: 20\.0/);
+    await failsWith("y9-test-log", 'count = int(input())\nlines = [input() for _ in range(count)]\nprint("Average time: 0.0 seconds")\nprint("Total errors: 0")', /should be: Average time/);
   });
 
   console.log(`\n${passed} tests passed`);

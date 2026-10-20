@@ -1,7 +1,9 @@
 "use client";
 
+import { useState } from "react";
+
 import type { CheckReport } from "@/lib/code-studio/check-runner";
-import { EXERCISES, type Exercise } from "@/lib/code-studio/exercises";
+import { EXERCISES, type Exercise, type ExerciseGroup } from "@/lib/code-studio/exercises";
 
 import styles from "./CodeStudio.module.css";
 
@@ -18,37 +20,74 @@ type Props = {
   onCheck: () => void;
 };
 
+const GROUPS: { name: ExerciseGroup; label: string }[] = [
+  { name: "Starter", label: "Starter exercises" },
+  { name: "Year 7", label: "Year 7: Python with Nka's robot" },
+  { name: "Year 8", label: "Year 8: Python with Echiche" },
+  { name: "Year 9", label: "Year 9: Python with Ogbon" },
+];
+
 // The left column: pick an exercise, read the task, ask for hints, check the answer.
 export default function ExercisePanel({ exercise, completed, hintsShown, report, checking, busy, onSelect, onShowHint, onCheck }: Props) {
   const firstFailure = report?.cases.find((c) => !c.passed);
   const passedCount = report?.cases.filter((c) => c.passed).length ?? 0;
+  // Only the group of the chosen exercise starts open; the learner can open the others.
+  const [toggled, setToggled] = useState<Record<string, boolean>>({});
+  const isOpen = (group: ExerciseGroup) => toggled[group] ?? exercise?.group === group;
 
   return (
     <aside className={styles.side} aria-label="Exercises">
       <nav aria-label="Choose an exercise">
-        <ol className={styles.exerciseList}>
-          {EXERCISES.map((item, index) => {
-            const done = completed.includes(item.id);
-            return (
-              <li key={item.id}>
+        {GROUPS.map(({ name, label }) => {
+          const items = EXERCISES.filter((item) => item.group === name);
+          const doneCount = items.filter((item) => completed.includes(item.id)).length;
+          const open = isOpen(name);
+          return (
+            <section key={name} className={styles.group}>
+              <h2 className={styles.groupHeading}>
                 <button
                   type="button"
-                  className={styles.exerciseButton}
-                  aria-current={exercise?.id === item.id ? "step" : undefined}
-                  onClick={() => onSelect(item.id)}
-                  disabled={checking}
+                  className={styles.groupToggle}
+                  aria-expanded={open}
+                  aria-controls={`group-${name.replace(/\s+/g, "-")}`}
+                  onClick={() => setToggled((previous) => ({ ...previous, [name]: !open }))}
                 >
-                  <span className={styles.exerciseNumber} data-done={done || undefined}>
-                    {done ? "✓" : index + 1}
-                  </span>
-                  <span className={styles.exerciseTitle}>
-                    {item.title}
-                    {done && <span className={styles.srOnly}> (completed)</span>}
+                  <span>{label}</span>
+                  <span className={styles.groupCount}>
+                    {doneCount} of {items.length} done
                   </span>
                 </button>
-              </li>
-            );
-          })}
+              </h2>
+              {open && (
+                <ol className={styles.exerciseList} id={`group-${name.replace(/\s+/g, "-")}`}>
+                  {items.map((item, index) => {
+                    const done = completed.includes(item.id);
+                    return (
+                      <li key={item.id}>
+                        <button
+                          type="button"
+                          className={styles.exerciseButton}
+                          aria-current={exercise?.id === item.id ? "step" : undefined}
+                          onClick={() => onSelect(item.id)}
+                          disabled={checking}
+                        >
+                          <span className={styles.exerciseNumber} data-done={done || undefined}>
+                            {done ? "✓" : index + 1}
+                          </span>
+                          <span className={styles.exerciseTitle}>
+                            {item.title}
+                            {done && <span className={styles.srOnly}> (completed)</span>}
+                          </span>
+                        </button>
+                      </li>
+                    );
+                  })}
+                </ol>
+              )}
+            </section>
+          );
+        })}
+        <ol className={styles.exerciseList}>
           <li>
             <button
               type="button"
@@ -66,6 +105,11 @@ export default function ExercisePanel({ exercise, completed, hintsShown, report,
 
       {exercise ? (
         <section className={styles.task} aria-labelledby="task-title">
+          {exercise.lesson && (
+            <p className={styles.lessonTag}>
+              {exercise.group}, {exercise.lesson}
+            </p>
+          )}
           <h2 id="task-title">{exercise.title}</h2>
           {exercise.instructions.map((line) => (
             <p key={line}>{line}</p>

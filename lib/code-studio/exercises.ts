@@ -1,77 +1,31 @@
-// The five guided exercises. Each one is data: the task, a starter program, hints,
+// The guided exercises. Each one is data: the task, a starter program, hints,
 // and a list of checks. A check runs the learner's program with some typed
 // answers and looks at what it printed. Nothing here runs Python itself.
+//
+// Starter exercises are here; each school year's exercises live in their own file.
 
-/** What one run of the learner's program produced. */
-export interface RunCapture {
-  outcome: "ok" | "error" | "stopped" | "timeout" | "output-limit" | "crashed" | "failed-to-start";
-  stdout: string;
-  stderr: string;
-}
+import {
+  escapeRegExp,
+  lastLine,
+  MARK,
+  runProblem,
+  shown,
+  squash,
+  type CheckCase,
+  type Exercise,
+} from "./exercise-kit";
+import { YEAR_7_EXERCISES } from "./exercises-year7";
+import { YEAR_8_EXERCISES } from "./exercises-year8";
+import { YEAR_9_EXERCISES } from "./exercises-year9";
 
-export interface CheckCase {
-  /** Shown to the learner, for example "Name Ada, age 12". */
-  label: string;
-  /** The answers given to input(), one per call. */
-  stdin: string[];
-  /** Hidden code added after the learner's program (used to call their function). */
-  append?: string;
-  /** Returns null when the run is right, otherwise a helpful sentence. */
-  evaluate: (run: RunCapture) => string | null;
-}
-
-export interface Exercise {
-  id: string;
-  title: string;
-  summary: string;
-  /** The task, one paragraph per entry. */
-  instructions: string[];
-  starter: string;
-  hints: string[];
-  cases: CheckCase[];
-}
-
-/** Collapses every run of spaces and new lines to one space. */
-function squash(text: string): string {
-  return text.replace(/\s+/g, " ").trim();
-}
-
-function lastLine(text: string): string {
-  const lines = text.split("\n").map((l) => l.trim()).filter(Boolean);
-  return lines[lines.length - 1] ?? "";
-}
-
-function shown(text: string): string {
-  const t = squash(text);
-  return t.length > 160 ? `${t.slice(0, 160)}…` : t;
-}
-
-/** The sentence to show when the program did not even finish. null if it did. */
-export function runProblem(run: RunCapture): string | null {
-  switch (run.outcome) {
-    case "ok":
-      return null;
-    case "error":
-      return `Your program stopped with an error: ${lastLine(run.stderr) || "unknown error"}. Press Run to see the full message.`;
-    case "timeout":
-      return "Your program ran for too long. Look for a loop that never ends, or for input() being called more times than the exercise asks.";
-    case "output-limit":
-      return "Your program printed far too much. Look for a loop that never ends.";
-    case "stopped":
-      return "The check was stopped.";
-    default:
-      return "Python could not run the check. Press Run once, then try Check again.";
-  }
-}
-
-function escapeRegExp(text: string): string {
-  return text.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
-}
+export { runProblem };
+export type { CheckCase, Exercise, ExerciseGroup, RunCapture } from "./exercise-kit";
 
 // ---- 1. Hello, World! -------------------------------------------------------
 
 const helloWorld: Exercise = {
   id: "hello-world",
+  group: "Starter",
   title: "Hello, World!",
   summary: "Make the computer say hello with print().",
   instructions: [
@@ -122,6 +76,7 @@ function greetingCase(name: string, age: number): CheckCase {
 
 const variables: Exercise = {
   id: "variables-input",
+  group: "Starter",
   title: "Variables and input()",
   summary: "Store what someone types, then use it.",
   instructions: [
@@ -167,6 +122,7 @@ function timesTableCase(n: number): CheckCase {
 
 const loops: Exercise = {
   id: "times-table",
+  group: "Starter",
   title: "Loops: times tables",
   summary: "Repeat work with a for loop.",
   instructions: [
@@ -208,6 +164,7 @@ function oddEvenCase(n: number): CheckCase {
 
 const ifElse: Exercise = {
   id: "odd-even",
+  group: "Starter",
   title: "If / else: odd or even",
   summary: "Make the program decide.",
   instructions: [
@@ -227,8 +184,6 @@ const ifElse: Exercise = {
 };
 
 // ---- 5. Functions: temperature ----------------------------------------------
-
-const MARK = "@@RX@@";
 
 function temperatureCase(celsius: number, fahrenheit: number): CheckCase {
   return {
@@ -256,6 +211,7 @@ function temperatureCase(celsius: number, fahrenheit: number): CheckCase {
 
 const functions: Exercise = {
   id: "temperature-function",
+  group: "Starter",
   title: "Functions: temperature",
   summary: "Write a function that gives back an answer.",
   instructions: [
@@ -277,7 +233,9 @@ print(celsius_to_fahrenheit(100))
   cases: [temperatureCase(0, 32), temperatureCase(100, 212), temperatureCase(-40, -40), temperatureCase(37, 98.6)],
 };
 
-export const EXERCISES: Exercise[] = [helloWorld, variables, loops, ifElse, functions];
+export const STARTER_EXERCISES: Exercise[] = [helloWorld, variables, loops, ifElse, functions];
+
+export const EXERCISES: Exercise[] = [...STARTER_EXERCISES, ...YEAR_7_EXERCISES, ...YEAR_8_EXERCISES, ...YEAR_9_EXERCISES];
 
 export function getExercise(id: string | null | undefined): Exercise | undefined {
   return EXERCISES.find((exercise) => exercise.id === id);
