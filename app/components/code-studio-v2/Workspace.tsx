@@ -6,6 +6,8 @@ import styles from "./Workspace.module.css";
 import { ROBOT_GOAL, ROBOT_START, runRobotProgram, type RobotCommand, type RobotPosition, type RobotRunResult } from "@/lib/code-studio-v2/robot-simulator";
 import { parseRobotTextProgram } from "@/lib/code-studio-v2/text-code-parser";
 import { createWorkspaceResetState } from "@/lib/code-studio-v2/workspace-state";
+import { parseConditionalRobotTextProgram } from "@/lib/code-studio-v2/conditional-text-parser";
+import { runConditionalRobotProgram, type ConditionalTraceEvent } from "@/lib/code-studio-v2/conditional-program";
 
 type Command = RobotCommand;
 type Block = { id: number; command: Command };
@@ -28,6 +30,7 @@ export default function Workspace() {
   const [textCode, setTextCode] = useState("");
   const [parseError, setParseError] = useState<string | null>(null);
   const [traceIndex, setTraceIndex] = useState(-1);
+  const [conditionalEvents, setConditionalEvents] = useState<ConditionalTraceEvent[]>([]);
   const code = useMemo(() => blocks.map((block, index) => `// ${index + 1}. ${LABELS[block.command].title}\nrobot.${LABELS[block.command].code}`).join("\n"), [blocks]);
   const activeTrace = result && traceIndex >= 0 ? result.trace[Math.min(traceIndex, result.trace.length - 1)] : null;
   const current: RobotPosition = activeTrace?.position ?? (result && traceIndex === -1 ? result.position : ROBOT_START);
@@ -39,6 +42,7 @@ export default function Workspace() {
     setNextId((id) => id + 1);
     setResult(null);
     setParseError(null);
+    setConditionalEvents([]);
   }
   function moveBlock(index: number, offset: -1 | 1) {
     setBlocks((items) => {
@@ -49,10 +53,12 @@ export default function Workspace() {
       return copy;
     });
     setResult(null);
+    setConditionalEvents([]);
   }
   function removeBlock(id: number) {
     setBlocks((items) => items.filter((item) => item.id !== id));
     setResult(null);
+    setConditionalEvents([]);
   }
   function reset() {
     const cleared = createWorkspaceResetState();
@@ -62,6 +68,7 @@ export default function Workspace() {
     setResult(cleared.result);
     setParseError(cleared.parseError);
     setTraceIndex(cleared.traceIndex);
+    setConditionalEvents([]);
   }
   function loadExample() {
     setBlocks(EXAMPLE_PROGRAM.map((command, index) => ({ id: index + 1, command })));
@@ -70,16 +77,37 @@ export default function Workspace() {
     setEditorMode("blocks");
     setParseError(null);
     setResult(null);
+    setConditionalEvents([]);
+    setConditionalEvents([]);
   }
   function runProgram() {
     if (editorMode === "text") {
+      const hasConditionalSyntax = /^\s*if\s*\(/m.test(textCode) || /^\s*else\s*\{/m.test(textCode) || /^\s*\}\s*else\s*\{/m.test(textCode);
+      if (hasConditionalSyntax) {
+        const parsedConditional = parseConditionalRobotTextProgram(textCode);
+        if (!parsedConditional.ok) {
+          setParseError(`Line ${parsedConditional.line}: ${parsedConditional.message}`);
+          setResult(null);
+          setConditionalEvents([]);
+          return;
+        }
+        const conditional = runConditionalRobotProgram(parsedConditional.instructions);
+        const commandEvents = conditional.events.filter((event): event is Extract<ConditionalTraceEvent, { type: "command" }> => event.type === "command");
+        setResult({ position: conditional.position, visited: conditional.visited, trace: commandEvents.map((event) => event.trace), message: conditional.message, success: conditional.success });
+        setConditionalEvents(conditional.events.filter((event) => event.type === "branch"));
+        setParseError(null);
+        setTraceIndex(commandEvents.length ? 0 : -1);
+        return;
+      }
       const parsed = parseRobotTextProgram(textCode);
       if (!parsed.ok) {
         setParseError(`Line ${parsed.line}: ${parsed.message}`);
         setResult(null);
+        setConditionalEvents([]);
         return;
       }
       setParseError(null);
+      setConditionalEvents([]);
       setResult(runRobotProgram(parsed.commands, parsed.sourceLines, parsed.repeatPaths));
       setTraceIndex(0);
       return;
@@ -93,6 +121,7 @@ export default function Workspace() {
     setEditorMode("text");
     setParseError(null);
     setResult(null);
+    setConditionalEvents([]);
   }
   function switchToBlocks() {
     const parsed = parseRobotTextProgram(textCode);
@@ -158,6 +187,21 @@ export default function Workspace() {
               <button className={styles.resetButton} onClick={reset}>Clear</button>
             </div>
             {result && <div className={result.success ? styles.success : styles.feedback} role="status"><strong>{result.success ? "Mission accomplished" : "Keep experimenting"}</strong><p>{result.message}</p></div>}
+            {conditionalEvents.length > 0 && (
+              <section className={styles.tracePanel} aria-label="Conditional decisions">
+                <div className={styles.traceHeading}><strong>How RhinoBot chose a branch</strong><span>{conditionalEvents.length} decisions</span></div>
+                <ol className={styles.traceList}>
+                  {conditionalEvents.map((event, index) => event.type === "branch" ? (
+                    <li className={styles.traceStep} key={`${event.sourceLine}-${index}`}>
+                      <div className={styles.traceJump}>
+                        <span className={styles.traceNumber}>{index + 1}</span>
+                        <div><strong>Line {event.sourceLine}: {event.result ? "Condition true" : "Condition false"}</strong><p>{event.explanation}</p></div>
+                      </div>
+                    </li>
+                  ) : null)}
+                </ol>
+              </section>
+            )}
             {result && result.trace.length > 0 && (
               <section className={styles.tracePanel} aria-label="Program execution trace">
                 <div className={styles.traceHeading}><strong>What happened, step by step</strong><span>{result.trace.length} steps</span></div>
@@ -207,10 +251,10 @@ export default function Workspace() {
 
             <section className={styles.codePanel}>
               <div className={styles.panelHeader}><div><span className={styles.panelKicker}>03 / UNDERSTAND</span><h2>{editorMode === "text" ? "Text editor" : "Code view"}</h2></div><div className={styles.blockActions}><button className={styles.hintToggle} onClick={() => setShowHints((value) => !value)}>{showHints ? "Hide guide" : "Explain code"}</button><button className={styles.hintToggle} onClick={() => { if (editorMode === "blocks") switchToText(); else switchToBlocks(); }}>{editorMode === "text" ? "Use blocks" : "Edit text"}</button></div></div>
-              <p className={styles.helper}>{editorMode === "text" ? "Use one robot instruction per line. For repetition, use repeat(3) { on its own line, then close the block with }. Repeats are bounded and arbitrary JavaScript is rejected." : "Your instruction blocks are translated into a readable code-like form. Select Edit text to try the text language."}</p>
-              {editorMode === "text" ? <textarea className={styles.textEditor} aria-label="RhinoBot text code" spellCheck={false} value={textCode} onChange={(event) => { setTextCode(event.target.value); setParseError(null); setResult(null); }} /> : <pre className={styles.code}><code>{code || "// Add blocks to build your program"}</code></pre>}
+              <p className={styles.helper}>{editorMode === "text" ? "Use one robot instruction per line. For repetition, use repeat(3) { on its own line, then close the block with }. For branching, use if (robot.atGoal()) { ... } else { ... } or robot.facingNorth/East/South/West() conditions. Conditional programs use the safe, bounded robot language; arbitrary JavaScript is rejected." : "Your instruction blocks are translated into a readable code-like form. Select Edit text to try the text language."}</p>
+              {editorMode === "text" ? <textarea className={styles.textEditor} aria-label="RhinoBot text code" spellCheck={false} value={textCode} onChange={(event) => { setTextCode(event.target.value); setParseError(null); setResult(null); setConditionalEvents([]); }} /> : <pre className={styles.code}><code>{code || "// Add blocks to build your program"}</code></pre>}
               {parseError && <div className={styles.feedback} role="alert"><strong>Code needs a fix</strong><p>{parseError}</p></div>}
-              {showHints && <div className={styles.explanation}><strong>What is an algorithm?</strong><p>An algorithm is a set of steps that solves a problem. Computers follow instructions in order. Changing the order can change the result. A repeat block runs the instructions inside it a fixed number of times.</p><strong>Try this</strong><p>Move a turn block earlier or later, then run the program again. In text mode, try a repeat block with count 2, put robot.moveForward() inside it, and close the block. Observe how repetition changes the path.</p></div>}
+              {showHints && <div className={styles.explanation}><strong>What is an algorithm?</strong><p>An algorithm is a set of steps that solves a problem. Computers follow instructions in order. Changing the order can change the result. A repeat block runs the instructions inside it a fixed number of times. An if/else block chooses which instructions to run based on RhinoBot’s current state.</p><strong>Try this</strong><p>Move a turn block earlier or later, then run the program again. In text mode, try a repeat block with count 2, put robot.moveForward() inside it, and close the block. Observe how repetition changes the path.</p></div>}
             </section>
           </div>
         </section>

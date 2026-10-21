@@ -2,7 +2,7 @@
 
 **Branch:** `product/rhinox-code-studio-v2`  
 **Pull request:** [#17](https://github.com/digitalmaeq-ai/rhinox/pull/17) — open; not merged.  
-**Validation:** GitHub Actions run [39612766229](https://github.com/digitalmaeq-ai/rhinox/actions/runs/39612766229) passed on commit `ef18301bf2cf3f33618a54e06b40a2470d68e78f`. The run passed the production-only high/critical dependency audit, critical-severity full-tree gate, curriculum importer, private-curriculum access policy, robot simulator, conditional runtime, text parser, lesson gates, lint and production build. The full development dependency audit still reports five high-severity findings and no critical findings.
+**Validation:** GitHub Actions run [39616683368](https://github.com/digitalmaeq-ai/rhinox/actions/runs/39616683368) passed on commit `2f24d30b08f5df1e993fc5297064381533c154dc`, including the workspace-reset check and TypeScript check. The full development dependency audit still reports five high-severity findings and no critical findings. The comprehensive audit is paused by product decision while planned core development resumes; this is not release approval.
 
 ## Dependency security disposition
 
@@ -12,14 +12,15 @@
 - Do not claim the complete development dependency tree is vulnerability-free. Do not install an unreviewed fork or suppress the advisory as if fixed.
 - Added a production-only audit gate (`npm audit --omit=dev --audit-level=high`) alongside the critical-severity full-tree gate. This distinguishes exploitable production dependencies from the currently unpatched development-tool advisory while continuing to report the latter in CI logs.
 
-## Remaining audit items — no new feature work yet
+## Deferred audit items — resume after the planned development milestone
 
-1. **Completed in commit `e3300bf6bb6ec7821116972579e23fad0413e89c`:** centralised workspace Clear/reset state and added regression assertions for blocks, text content, parser errors, results/traces and trace navigation. The new check is wired into CI; its run must pass before this item is considered validated.
-2. Added a dedicated `npm run typecheck` (`tsc --noEmit`) script and CI step. Confirm it passes on the resulting workflow run.
+1. **Completed and validated:** centralised workspace Clear/reset state and added regression assertions for blocks, text content, parser errors, results/traces and trace navigation. The check passed in run [39616683368](https://github.com/digitalmaeq-ai/rhinox/actions/runs/39616683368).
+2. **Completed and validated:** added a dedicated `npm run typecheck` (`tsc --noEmit`) script and CI step; it passed in run [39616683368](https://github.com/digitalmaeq-ai/rhinox/actions/runs/39616683368).
 3. Complete browser/manual keyboard, screen-reader, reduced-motion and mobile viewport checks. Existing browser test scripts require a real browser and Playwright; CI build/lint do not substitute for these.
 4. Rechecked the feature-branch tree at commit `e3300bf6bb6ec7821116972579e23fad0413e89c`: no source workbook or raw Master Matrix CSV filename matches were present. Recheck generated artifacts before release.
 5. Revisit the upstream `braces` advisory when a patched version or a justified alternative is available.
+6. Validate the conditional text parser and workspace integration in CI and a real browser before counting conditional programming as complete.
 
 ## Explicit limitations
 
-Conditional execution exists as a safe runtime module but is not yet integrated into learner-written `if/else` syntax in the editor. Account-backed progress and trusted authentication/entitlement are not implemented; licensed curriculum access remains disabled. No production release or merge is authorized by this audit.
+The conditional runtime is being connected to learner-written `if/else` syntax through a bounded parser; this integration remains unvalidated until the current branch checks and browser testing complete. Account-backed progress and trusted authentication/entitlement are not implemented; licensed curriculum access remains disabled. No production release or merge is authorized by this audit.

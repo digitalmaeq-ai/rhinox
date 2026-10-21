@@ -1,0 +1,14 @@
+#!/usr/bin/env node
+import assert from "node:assert/strict";
+import { test } from "node:test";
+import { parseConditionalRobotTextProgram } from "../lib/code-studio-v2/conditional-text-parser.ts";
+import { runConditionalRobotProgram } from "../lib/code-studio-v2/conditional-program.ts";
+import { ROBOT_START } from "../lib/code-studio-v2/robot-simulator.ts";
+test("parses if/else blocks and maps supported conditions",()=>{const r=parseConditionalRobotTextProgram(["if (robot.atGoal()) {"," robot.beep()","} else {"," robot.turnRight()","}"].join("\n"));assert.equal(r.ok,true);if(r.ok){const n=r.instructions[0];assert.equal(n?.type,"if");if(n?.type==="if"){assert.equal(n.condition,"atGoal");assert.equal(n.sourceLine,1);assert.equal(n.thenBranch[0]?.type,"command");assert.equal(n.elseBranch[0]?.type,"command");}}});
+test("supports same-line closing brace and else",()=>{const r=parseConditionalRobotTextProgram("if (robot.facingNorth()) {\n robot.beep()\n} else {\n robot.turnLeft()\n}");assert.equal(r.ok,true);if(r.ok&&r.instructions[0]?.type==="if"){assert.equal(r.instructions[0].condition,"facingNorth");assert.equal(r.instructions[0].elseBranch.length,1);}});
+test("supports nested conditions",()=>{const r=parseConditionalRobotTextProgram(["if (robot.atGoal()) {"," if (robot.facingNorth()) {","  robot.beep()"," }","} else {"," robot.turnRight()","}"].join("\n"));assert.equal(r.ok,true);if(r.ok){const n=r.instructions[0];assert.equal(n?.type,"if");if(n?.type==="if")assert.equal(n.thenBranch[0]?.type,"if");}});
+test("runs parsed code through the safe runtime",()=>{const p=parseConditionalRobotTextProgram("if (robot.facingNorth()) {\n robot.beep()\n} else {\n robot.turnLeft()\n}");assert.equal(p.ok,true);if(p.ok){const r=runConditionalRobotProgram(p.instructions);assert.equal(r.position.x,ROBOT_START.x);assert.equal(r.position.y,ROBOT_START.y);assert.equal(r.events.some(e=>e.type==="branch"&&e.result),true);assert.equal(r.events.some(e=>e.type==="command"),true);}});
+test("rejects unsupported conditions and arbitrary JavaScript",()=>{assert.equal(parseConditionalRobotTextProgram("if (robot.deleteEverything()) {\n robot.beep()\n}").ok,false);assert.equal(parseConditionalRobotTextProgram("console.log('hello')").ok,false);});
+test("rejects missing and unmatched braces",()=>{assert.equal(parseConditionalRobotTextProgram("if (robot.atGoal()) {\n robot.beep()").ok,false);assert.equal(parseConditionalRobotTextProgram("robot.beep()\n}").ok,false);});
+test("rejects else without a preceding if",()=>{const r=parseConditionalRobotTextProgram("else {\n robot.beep()\n}");assert.equal(r.ok,false);if(!r.ok)assert.match(r.message,/else/);});
+test("enforces source size limits",()=>{assert.equal(parseConditionalRobotTextProgram("//"+"x".repeat(20_000)).ok,false);assert.equal(parseConditionalRobotTextProgram(Array.from({length:501},()=>"// note").join("\n")).ok,false);});

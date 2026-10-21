@@ -8,6 +8,7 @@ on:
       - "app/coding-robotics/code-studio/workspace/**"
       - "app/components/code-studio-v2/**"
       - "lib/code-studio-v2/**"
+      - "scripts/test-code-studio-conditional-text-parser.mjs"
       - "scripts/import-code-studio-curriculum.mjs"
       - "scripts/test-code-studio-curriculum-import.mjs"
       - "scripts/test-private-curriculum-loader.mjs"
@@ -79,6 +80,8 @@ jobs:
         run: node --experimental-strip-types scripts/test-code-studio-robot-simulator.mjs
       - name: Test runtime conditional execution
         run: node --experimental-strip-types scripts/test-code-studio-conditional-program.mjs
+      - name: Test conditional text parser
+        run: node --experimental-strip-types scripts/test-code-studio-conditional-text-parser.mjs
       - name: Test safe text-code parser
         run: node --experimental-strip-types scripts/test-code-studio-text-parser.mjs
       - name: Test lesson eligibility and core part gates
