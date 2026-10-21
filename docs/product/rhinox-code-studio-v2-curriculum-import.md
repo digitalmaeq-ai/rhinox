@@ -6,14 +6,14 @@ The V2 learner interface must use a versioned curriculum catalogue rather than t
 
 ## Input
 
-Export the v3.15 curriculum index as a UTF-8 CSV with the following columns:
+Export the complete **Master Matrix** sheet from `Think-Move-Code-Master-Curriculum-v3.15.xlsx` as UTF-8 CSV. Do not use `rhinox_code_studio_curriculum_master_index_v3_15.csv`: that helper index currently contains only 213 records and omits the remainder of the curriculum. The importer accepts the actual workbook column names, including:
 
-- `matrix_row`, `level`, `term`, `week`, `week_type`, `theme`, `strand`
-- `prior_learning`, `future_bridge`, `assessment_evidence`, `platform`
-- `core_parts`, `stretch`, `fallback`, `competency`, `code`
-- `practical_activity`, `weekly_check`
+- `Level`, `Term`, `Week`, `Week type`, `Theme (child-facing)`, `Main strand`
+- `Prior Learning`, `Future Bridge`, `Assessment Evidence`, `Kit / platform`
+- `Core parts this week (must do)`, `Stretch (optional)`, `Fallback: no power / device / kit`, `Competency statement (from Competency Framework)`, `Code`
+- `Practical activity`, `Check My Learning (weekly)`, `Mastery target`
 
-An extra `index` column is accepted. CSV quoted commas, escaped quotes and line breaks inside fields are supported.
+Other Master Matrix columns are allowed and ignored by the importer. CSV quoted commas, escaped quotes and line breaks inside fields are supported. The older normalised helper-index schema is also accepted for migration/testing, but a partial file will fail the 507-record check.
 
 ## Run
 
@@ -42,4 +42,4 @@ The importer stops on missing fields, malformed CSV, duplicate week keys, duplic
 
 ## Current status
 
-The importer has been committed to the V2 branch. The generated full catalogue is **not yet committed or connected to the learner route**. This distinction is intentional: the first prototype remains limited to one verified detailed lesson until the full import and mapping checks are run.
+The importer now accepts the workbook's actual Master Matrix headers and generates a combined `catalogue.json`, per-level JSON files, and a source-hash manifest. Regression tests cover both schemas and rejection of the incomplete 213-row helper index. The updated workflow must pass before the change is considered verified. The generated full catalogue is **not yet committed or connected to the learner route**. The first prototype remains limited to one detailed lesson until the real full workbook export is imported and reviewed.
