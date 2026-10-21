@@ -61,6 +61,8 @@ jobs:
         with:
           node-version: 24
           cache: npm
+      - name: Preserve baseline dependency lockfile
+        run: git show "${GITHUB_SHA}^:package-lock.json" > "$RUNNER_TEMP/package-lock-before.json"
       - name: Install dependencies
         run: |
           npm install
@@ -104,10 +106,33 @@ jobs:
         run: npm run lint
       - name: Build
         run: npm run build
+      - name: Export dependency lockfile changes
+        if: always()
+        shell: bash
+        run: |
+          node --input-type=commonjs -e '
+            const fs = require("node:fs");
+            const oldLock = JSON.parse(fs.readFileSync(process.env.RUNNER_TEMP + "/package-lock-before.json", "utf8"));
+            const newLock = JSON.parse(fs.readFileSync("package-lock.json", "utf8"));
+            const changedPackages = {};
+            for (const [path, value] of Object.entries(newLock.packages ?? {})) {
+              if (JSON.stringify(oldLock.packages?.[path]) !== JSON.stringify(value)) changedPackages[path] = value;
+            }
+            const removedPackages = Object.keys(oldLock.packages ?? {}).filter(path => !(path in (newLock.packages ?? {})));
+            fs.writeFileSync("lockfile-changes.json", JSON.stringify({
+              rootPackage: newLock.packages?.[""],
+              changedPackages,
+              removedPackages
+            }, null, 2) + "\n");
+            console.log("Changed lockfile package entries:", Object.keys(changedPackages).length);
+            console.log("Removed lockfile package entries:", removedPackages.length);
+          '
       - name: Upload audited lockfile for review
         if: always()
         uses: actions/upload-artifact@v4
         with:
           name: code-studio-v2-audited-lockfile
-          path: package-lock.json
+          path: |
+            package-lock.json
+            lockfile-changes.json
           retention-days: 1
