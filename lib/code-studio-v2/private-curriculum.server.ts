@@ -21,7 +21,7 @@ export type CurriculumAccess = {
 export function curriculumId({ level, term, week }: CurriculumSelection): string | null {
   if (!LEVELS.has(level) || !Number.isInteger(term) || term < 1 || term > 3 ||
       !Number.isInteger(week) || week < 1 || week > 13) return null;
-  return `tmc-v3-15-${level.toLowerCase().replace(/\\s+/g, "-")}-t${term}-w${week}`;
+  return `tmc-v3-15-${level.toLowerCase().replace(/ +/g, "-")}-t${term}-w${week}`;
 }
 
 /**
@@ -34,7 +34,7 @@ export async function getLicensedCurriculumActivity(
 ): Promise<CurriculumActivity | null> {
   const id = curriculumId(selection);
   if (!id || !access.learnerId || !access.canReadLicensedCurriculum) return null;
-  const filename = `${selection.level.toLowerCase().replace(/\\s+/g, "-")}.json`;
+  const filename = `${selection.level.toLowerCase().replace(/ +/g, "-")}.json`;
   let source: string;
   try {
     source = await readFile(path.join(PRIVATE_ROOT, filename), "utf8");
