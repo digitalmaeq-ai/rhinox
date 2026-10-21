@@ -42,7 +42,7 @@ on:
       - "docs/product/rhinox-code-studio-v2-*.md"
 
 permissions:
-  contents: read
+  contents: write
 
 concurrency:
   group: code-studio-v2-${{ github.workflow }}-${{ github.ref }}
@@ -69,6 +69,19 @@ jobs:
         run: |
           npm install
           npm audit fix || true
+      - name: Commit refreshed lockfile on feature branch
+        if: github.event_name == 'push' && github.ref == 'refs/heads/product/rhinox-code-studio-v2'
+        shell: bash
+        run: |
+          if ! git diff --quiet -- package-lock.json; then
+            git config user.name "github-actions[bot]"
+            git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+            git add package-lock.json
+            git commit -m "Refresh dependency lockfile with security fixes"
+            git push origin "HEAD:${GITHUB_REF_NAME}"
+          else
+            echo "Dependency lockfile already matches the audited package tree."
+          fi
       - name: Report dependency security advisories
         shell: bash
         run: |
