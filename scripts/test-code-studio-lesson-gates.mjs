@@ -1,8 +1,8 @@
 #!/usr/bin/env node
 import assert from "node:assert/strict";
 import { CURRICULUM_ACTIVITIES } from "../lib/code-studio-v2/curriculum.ts";
-import { isBuildRequired, isReviewedInteractiveLesson } from "../lib/code-studio-v2/lesson-gates.ts";
-import { getLessonSpec, isLessonSpecConsistent } from "../lib/code-studio-v2/lesson-specs.ts";
+import { isBuildRequired } from "../lib/code-studio-v2/lesson-gates.ts";
+import { getLessonSpec, isLessonSpecConsistent, isReviewedInteractiveLesson } from "../lib/code-studio-v2/lesson-specs.ts";
 
 const activity = CURRICULUM_ACTIVITIES.find((item) => item.id === "tmc-v3-15-nursery-1-t1-w1");
 assert.ok(activity, "The reviewed lesson must exist in the curriculum records.");
