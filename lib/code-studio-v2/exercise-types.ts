@@ -80,6 +80,7 @@ export function isExerciseDefinition(value: unknown): value is ExerciseDefinitio
   if (!baseValid) return false;
 
   if (candidate.kind === "ordering") {
+    if (candidate.evidenceMode !== "automatic") return false;
     if (!Array.isArray(candidate.items) || candidate.items.length < 2 ||
         !Array.isArray(candidate.expectedOrder) ||
         !candidate.scoring || typeof candidate.scoring !== "object") return false;
@@ -98,6 +99,7 @@ export function isExerciseDefinition(value: unknown): value is ExerciseDefinitio
       Number(candidate.pointsAvailable) === Number(scoring.correctPoints);
   }
   if (candidate.kind === "choice") {
+    if (candidate.evidenceMode !== "automatic") return false;
     if (!Array.isArray(candidate.options) || candidate.options.length < 2) return false;
     const options = candidate.options as Record<string, unknown>[];
     return options.every((option) => option && nonEmpty(option.id) && nonEmpty(option.label)) &&
