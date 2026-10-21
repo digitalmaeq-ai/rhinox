@@ -279,7 +279,7 @@ function LessonView({
                 </div>
                 <div className={styles.orderingActions}>
                   <span>Attempts: {orderingAttempts} of {orderingExercise.maxAttempts}</span>
-                  <button className={styles.primaryButton} onClick={checkOrderingAnswer} disabled={selectedOrder.length !== orderingExercise.items.length || attemptsExhausted || orderingResult === "correct"}>Check my order</button>
+                  <button className={styles.primaryButton} onClick={checkOrderingAnswer} disabled={selectedOrder.length !== orderingExercise.items.length || attemptsExhausted || orderingResult !== null}>Check my order</button>
                 </div>
                 {orderingResult && <div role="status" aria-live="polite" className={orderingResult === "correct" ? styles.feedbackSuccess : styles.feedbackTry}>
                   <strong>{orderingResult === "correct" ? "Well done! 🎉" : attemptsExhausted ? "Let’s learn from this try." : "Good try. You can try again."}</strong>
