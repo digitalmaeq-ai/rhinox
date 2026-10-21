@@ -13,10 +13,19 @@ const COMMANDS: Record<string, RobotCommand> = {
 const MAX_EXPANDED_COMMANDS = 100;
 const MAX_REPEAT_COUNT = 10;
 const MAX_REPEAT_DEPTH = 3;
+const MAX_SOURCE_CHARS = 20_000;
+const MAX_SOURCE_LINES = 500;
 
 /** Parse a small, safe robot language; never evaluates JavaScript. */
 export function parseRobotTextProgram(source: string): TextProgramParseResult {
+  if (typeof source !== "string") return { ok: false, line: 1, message: "Program must be text." };
+  if (source.length > MAX_SOURCE_CHARS) {
+    return { ok: false, line: 1, message: `Programs are limited to ${MAX_SOURCE_CHARS} characters.` };
+  }
   const lines = source.split(/\r?\n/);
+  if (lines.length > MAX_SOURCE_LINES) {
+    return { ok: false, line: MAX_SOURCE_LINES + 1, message: `Programs are limited to ${MAX_SOURCE_LINES} lines.` };
+  }
   const commands: RobotCommand[] = [];
   const sourceLines: number[] = [];
   const repeatPaths: number[][] = [];

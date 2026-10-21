@@ -136,3 +136,18 @@ test("an empty program parses to no commands", () => {
   const result = parseRobotTextProgram("// no commands yet");
   assert.deepEqual(result, { ok: true, commands: [], sourceLines: [] });
 });
+
+test("rejects oversized source before parsing", () => {
+  const result = parseRobotTextProgram("//" + "x".repeat(20_000));
+  assert.equal(result.ok, false);
+  if (!result.ok) assert.match(result.message, /limited to 20000 characters/);
+});
+
+test("rejects excessive blank or comment lines", () => {
+  const result = parseRobotTextProgram(Array.from({ length: 501 }, () => "// comment").join("\n"));
+  assert.equal(result.ok, false);
+  if (!result.ok) {
+    assert.equal(result.line, 501);
+    assert.match(result.message, /limited to 500 lines/);
+  }
+});
