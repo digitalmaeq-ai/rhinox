@@ -2,7 +2,7 @@
  * Shared lesson eligibility and progression rules.
  * A curriculum row alone does not qualify as a runnable exercise.
  */
-import { getLessonSpec } from "./lesson-specs";
+import { getLessonSpec } from "./lesson-specs.ts";
 
 export function isReviewedInteractiveLesson(activityId: string): boolean {
   return getLessonSpec(activityId)?.status === "reviewed";
