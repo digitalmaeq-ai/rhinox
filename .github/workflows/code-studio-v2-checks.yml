@@ -11,6 +11,7 @@ on:
       - "package.json"
       - "package-lock.json"
       - "tsconfig.json"
+      - "docs/product/rhinox-code-studio-v2-*.md"
   push:
     branches: ["product/rhinox-code-studio-v2"]
     paths:
@@ -21,6 +22,7 @@ on:
       - "package.json"
       - "package-lock.json"
       - "tsconfig.json"
+      - "docs/product/rhinox-code-studio-v2-*.md"
 
 permissions:
   contents: read
