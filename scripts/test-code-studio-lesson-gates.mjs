@@ -93,5 +93,6 @@ assert.equal(choiceExercise.correctOptionId, "right-order");
 assert.equal(choiceExercise.maxAttempts, 3);
 assert.deepEqual(scoreChoiceAttempt("right-order", choiceExercise), { correct: true, points: 1 });
 assert.deepEqual(scoreChoiceAttempt("any-order", choiceExercise), { correct: false, points: 0 });
+assert.deepEqual(scoreChoiceAttempt("", choiceExercise), { correct: false, points: 0 }, "An empty choice must never earn points.");
 assert.equal(isExerciseDefinition({ ...choiceExercise, correctOptionId: "missing-option" }), false);
 console.log("Multiple-choice checks passed: reviewed choice contract, correct/incorrect scoring, and invalid answer rejection.");
