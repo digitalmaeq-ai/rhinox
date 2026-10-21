@@ -1,0 +1,50 @@
+name: Code Studio V2 validation
+
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - "app/coding-robotics/code-studio/learn/**"
+      - "app/components/code-studio-v2/**"
+      - "lib/code-studio-v2/**"
+      - ".github/workflows/code-studio-v2-checks.yml"
+      - "package.json"
+      - "package-lock.json"
+      - "tsconfig.json"
+  push:
+    branches: ["product/rhinox-code-studio-v2"]
+    paths:
+      - "app/coding-robotics/code-studio/learn/**"
+      - "app/components/code-studio-v2/**"
+      - "lib/code-studio-v2/**"
+      - ".github/workflows/code-studio-v2-checks.yml"
+      - "package.json"
+      - "package-lock.json"
+      - "tsconfig.json"
+
+permissions:
+  contents: read
+
+concurrency:
+  group: code-studio-v2-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  validate:
+    name: Lint and production build
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: Check out source
+        uses: actions/checkout@v4
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+      - name: Install dependencies
+        run: npm ci
+      - name: Lint
+        run: npm run lint
+      - name: Build
+        run: npm run build
