@@ -63,6 +63,29 @@ jobs:
           cache: npm
       - name: Install dependencies
         run: npm ci
+      - name: Report dependency security advisories
+        shell: bash
+        run: |
+          npm audit --json > "$RUNNER_TEMP/npm-audit.json" || true
+          node --input-type=commonjs -e '
+            const fs = require("node:fs");
+            const report = JSON.parse(fs.readFileSync(process.env.RUNNER_TEMP + "/npm-audit.json", "utf8"));
+            console.log("Dependency audit summary:", JSON.stringify(report.metadata?.vulnerabilities ?? {}));
+            for (const [name, item] of Object.entries(report.vulnerabilities ?? {})) {
+              console.log(JSON.stringify({
+                name,
+                severity: item.severity,
+                direct: item.isDirect,
+                range: item.range,
+                fixAvailable: item.fixAvailable,
+                advisories: (item.via ?? []).filter(v => typeof v === "object").map(v => ({
+                  title: v.title,
+                  url: v.url,
+                  range: v.range
+                }))
+              }));
+            }
+          '
       - name: Validate curriculum importer
         run: node scripts/test-code-studio-curriculum-import.mjs
       - name: Test private curriculum access boundary
