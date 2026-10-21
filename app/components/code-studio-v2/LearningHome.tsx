@@ -194,7 +194,8 @@ function LessonView({
   ];
   const chosen = new Set(selectedOrder);
   const orderCorrect = selectedOrder.join(",") === "wake,teeth,eat";
-  const canContinue = stepKey === "move" ? movePracticed : stepKey === "code" ? orderCorrect : stepKey === "build" ? Boolean(buildChoice) : stepKey === "create" ? creationCompleted : stepKey === "check" ? reflection === "Do them in the right order" : true;
+  const buildRequired = /(^|[+,]\s*)build(\s|$|[+,])/i.test(activity.coreParts);
+  const canContinue = stepKey === "move" ? movePracticed : stepKey === "code" ? orderCorrect : stepKey === "build" ? (!buildRequired || Boolean(buildChoice)) : stepKey === "create" ? creationCompleted : stepKey === "check" ? reflection === "Do them in the right order" : true;
 
   return (
     <section className={styles.lessonView}>
@@ -262,13 +263,14 @@ function LessonView({
             {stepKey === "build" && (
               <div className={styles.buildPanel}>
                 <div className={styles.buildPanelHeading}><span>🛠️</span><div><strong>Make your idea real</strong><p>{activity.practicalActivity}</p></div></div>
-                <p className={styles.buildMaterialsTitle}>Choose what you will use:</p>
+                <p className={styles.buildMaterialsTitle}>{buildRequired ? "Choose what you will use:" : "Optional extension: choose materials if you want to build a model."}</p>
                 <div className={styles.buildChoices}>
                   {["Paper or picture cards", "Blocks or classroom objects", "Drawings in a notebook"].map((choice) => (
                     <button key={choice} className={buildChoice === choice ? styles.buildChoiceSelected : ""} onClick={() => setBuildChoice(choice)} aria-pressed={buildChoice === choice}>{choice}</button>
                   ))}
                 </div>
                 <p className={styles.buildPlatform}><strong>Suggested platform:</strong> {activity.platform}</p>
+                {!buildRequired && <p className={styles.buildFallback}>This week’s core parts are {activity.coreParts}. Building is optional, so you can continue without choosing materials.</p>}
                 {buildChoice && <p className={styles.buildReady}>Good choice. Use {buildChoice.toLowerCase()} to represent each step, then test whether the steps are in the correct order.</p>}
                 <p className={styles.buildFallback}><strong>If you do not have these materials:</strong> {activity.fallback}</p>
               </div>
@@ -282,7 +284,7 @@ function LessonView({
             <div className={styles.lessonControls}>
               <button className={styles.secondaryButton} onClick={onBack} disabled={stepIndex === 0}>← Back</button>
               <span>{stepIndex + 1} / {STEPS.length}</span>
-              <button className={styles.primaryButton} onClick={onNext} disabled={!canContinue}>{stepIndex === STEPS.length - 1 ? "Finish activity" : "Next step →"}</button>
+              <button className={styles.primaryButton} onClick={onNext} disabled={!canContinue}>{stepIndex === STEPS.length - 1 ? "Finish activity" : stepKey === "build" && !buildRequired ? "Skip optional build →" : "Next step →"}</button>
             </div>
             {!canContinue && <p className={styles.coreNote}>Complete this step’s task before moving on. Your progress is only for this session and is not saved to an account yet.</p>}
             <p className={styles.coreNote}>Core: {activity.coreParts} · Optional Stretch: {activity.stretch}</p>
