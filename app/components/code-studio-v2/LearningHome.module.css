@@ -106,3 +106,23 @@
 @media (max-width: 420px) {
  .container { width: calc(100% - 22px); }.topbar { gap: 8px; }.brandMark { width: 34px; height: 34px; }.exitLink { max-width: 115px; text-align: right; }.hero h1 { font-size: 2.35rem; }.sectionHeading { align-items: start; flex-direction: column; }.versionTag { font-size: .68rem; }.lessonMeta { gap: 5px; }.lessonMeta span { font-size: .67rem; }.lessonFooter { gap: 6px 10px; font-size: .72rem; }.pictureChoices { gap: 5px; }.pictureChoice { padding: 10px 4px; }.pictureChoice strong { font-size: .72rem; }.sequenceSlots { gap: 5px; }.sequenceSlot { padding: 5px; }.sequenceSlot button strong { font-size: .64rem; }.lessonMain { padding: 16px; }.lessonTitleRow { gap: 10px; }.bigStepIcon { flex-basis: 48px; height: 48px; border-radius: 13px; }.lessonControls .primaryButton,.lessonControls .secondaryButton { padding: 9px 10px; font-size: .82rem; }
 }
+
+
+/* Keyboard users should always see which control has focus. */
+.page :is(a, button):focus-visible {
+  outline: 3px solid #f0a629;
+  outline-offset: 3px;
+}
+.page button:disabled {
+  cursor: not-allowed;
+}
+@media (prefers-reduced-motion: reduce) {
+  .page *,
+  .page *::before,
+  .page *::after {
+    scroll-behavior: auto !important;
+    transition-duration: 0.01ms !important;
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+  }
+}
