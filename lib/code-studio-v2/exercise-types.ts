@@ -146,7 +146,7 @@ export function scoreChoiceAttempt(
   selectedOptionId: string,
   exercise: ChoiceExercise,
 ): { correct: boolean; points: number } {
-  const correct = selectedOptionId === exercise.correctOptionId;
+  const correct = selectedOptionId.length > 0 && selectedOptionId === exercise.correctOptionId;
   return {
     correct,
     points: correct ? exercise.pointsAvailable : 0,
