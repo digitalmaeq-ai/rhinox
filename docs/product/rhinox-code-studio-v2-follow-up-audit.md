@@ -2,7 +2,7 @@
 
 **Branch:** `product/rhinox-code-studio-v2`  
 **Pull request:** [#17](https://github.com/digitalmaeq-ai/rhinox/pull/17) — open; not merged.  
-**Validation:** GitHub Actions run [39611993835](https://github.com/digitalmaeq-ai/rhinox/actions/runs/39611993835) passed on commit `d68d12d8bdfca663cb53edb76562581b9afe60f6`. The run passed the curriculum importer, private-curriculum access policy, robot simulator, conditional runtime, text parser, lesson gates, lint and production build. This run's full dependency audit reported five high-severity findings and no critical findings.
+**Validation:** GitHub Actions run [39612766229](https://github.com/digitalmaeq-ai/rhinox/actions/runs/39612766229) passed on commit `ef18301bf2cf3f33618a54e06b40a2470d68e78f`. The run passed the production-only high/critical dependency audit, critical-severity full-tree gate, curriculum importer, private-curriculum access policy, robot simulator, conditional runtime, text parser, lesson gates, lint and production build. The full development dependency audit still reports five high-severity findings and no critical findings.
 
 ## Dependency security disposition
 
@@ -14,12 +14,11 @@
 
 ## Remaining audit items — no new feature work yet
 
-1. Confirm the new production-only audit gate passes on the current branch head.
-2. Add a regression test for the workspace Clear/reset action, including text mode, parse error and execution trace reset.
-3. Run a dedicated TypeScript check if the repository has a safe, supported command; do not silently change compiler settings to make it pass.
-4. Complete browser/manual keyboard, screen-reader, reduced-motion and mobile viewport checks. CI build/lint do not substitute for these.
-5. Confirm private workbook and raw Master Matrix exports remain excluded from tracked files and generated artifacts.
-6. Revisit the upstream `braces` advisory when a patched version or a justified alternative is available.
+1. Add a regression test for the workspace Clear/reset action, including text mode, parse error and execution trace reset.
+2. Run a dedicated TypeScript check if the repository has a safe, supported command; do not silently change compiler settings to make it pass.
+3. Complete browser/manual keyboard, screen-reader, reduced-motion and mobile viewport checks. CI build/lint do not substitute for these.
+4. Confirm private workbook and raw Master Matrix exports remain excluded from tracked files and generated artifacts.
+5. Revisit the upstream `braces` advisory when a patched version or a justified alternative is available.
 
 ## Explicit limitations
 
