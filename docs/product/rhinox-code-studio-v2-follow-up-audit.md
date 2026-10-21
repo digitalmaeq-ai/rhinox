@@ -2,7 +2,7 @@
 
 **Branch:** `product/rhinox-code-studio-v2`  
 **Pull request:** [#17](https://github.com/digitalmaeq-ai/rhinox/pull/17) — open; not merged.  
-**Validation:** GitHub Actions run [39616683368](https://github.com/digitalmaeq-ai/rhinox/actions/runs/39616683368) passed on commit `2f24d30b08f5df1e993fc5297064381533c154dc`, including the workspace-reset check and TypeScript check. The full development dependency audit still reports five high-severity findings and no critical findings. The comprehensive audit is paused by product decision while planned core development resumes; this is not release approval.
+**Validation:** GitHub Actions run [39618046414](https://github.com/digitalmaeq-ai/rhinox/actions/runs/39618046414) passed on commit `bb48d110f03646a2276dba804aed71a8e74a9fc0`, including the conditional text parser tests, lint, TypeScript check and production build. The full development dependency audit still reports five high-severity findings and no critical findings. The comprehensive audit is paused by product decision while planned core development resumes; this is not release approval.
 
 ## Dependency security disposition
 
@@ -19,8 +19,8 @@
 3. Complete browser/manual keyboard, screen-reader, reduced-motion and mobile viewport checks. Existing browser test scripts require a real browser and Playwright; CI build/lint do not substitute for these.
 4. Rechecked the feature-branch tree at commit `e3300bf6bb6ec7821116972579e23fad0413e89c`: no source workbook or raw Master Matrix CSV filename matches were present. Recheck generated artifacts before release.
 5. Revisit the upstream `braces` advisory when a patched version or a justified alternative is available.
-6. Validate the conditional text parser and workspace integration in CI and a real browser before counting conditional programming as complete.
+6. Conditional parser, lint, TypeScript and production build checks passed in run [39618046414](https://github.com/digitalmaeq-ai/rhinox/actions/runs/39618046414). Still validate the V2 workspace in a real browser, including conditional branch feedback, keyboard use, screen-reader output, reduced motion and mobile viewport.
 
 ## Explicit limitations
 
-The conditional runtime is being connected to learner-written `if/else` syntax through a bounded parser; this integration remains unvalidated until the current branch checks and browser testing complete. Account-backed progress and trusted authentication/entitlement are not implemented; licensed curriculum access remains disabled. No production release or merge is authorized by this audit.
+The conditional runtime is integrated with learner-written `if/else` syntax through a bounded parser, and its automated CI checks passed in run [39618046414](https://github.com/digitalmaeq-ai/rhinox/actions/runs/39618046414). Browser-level validation remains outstanding. Account-backed progress and trusted authentication/entitlement are not implemented; licensed curriculum access remains disabled. No production release or merge is authorized by this audit.

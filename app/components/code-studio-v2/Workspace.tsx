@@ -78,7 +78,6 @@ export default function Workspace() {
     setParseError(null);
     setResult(null);
     setConditionalEvents([]);
-    setConditionalEvents([]);
   }
   function runProgram() {
     if (editorMode === "text") {
