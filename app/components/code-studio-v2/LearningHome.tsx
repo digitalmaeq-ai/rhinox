@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import Link from "next/link";
+import ChoiceExercise from "./ChoiceExercise";
 
 import type { CurriculumActivity } from "@/lib/code-studio-v2/curriculum";
 import { isBuildRequired } from "@/lib/code-studio-v2/lesson-gates";
@@ -186,13 +187,16 @@ function LessonView({
   const [orderingAttempts, setOrderingAttempts] = useState(0);
   const [orderingResult, setOrderingResult] = useState<"correct" | "incorrect" | null>(null);
   const [showHint, setShowHint] = useState(false);
-  const [reflection, setReflection] = useState("");
+  const [choicePassed, setChoicePassed] = useState(false);
   const [buildChoice, setBuildChoice] = useState("");
   const [movePracticed, setMovePracticed] = useState(false);
   const [creationCompleted, setCreationCompleted] = useState(false);
 
   const orderingExercise = lessonSpec?.steps.code.exercise?.kind === "ordering"
     ? lessonSpec.steps.code.exercise
+    : undefined;
+  const choiceExercise = lessonSpec?.steps.check.exercise?.kind === "choice"
+    ? lessonSpec.steps.check.exercise
     : undefined;
   const pictures = orderingExercise?.items.map((item) => ({
     ...item,
@@ -214,7 +218,7 @@ function LessonView({
     setOrderingResult(null);
   }
   const buildRequired = isBuildRequired(activity.coreParts);
-  const canContinue = stepKey === "move" ? movePracticed : stepKey === "code" ? orderingResult === "correct" : stepKey === "build" ? (!buildRequired || Boolean(buildChoice)) : stepKey === "create" ? creationCompleted : stepKey === "check" ? reflection === "Do them in the right order" : true;
+  const canContinue = stepKey === "move" ? movePracticed : stepKey === "code" ? orderingResult === "correct" : stepKey === "build" ? (!buildRequired || Boolean(buildChoice)) : stepKey === "create" ? creationCompleted : stepKey === "check" ? choicePassed : true;
 
   return (
     <section className={styles.lessonView}>
@@ -288,15 +292,8 @@ function LessonView({
               </div>
             )}
 
-            {stepKey === "check" && (
-              <div className={styles.checkPanel}>
-                <strong>Show what you know</strong>
-                <p>What does it mean to put actions in order?</p>
-                <div className={styles.reflectionChoices}>
-                  {["Do them in any order", "Do them in the right order", "Skip the first step"].map((answer) => <button key={answer} className={reflection === answer ? styles.selectedAnswer : ""} onClick={() => setReflection(answer)}>{answer}</button>)}
-                </div>
-                {reflection && <div className={reflection === "Do them in the right order" ? styles.feedbackSuccess : styles.feedbackTry}><strong>{reflection === "Do them in the right order" ? "That’s right! ⭐" : "Try once more."}</strong><p>{reflection === "Do them in the right order" ? "You understand the main idea. Finish the activity to see your learning summary." : "A sequence has a particular order. Think about the morning picture cards."}</p></div>}
-              </div>
+            {stepKey === "check" && choiceExercise && (
+              <ChoiceExercise exercise={choiceExercise} onCorrect={() => setChoicePassed(true)} />
             )}
 
             {stepKey === "think" && <div className={styles.exampleStrip}><span>☀️</span><span>Wake up</span><b>→</b><span>🪥</span><span>Brush teeth</span><b>→</b><span>🥣</span><span>Eat breakfast</span></div>}
