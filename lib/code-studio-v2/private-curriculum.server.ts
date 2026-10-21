@@ -33,7 +33,7 @@ export async function getLicensedCurriculumActivity(
   access: CurriculumAccess,
 ): Promise<CurriculumActivity | null> {
   const id = curriculumId(selection);
-  if (!id || !access.learnerId || !access.canReadLicensedCurriculum) return null;
+  if (!id || typeof access.learnerId !== "string" || access.learnerId.trim().length === 0 || access.canReadLicensedCurriculum !== true) return null;
   const filename = `${selection.level.toLowerCase().replace(/ +/g, "-")}.json`;
   let source: string;
   try {
