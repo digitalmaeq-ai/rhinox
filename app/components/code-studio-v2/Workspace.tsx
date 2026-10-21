@@ -14,11 +14,11 @@ const LABELS: Record<Command, { title: string; icon: string; code: string; hint:
   right: { title: "Turn right", icon: "↷", code: "turnRight()", hint: "Turn 90 degrees to the right without moving." },
   beep: { title: "Beep", icon: "🔔", code: "beep()", hint: "Make the robot signal that it reached a checkpoint." },
 };
-const INITIAL: Command[] = ["forward", "forward", "right", "forward", "forward"];
+const EXAMPLE_PROGRAM: Command[] = ["forward", "forward", "right", "forward", "forward"];
 
 export default function Workspace() {
-  const [blocks, setBlocks] = useState<Block[]>(() => INITIAL.map((command, index) => ({ id: index + 1, command })));
-  const [nextId, setNextId] = useState(INITIAL.length + 1);
+  const [blocks, setBlocks] = useState<Block[]>([]);
+  const [nextId, setNextId] = useState(1);
   const [result, setResult] = useState<RobotRunResult | null>(null);
   const [showHints, setShowHints] = useState(false);
   const code = useMemo(() => blocks.map((block, index) => `// ${index + 1}. ${LABELS[block.command].title}\nrobot.${LABELS[block.command].code}`).join("\n"), [blocks]);
@@ -45,8 +45,13 @@ export default function Workspace() {
     setResult(null);
   }
   function reset() {
-    setBlocks(INITIAL.map((command, index) => ({ id: index + 1, command })));
-    setNextId(INITIAL.length + 1);
+    setBlocks([]);
+    setNextId(1);
+    setResult(null);
+  }
+  function loadExample() {
+    setBlocks(EXAMPLE_PROGRAM.map((command, index) => ({ id: index + 1, command })));
+    setNextId(EXAMPLE_PROGRAM.length + 1);
     setResult(null);
   }
 
@@ -92,7 +97,8 @@ export default function Workspace() {
             </div>
             <div className={styles.programActions}>
               <button className={styles.runButton} onClick={() => setResult(runRobotProgram(blocks.map((block) => block.command)))}>▶ Run program</button>
-              <button className={styles.resetButton} onClick={reset}>Reset</button>
+              <button className={styles.resetButton} onClick={loadExample}>Load example</button>
+              <button className={styles.resetButton} onClick={reset}>Clear</button>
             </div>
             {result && <div className={result.success ? styles.success : styles.feedback} role="status"><strong>{result.success ? "Mission accomplished" : "Keep experimenting"}</strong><p>{result.message}</p></div>}
           </div>
