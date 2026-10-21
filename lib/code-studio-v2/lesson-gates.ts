@@ -1,11 +1,11 @@
 /**
- * Small, deterministic lesson eligibility rules shared by the UI and regression tests.
- * A curriculum row alone does not qualify as a reviewed interactive lesson.
+ * Shared lesson eligibility and progression rules.
+ * A curriculum row alone does not qualify as a runnable exercise.
  */
-const REVIEWED_INTERACTIVE_LESSON_IDS = new Set(["tmc-v3-15-nursery-1-t1-w1"]);
+import { getLessonSpec } from "./lesson-specs";
 
 export function isReviewedInteractiveLesson(activityId: string): boolean {
-  return REVIEWED_INTERACTIVE_LESSON_IDS.has(activityId);
+  return getLessonSpec(activityId)?.status === "reviewed";
 }
 
 /**
