@@ -5,6 +5,7 @@ import Link from "next/link";
 
 import type { CurriculumActivity } from "@/lib/code-studio-v2/curriculum";
 import { isBuildRequired, isReviewedInteractiveLesson } from "@/lib/code-studio-v2/lesson-gates";
+import { getLessonSpec } from "@/lib/code-studio-v2/lesson-specs";
 import styles from "./LearningHome.module.css";
 
 type Stage = "home" | "lesson";
@@ -21,6 +22,8 @@ const STEPS = [
 type StepKey = (typeof STEPS)[number]["key"];
 
 function activityText(activity: CurriculumActivity, key: StepKey): string {
+  const reviewedInstruction = getLessonSpec(activity.id)?.steps[key]?.instruction;
+  if (reviewedInstruction) return reviewedInstruction;
   switch (key) {
     case "think": return activity.think;
     case "move": return activity.move;
@@ -177,6 +180,7 @@ function LessonView({
   onExit: () => void;
   content: string;
 }) {
+  const lessonSpec = getLessonSpec(activity.id);
   const [selectedOrder, setSelectedOrder] = useState<string[]>([]);
   const [showHint, setShowHint] = useState(false);
   const [reflection, setReflection] = useState("");
@@ -210,7 +214,7 @@ function LessonView({
           <h1>Great work. You completed the activity!</h1>
           <p>You practised following instructions, building a sequence and checking your work. These are foundations of computational thinking.</p>
           <div className={styles.mastery}><strong>What you practised</strong><span>✓ Following steps in order</span><span>✓ Giving clear instructions</span><span>✓ Creating a sequence</span></div>
-          <p className={styles.masteryTarget}>{activity.masteryTarget}</p>
+          <p className={styles.masteryTarget}>{lessonSpec?.successCriteria.join(" ") ?? activity.masteryTarget}</p>
           <button className={styles.primaryButton} onClick={onExit}>Back to my learning <span aria-hidden="true">→</span></button>
         </div>
       ) : (
@@ -221,7 +225,7 @@ function LessonView({
             <p>“We can teach a computer by giving it clear steps. Let’s try it together!”</p>
             <div className={styles.sidebarRule} />
             <small>YOUR GOAL</small>
-            <p>{activity.masteryTarget}</p>
+            <p>{lessonSpec?.objective ?? activity.masteryTarget}</p>
             <div className={styles.sidebarBadge}>Core activity</div>
           </aside>
           <article className={styles.lessonMain}>
