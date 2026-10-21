@@ -240,7 +240,7 @@ function LessonView({
           <h1>Great work. You completed the activity!</h1>
           <p>You practised following instructions, building a sequence and checking your work. These are foundations of computational thinking.</p>
           <p className={styles.coreNote}>Assessment: your picture sequence and final answer were checked automatically. Movement and drawing were marked by your own confirmation, not by a camera or teacher. Progress and points are kept only for this session.</p>
-          <div className={styles.mastery}><strong>Assessment score</strong><span>{orderingPoints + choicePoints} of 2 points earned</span><span>Sequence exercise: {orderingPoints} of 1 point</span><span>Knowledge check: {choicePoints} of 1 point</span></div>
+          <div className={styles.mastery}><strong>Assessment score</strong><span>{orderingPoints + choicePoints} of {totalPointsAvailable} points earned</span><span>Sequence exercise: {orderingPoints} of {orderingPointsAvailable} points</span><span>Knowledge check: {choicePoints} of {choicePointsAvailable} points</span></div>
           <div className={styles.mastery}><strong>What you practised</strong><span>✓ Following steps in order</span><span>✓ Giving clear instructions</span><span>✓ Creating a sequence</span></div>
           <p className={styles.masteryTarget}>{lessonSpec?.successCriteria.join(" ") ?? activity.masteryTarget}</p>
           <button className={styles.primaryButton} onClick={onExit}>Back to my learning <span aria-hidden="true">→</span></button>
