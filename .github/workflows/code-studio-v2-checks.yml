@@ -53,6 +53,8 @@ jobs:
         run: npm ci
       - name: Validate curriculum importer
         run: node scripts/test-code-studio-curriculum-import.mjs
+      - name: Test private curriculum access boundary
+        run: node --conditions=react-server --experimental-strip-types scripts/test-private-curriculum-loader.mjs
       - name: Lint
         run: npm run lint
       - name: Build
