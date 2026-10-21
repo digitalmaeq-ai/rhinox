@@ -6,6 +6,7 @@ import styles from "./Workspace.module.css";
 import { ROBOT_GOAL, ROBOT_START, runRobotProgram, type RobotCommand, type RobotPosition, type RobotRunResult } from "@/lib/code-studio-v2/robot-simulator";
 import { parseRobotTextProgram } from "@/lib/code-studio-v2/text-code-parser";
 import { createWorkspaceResetState } from "@/lib/code-studio-v2/workspace-state";
+import { getRobotMissionFeedback } from "@/lib/code-studio-v2/robot-mission-feedback";
 import { parseConditionalRobotTextProgram } from "@/lib/code-studio-v2/conditional-text-parser";
 import { runConditionalRobotProgram, type ConditionalTraceEvent } from "@/lib/code-studio-v2/conditional-program";
 
@@ -32,6 +33,7 @@ export default function Workspace() {
   const [traceIndex, setTraceIndex] = useState(-1);
   const [conditionalEvents, setConditionalEvents] = useState<ConditionalTraceEvent[]>([]);
   const code = useMemo(() => blocks.map((block, index) => `// ${index + 1}. ${LABELS[block.command].title}\nrobot.${LABELS[block.command].code}`).join("\n"), [blocks]);
+  const missionFeedback = result ? getRobotMissionFeedback(result) : null;
   const activeTrace = result && traceIndex >= 0 ? result.trace[Math.min(traceIndex, result.trace.length - 1)] : null;
   const current: RobotPosition = activeTrace?.position ?? (result && traceIndex === -1 ? result.position : ROBOT_START);
   const visited = new Set(result && traceIndex === -1 ? result.visited : [`${ROBOT_START.x},${ROBOT_START.y}`, ...(result?.trace.slice(0, traceIndex + 1).filter((step) => step.command === "forward" && !step.blocked).map((step) => `${step.position.x},${step.position.y}`) ?? [])]);
@@ -205,7 +207,7 @@ export default function Workspace() {
               <button className={styles.resetButton} onClick={loadExample}>Load example</button>
               <button className={styles.resetButton} onClick={reset}>Clear</button>
             </div>
-            {result && <div className={result.success ? styles.success : styles.feedback} role="status"><strong>{result.success ? "Mission accomplished" : "Keep experimenting"}</strong><p>{result.message}</p></div>}
+            {missionFeedback && <div className={missionFeedback.status === "complete" ? styles.success : styles.feedback} role="status"><strong>{missionFeedback.heading}</strong><p>{missionFeedback.explanation}</p><p>{missionFeedback.nextAction}</p></div>}
             {conditionalEvents.length > 0 && (
               <section className={styles.tracePanel} aria-label="Conditional decisions">
                 <div className={styles.traceHeading}><strong>How RhinoBot chose a branch</strong><span>{conditionalEvents.length} decisions</span></div>
