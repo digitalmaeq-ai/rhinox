@@ -39,7 +39,7 @@ export function runConditionalRobotProgram(instructions: readonly RobotInstructi
       return;
     }
     for (const instruction of list) {
-      if (blocked) return;
+      if (blocked || safetyLimitHit) return;
       if (evaluatedInstructions >= MAX_EVALUATED_INSTRUCTIONS ||
           executedCommands >= MAX_EXECUTED_COMMANDS) {
         safetyLimitHit = true;
