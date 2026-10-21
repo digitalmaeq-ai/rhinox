@@ -66,6 +66,8 @@ The supplied file `rhinox_code_studio_curriculum_master_index_v3_15.csv` contain
 
 The workbook `Think-Move-Code-Master-Curriculum-v3.15.xlsx` has a `Master Matrix` sheet with 508 rows including the header and 43 columns. Direct workbook inspection confirms 507 weekly records: 39 for each of the 13 levels from Nursery 1 through Year 11. This is the source to export and import.
 
+The workbook also intentionally leaves `Main strand` blank on 156 revision, mini-project, assessment and showcase records. The importer now preserves those as `strand: null` rather than rejecting valid records or inventing a strand; the V2 type contract and regression fixture cover this case.
+
 The importer has now been updated to accept the actual workbook column names (e.g. `Level`, `Term`, `Week`, `Theme (child-facing)`, `Main strand`, `Kit / platform`) and to generate a combined catalogue plus level files with stable IDs. Regression tests now cover both supported CSV schemas and reject a partial 213-row index. The updated CI run must pass before treating this importer change as verified. The full generated catalogue is not yet committed or connected to the learner route.
 
 ### P1 — Existing exercise content needs curriculum and pedagogy review
