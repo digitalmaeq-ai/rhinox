@@ -21,28 +21,8 @@ on:
       - "package-lock.json"
       - "tsconfig.json"
       - "docs/product/rhinox-code-studio-v2-*.md"
-  push:
-    branches: ["product/rhinox-code-studio-v2"]
-    paths:
-      - "app/coding-robotics/code-studio/learn/**"
-      - "app/coding-robotics/code-studio/workspace/**"
-      - "app/components/code-studio-v2/**"
-      - "lib/code-studio-v2/**"
-      - "scripts/import-code-studio-curriculum.mjs"
-      - "scripts/test-code-studio-curriculum-import.mjs"
-      - "scripts/test-private-curriculum-loader.mjs"
-      - "scripts/test-code-studio-robot-simulator.mjs"
-      - "scripts/test-code-studio-conditional-program.mjs"
-      - "scripts/test-code-studio-text-parser.mjs"
-      - "scripts/test-code-studio-lesson-gates.mjs"
-      - ".github/workflows/code-studio-v2-checks.yml"
-      - "package.json"
-      - "package-lock.json"
-      - "tsconfig.json"
-      - "docs/product/rhinox-code-studio-v2-*.md"
-
 permissions:
-  contents: write
+  contents: read
 
 concurrency:
   group: code-studio-v2-${{ github.workflow }}-${{ github.ref }}
@@ -56,32 +36,13 @@ jobs:
     steps:
       - name: Check out source
         uses: actions/checkout@v4
-        with:
-          fetch-depth: 2
       - name: Set up Node.js
         uses: actions/setup-node@v4
         with:
           node-version: 24
           cache: npm
-      - name: Preserve baseline dependency lockfile
-        run: git show "${GITHUB_SHA}^:package-lock.json" > "$RUNNER_TEMP/package-lock-before.json"
       - name: Install dependencies
-        run: |
-          npm install
-          npm audit fix || true
-      - name: Commit refreshed lockfile on feature branch
-        if: github.event_name == 'push' && github.ref == 'refs/heads/product/rhinox-code-studio-v2'
-        shell: bash
-        run: |
-          if ! git diff --quiet -- package-lock.json; then
-            git config user.name "github-actions[bot]"
-            git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-            git add package-lock.json
-            git commit -m "Refresh dependency lockfile with security fixes"
-            git push origin "HEAD:${GITHUB_REF_NAME}"
-          else
-            echo "Dependency lockfile already matches the audited package tree."
-          fi
+        run: npm ci
       - name: Report dependency security advisories
         shell: bash
         run: |
@@ -105,6 +66,8 @@ jobs:
               }));
             }
           '
+      - name: Block critical dependency advisories
+        run: npm audit --audit-level=critical
       - name: Validate curriculum importer
         run: node scripts/test-code-studio-curriculum-import.mjs
       - name: Test private curriculum access boundary
@@ -121,33 +84,3 @@ jobs:
         run: npm run lint
       - name: Build
         run: npm run build
-      - name: Export dependency lockfile changes
-        if: always()
-        shell: bash
-        run: |
-          node --input-type=commonjs -e '
-            const fs = require("node:fs");
-            const oldLock = JSON.parse(fs.readFileSync(process.env.RUNNER_TEMP + "/package-lock-before.json", "utf8"));
-            const newLock = JSON.parse(fs.readFileSync("package-lock.json", "utf8"));
-            const changedPackages = {};
-            for (const [path, value] of Object.entries(newLock.packages ?? {})) {
-              if (JSON.stringify(oldLock.packages?.[path]) !== JSON.stringify(value)) changedPackages[path] = value;
-            }
-            const removedPackages = Object.keys(oldLock.packages ?? {}).filter(path => !(path in (newLock.packages ?? {})));
-            fs.writeFileSync("lockfile-changes.json", JSON.stringify({
-              rootPackage: newLock.packages?.[""],
-              changedPackages,
-              removedPackages
-            }, null, 2) + "\n");
-            console.log("Changed lockfile package entries:", Object.keys(changedPackages).length);
-            console.log("Removed lockfile package entries:", removedPackages.length);
-          '
-      - name: Upload audited lockfile for review
-        if: always()
-        uses: actions/upload-artifact@v4
-        with:
-          name: code-studio-v2-audited-lockfile
-          path: |
-            package-lock.json
-            lockfile-changes.json
-          retention-days: 1
