@@ -3,6 +3,7 @@ export type RobotPosition = { x: number; y: number; direction: 0 | 1 | 2 | 3 };
 export type RobotTraceStep = {
   step: number;
   sourceLine: number | undefined;
+  repeatPath?: number[];
   command: RobotCommand;
   position: RobotPosition;
   description: string;
@@ -21,7 +22,7 @@ export const ROBOT_GOAL = { x: 3, y: 1 };
 const DIRECTIONS = [{ x: 0, y: -1 }, { x: 1, y: 0 }, { x: 0, y: 1 }, { x: -1, y: 0 }];
 const DIRECTION_NAMES = ["north", "east", "south", "west"];
 
-export function runRobotProgram(commands: readonly RobotCommand[], sourceLines?: readonly number[]): RobotRunResult {
+export function runRobotProgram(commands: readonly RobotCommand[], sourceLines?: readonly number[], repeatPaths?: readonly (readonly number[])[]): RobotRunResult {
   let position = { ...ROBOT_START };
   const visited = [`${position.x},${position.y}`];
   const trace: RobotTraceStep[] = [];
@@ -47,6 +48,7 @@ export function runRobotProgram(commands: readonly RobotCommand[], sourceLines?:
         trace.push({
           step: index + 1,
           sourceLine: sourceLines?.[index],
+          ...(repeatPaths?.[index]?.length ? { repeatPath: [...repeatPaths[index]] } : {}),
           command,
           position: { ...position },
           description: "Blocked: this move would take RhinoBot outside the grid.",
@@ -67,6 +69,7 @@ export function runRobotProgram(commands: readonly RobotCommand[], sourceLines?:
     trace.push({
       step: index + 1,
       sourceLine: sourceLines?.[index],
+      ...(repeatPaths?.[index]?.length ? { repeatPath: [...repeatPaths[index]] } : {}),
       command,
       position: { ...position },
       description,

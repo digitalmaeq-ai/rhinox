@@ -75,7 +75,7 @@ export default function Workspace() {
         return;
       }
       setParseError(null);
-      setResult(runRobotProgram(parsed.commands, parsed.sourceLines));
+      setResult(runRobotProgram(parsed.commands, parsed.sourceLines, parsed.repeatPaths));
       setTraceIndex(0);
       return;
     }
@@ -168,7 +168,7 @@ export default function Workspace() {
                       <button type="button" className={styles.traceJump} onClick={() => setTraceIndex(item.step - 1)} aria-current={traceIndex === item.step - 1 ? "step" : undefined} aria-label={`Show robot after step ${item.step}: ${LABELS[item.command].title}`}>
                         <span className={styles.traceNumber}>{item.step}</span>
                         <div><strong>{LABELS[item.command].title}</strong><p>{item.description}</p></div>
-                        <small>{item.sourceLine ? `Line ${item.sourceLine} · ` : ""}Col {item.position.x + 1}, row {item.position.y + 1}</small>
+                        <small>{item.sourceLine ? `Line ${item.sourceLine} · ` : ""}{item.repeatPath?.length ? `Repeat ${item.repeatPath.join(".")} · ` : ""}Col {item.position.x + 1}, row {item.position.y + 1}</small>
                       </button>
                     </li>
                   ))}

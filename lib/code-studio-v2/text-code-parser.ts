@@ -1,7 +1,7 @@
 import type { RobotCommand } from "./robot-simulator.ts";
 
 export type TextProgramParseResult =
-  | { ok: true; commands: RobotCommand[]; sourceLines: number[] }
+  | { ok: true; commands: RobotCommand[]; sourceLines: number[]; repeatPaths?: number[][] }
   | { ok: false; line: number; message: string };
 
 const COMMANDS: Record<string, RobotCommand> = {
@@ -19,6 +19,8 @@ export function parseRobotTextProgram(source: string): TextProgramParseResult {
   const lines = source.split(/\r?\n/);
   const commands: RobotCommand[] = [];
   const sourceLines: number[] = [];
+  const repeatPaths: number[][] = [];
+  let hasRepeat = false;
   let index = 0;
 
   function fail(line: number, message: string): TextProgramParseResult {
@@ -36,20 +38,25 @@ export function parseRobotTextProgram(source: string): TextProgramParseResult {
       }
       const repeat = statement.match(/^repeat\s*\(\s*(\d+)\s*\)\s*\{$/);
       if (repeat) {
+        hasRepeat = true;
         if (depth >= MAX_REPEAT_DEPTH) return fail(lineNumber, "Repeat blocks can be nested only " + MAX_REPEAT_DEPTH + " levels deep.");
         const count = Number(repeat[1]);
         if (count < 1 || count > MAX_REPEAT_COUNT) return fail(lineNumber, "Repeat count must be between 1 and " + MAX_REPEAT_COUNT + ".");
         const bodyCommands: RobotCommand[] = [];
         const bodyLines: number[] = [];
+        const bodyRepeatPaths: number[][] = [];
         const commandStart = commands.length;
         const lineStart = sourceLines.length;
+        const repeatPathStart = repeatPaths.length;
         const nestedResult = parseBlock(depth + 1, true);
         if (nestedResult) return nestedResult;
         bodyCommands.push(...commands.splice(commandStart));
         bodyLines.push(...sourceLines.splice(lineStart));
+        bodyRepeatPaths.push(...repeatPaths.splice(repeatPathStart));
         for (let iteration = 0; iteration < count; iteration += 1) {
           commands.push(...bodyCommands);
           sourceLines.push(...bodyLines);
+          repeatPaths.push(...bodyRepeatPaths.map((path) => [iteration + 1, ...path]));
           if (commands.length > MAX_EXPANDED_COMMANDS) return fail(lineNumber, "This repeat would create more than " + MAX_EXPANDED_COMMANDS + " instructions. Use a smaller program.");
         }
         continue;
@@ -60,6 +67,7 @@ export function parseRobotTextProgram(source: string): TextProgramParseResult {
       if (!command) return fail(lineNumber, "Use one supported robot instruction per line. Arbitrary JavaScript is not allowed.");
       commands.push(command);
       sourceLines.push(lineNumber);
+      repeatPaths.push([]);
       if (commands.length > MAX_EXPANDED_COMMANDS) return fail(lineNumber, "Programs are limited to " + MAX_EXPANDED_COMMANDS + " executed instructions.");
     }
     return isNested ? fail(lines.length || 1, "This repeat block is missing its closing brace }.") : null;
@@ -67,5 +75,7 @@ export function parseRobotTextProgram(source: string): TextProgramParseResult {
 
   const error = parseBlock(0, false);
   if (error) return error;
-  return { ok: true, commands, sourceLines };
+  return hasRepeat
+    ? { ok: true, commands, sourceLines, repeatPaths }
+    : { ok: true, commands, sourceLines };
 }

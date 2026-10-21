@@ -52,6 +52,7 @@ test("expands a bounded repeat block and preserves original source lines", () =>
   if (result.ok) {
     assert.deepEqual(result.commands, ["forward", "right", "forward", "right", "forward", "right"]);
     assert.deepEqual(result.sourceLines, [2, 3, 2, 3, 2, 3]);
+    assert.deepEqual(result.repeatPaths, [[1], [1], [2], [2], [3], [3]]);
   }
 });
 
@@ -95,6 +96,7 @@ test("supports nested repeat blocks within the documented depth limit", () => {
   if (result.ok) {
     assert.deepEqual(result.commands, ["beep", "beep", "beep", "beep"]);
     assert.deepEqual(result.sourceLines, [3, 3, 3, 3]);
+    assert.deepEqual(result.repeatPaths, [[1, 1], [1, 2], [2, 1], [2, 2]]);
   }
 });
 
