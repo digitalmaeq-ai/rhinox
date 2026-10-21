@@ -20,13 +20,13 @@ Other Master Matrix columns are allowed and ignored by the importer. CSV quoted 
 From the repository root:
 
 ```bash
-node scripts/import-code-studio-curriculum.mjs ./path/to/v3.15-master-index.csv
+node scripts/import-code-studio-curriculum.mjs ./path/to/v3.15-master-matrix.csv
 ```
 
 Optional output directory:
 
 ```bash
-node scripts/import-code-studio-curriculum.mjs ./path/to/v3.15-master-index.csv ./lib/code-studio-v2/catalogue
+node scripts/import-code-studio-curriculum.mjs ./path/to/v3.15-master-matrix.csv ./.private-data/code-studio-v2/catalogue
 ```
 
 The importer stops on missing fields, malformed CSV, duplicate week keys, duplicate matrix row identifiers, invalid levels or terms, missing themes, missing weeks, or a record count other than 507. It writes one JSON file per level and a manifest containing the source file hash.
@@ -42,4 +42,4 @@ The importer stops on missing fields, malformed CSV, duplicate week keys, duplic
 
 ## Current status
 
-The importer now accepts the workbook's actual Master Matrix headers and generates a combined `catalogue.json`, per-level JSON files, and a source-hash manifest. Regression tests cover both schemas and rejection of the incomplete 213-row helper index. The updated workflow must pass before the change is considered verified. The generated full catalogue is **not yet committed or connected to the learner route**. The first prototype remains limited to one detailed lesson until the real full workbook export is imported and reviewed.
+The importer now accepts the workbook's actual Master Matrix headers and generates a combined `catalogue.json`, per-level JSON files, and a source-hash manifest under `.private-data/code-studio-v2/catalogue` by default. `.private-data/` is ignored by Git because the full curriculum is commercially valuable content and the GitHub repository is public. Regression tests cover both schemas and rejection of the incomplete 213-row helper index. The updated workflow must pass before the change is considered verified. The generated full catalogue is **not yet committed or connected to the learner route**. The first prototype remains limited to one detailed lesson until the real full workbook export is imported and reviewed.
