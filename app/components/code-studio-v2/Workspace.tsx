@@ -160,7 +160,7 @@ export default function Workspace() {
                 </div>
                 <ol className={styles.traceList}>
                   {result.trace.slice(0, traceIndex === -1 ? result.trace.length : traceIndex + 1).map((item) => (
-                    <li key={item.step} className={item.blocked ? styles.traceBlocked : styles.traceStep}>
+                    <li key={item.step} className={`${item.blocked ? styles.traceBlocked : styles.traceStep} ${traceIndex === item.step - 1 ? styles.traceSelected : ""}`}>
                       <span className={styles.traceNumber}>{item.step}</span>
                       <div><strong>{LABELS[item.command].title}</strong><p>{item.description}</p></div>
                       <small>Col {item.position.x + 1}, row {item.position.y + 1}</small>

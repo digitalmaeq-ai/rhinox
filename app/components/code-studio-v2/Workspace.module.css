@@ -4,3 +4,5 @@
 .textEditor{display:block;width:100%;min-height:230px;resize:vertical;margin:15px 0 0;padding:17px;border:1px solid #203d5a;border-radius:13px;background:#10243a;color:#b9e5ff;font:500 .78rem/1.9 ui-monospace,SFMono-Regular,Consolas,monospace;tab-size:2;white-space:pre;overflow:auto}.textEditor:focus-visible{outline:3px solid #83c4ff;outline-offset:2px}.textEditor::selection{background:#28629a}
 
 .traceControls{display:flex;align-items:center;justify-content:space-between;gap:7px;flex-wrap:wrap;margin-top:12px}.traceControls button{padding:7px 10px;border:1px solid #d4e5f3;border-radius:8px;background:#fff;color:#32628d;font-size:.72rem;font-weight:800}.traceControls button:disabled{opacity:.35;cursor:not-allowed}.traceControls span{color:#607b93;font-size:.72rem;font-weight:750}@media(max-width:620px){.traceControls{justify-content:flex-start}.traceControls span{flex:1;text-align:center}}
+
+.traceSelected{border-color:#62a8e8!important;background:#edf7ff!important;box-shadow:0 0 0 2px #d9edff}.traceSelected .traceNumber{background:#cce8ff;color:#164f83}
