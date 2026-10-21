@@ -41,7 +41,7 @@ function makeRecord(level, term, week, index, workbookFormat = false) {
     week_type: "Themed learning",
     theme: index === 0 ? "Theme, with comma" : `Theme ${index}`,
     focus: "Focus",
-    strand: "CT",
+    strand: week >= 10 ? "" : "CT",
     think: "Think",
     move: "Move",
     build: "Build",
@@ -133,6 +133,7 @@ try {
     assert.equal(nursery[0].theme, "Theme, with comma");
     assert.equal(nursery[0].priorLearning, 'Quoted "idea"\nsecond line');
     assert.equal(nursery[0].id, "tmc-v3-15-nursery-1-t1-w1");
+    assert.equal(nursery[9].strand, null, "Revision weeks may legitimately have no primary strand.");
     const fullCatalogue = JSON.parse(await readFile(path.join(outputPath, "catalogue.json"), "utf8"));
     assert.equal(fullCatalogue.length, 507);
   }
