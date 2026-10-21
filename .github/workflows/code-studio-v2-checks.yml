@@ -16,6 +16,7 @@ on:
       - "scripts/test-code-studio-conditional-program.mjs"
       - "scripts/test-code-studio-text-parser.mjs"
       - "scripts/test-code-studio-lesson-gates.mjs"
+      - "scripts/test-code-studio-lesson-progress.mjs"
       - "scripts/test-code-studio-workspace-state.mjs"
       - "scripts/test-code-studio-guided-launch.mjs"
       - "scripts/test-code-studio-robot-mission-feedback.mjs"
@@ -88,6 +89,8 @@ jobs:
         run: node --experimental-strip-types scripts/test-code-studio-text-parser.mjs
       - name: Test lesson eligibility and core part gates
         run: node --experimental-strip-types scripts/test-code-studio-lesson-gates.mjs
+      - name: Test lesson progression evidence gates
+        run: node --experimental-strip-types scripts/test-code-studio-lesson-progress.mjs
       - name: Test workspace clear/reset state
         run: node --experimental-strip-types scripts/test-code-studio-workspace-state.mjs
       - name: Test reviewed guided launch boundary
