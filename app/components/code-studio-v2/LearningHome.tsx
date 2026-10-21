@@ -1,0 +1,251 @@
+"use client";
+
+import { useState } from "react";
+import Link from "next/link";
+
+import { CURRICULUM_ACTIVITIES, type CurriculumActivity } from "@/lib/code-studio-v2/curriculum";
+import styles from "./LearningHome.module.css";
+
+type Stage = "home" | "lesson";
+
+const STEPS = [
+  { key: "think", label: "Think", icon: "💡", title: "Think about the steps" },
+  { key: "move", label: "Move", icon: "🤸", title: "Move like a robot" },
+  { key: "code", label: "Code", icon: "🧩", title: "Put the picture steps in order" },
+  { key: "create", label: "Create", icon: "🎨", title: "Create your own sequence" },
+  { key: "check", label: "Show what you know", icon: "⭐", title: "Show what you know" },
+] as const;
+
+type StepKey = (typeof STEPS)[number]["key"];
+
+function activityText(activity: CurriculumActivity, key: StepKey): string {
+  switch (key) {
+    case "think": return activity.think;
+    case "move": return activity.move;
+    case "code": return activity.code;
+    case "create": return activity.create;
+    case "check": return activity.weeklyCheck;
+  }
+}
+
+export default function LearningHome() {
+  const activity = CURRICULUM_ACTIVITIES[0];
+  const [stage, setStage] = useState<Stage>("home");
+  const [stepIndex, setStepIndex] = useState(0);
+  const [done, setDone] = useState(false);
+  const step = STEPS[stepIndex];
+
+  function startLesson() {
+    setStepIndex(0);
+    setDone(false);
+    setStage("lesson");
+  }
+
+  function nextStep() {
+    if (stepIndex === STEPS.length - 1) {
+      setDone(true);
+      return;
+    }
+    setStepIndex((current) => Math.min(current + 1, STEPS.length - 1));
+  }
+
+  function backStep() {
+    if (done) {
+      setDone(false);
+      return;
+    }
+    setStepIndex((current) => Math.max(current - 1, 0));
+  }
+
+  return (
+    <main className={styles.page}>
+      <div className={styles.container}>
+        <header className={styles.topbar}>
+          <Link href="/" className={styles.brand} aria-label="Rhinox Scientifica home">
+            <span className={styles.brandMark}>R</span>
+            <span>RHINOX <small>CODE STUDIO</small></span>
+          </Link>
+          <div className={styles.topActions}>
+            <span className={styles.previewPill}>V2 learning preview</span>
+            <Link className={styles.exitLink} href="/coding-robotics/code-studio">Open Python Studio ↗</Link>
+          </div>
+        </header>
+
+        {stage === "home" ? (
+          <>
+            <section className={styles.hero}>
+              <div className={styles.heroCopy}>
+                <span className={styles.eyebrow}>THINK · MOVE · CODE · CREATE</span>
+                <h1>Big ideas start with <span>one small step.</span></h1>
+                <p className={styles.heroText}>Learn by trying things, seeing what happens, and making something of your own. RhinoBot will guide you along the way.</p>
+                <div className={styles.heroActions}>
+                  <button className={styles.primaryButton} onClick={startLesson}>Start my lesson <span aria-hidden="true">→</span></button>
+                  <span className={styles.timeNote}><span className={styles.dot} /> First activity · about 10 minutes</span>
+                </div>
+              </div>
+              <div className={styles.heroArt} aria-label="Learning steps: think, move, code, create" role="img">
+                <div className={styles.orbit} />
+                <div className={styles.robotCard}>
+                  <div className={styles.robotFace}><span /><span /></div>
+                  <div className={styles.robotSmile} />
+                  <strong>RhinoBot</strong>
+                  <small>Your learning guide</small>
+                </div>
+                <span className={styles.floatTag + " " + styles.tagThink}>💡 Think</span>
+                <span className={styles.floatTag + " " + styles.tagMove}>👣 Move</span>
+                <span className={styles.floatTag + " " + styles.tagCode}>🧩 Code</span>
+                <span className={styles.floatTag + " " + styles.tagCreate}>✨ Create</span>
+              </div>
+            </section>
+
+            <section className={styles.pathway}>
+              <div className={styles.sectionHeading}>
+                <div><span className={styles.eyebrow}>YOUR LEARNING PATH</span><h2>Your next adventure</h2></div>
+                <span className={styles.versionTag}>Master Curriculum v3.15</span>
+              </div>
+              <article className={styles.lessonCard}>
+                <div className={styles.lessonIcon}>🧠</div>
+                <div className={styles.lessonInfo}>
+                  <div className={styles.lessonMeta}><span>{activity.level}</span><span>Term {activity.term}</span><span>Week {activity.week}</span><span className={styles.strand}>Coding & Computational Thinking</span></div>
+                  <h3>{activity.theme}</h3>
+                  <p>{activity.focus}. Learn how to put everyday actions in the right order.</p>
+                  <div className={styles.lessonFooter}><span>✓ No device needed</span><span>✓ Play and picture cards</span><span>✓ RhinoBot guided</span></div>
+                </div>
+                <button className={styles.cardButton} onClick={startLesson}>Start <span aria-hidden="true">→</span></button>
+              </article>
+              <p className={styles.scopeNote}><strong>Prototype scope:</strong> this preview currently contains one verified activity from the v3.15 Master Matrix. Other levels and weeks will appear after their records have been imported and validated; they are not being represented as complete yet.</p>
+            </section>
+
+            <section className={styles.principles}>
+              <div><span className={styles.principleIcon}>🧭</span><strong>Always know what to do</strong><p>One clear task at a time, with help when you need it.</p></div>
+              <div><span className={styles.principleIcon}>🛠️</span><strong>Learn by making</strong><p>Try, test, fix and improve instead of only reading.</p></div>
+              <div><span className={styles.principleIcon}>🌱</span><strong>Grow at your pace</strong><p>Build confidence before moving to the next challenge.</p></div>
+            </section>
+          </>
+        ) : (
+          <LessonView
+            activity={activity}
+            stepIndex={stepIndex}
+            stepKey={step.key}
+            stepTitle={step.title}
+            stepIcon={step.icon}
+            done={done}
+            onBack={backStep}
+            onNext={nextStep}
+            onExit={() => setStage("home")}
+            content={activityText(activity, step.key)}
+          />
+        )}
+
+        <footer className={styles.footer}><span>Rhinox Scientifica</span><span>Innovative scientific solutions</span><span>Built around Think • Move • Code!</span></footer>
+      </div>
+    </main>
+  );
+}
+
+function LessonView({
+  activity, stepIndex, stepKey, stepTitle, stepIcon, done, onBack, onNext, onExit, content,
+}: {
+  activity: CurriculumActivity;
+  stepIndex: number;
+  stepKey: StepKey;
+  stepTitle: string;
+  stepIcon: string;
+  done: boolean;
+  onBack: () => void;
+  onNext: () => void;
+  onExit: () => void;
+  content: string;
+}) {
+  const [selectedOrder, setSelectedOrder] = useState<string[]>([]);
+  const [showHint, setShowHint] = useState(false);
+  const [reflection, setReflection] = useState("");
+
+  const pictures = [
+    { id: "wake", label: "Wake up", icon: "☀️" },
+    { id: "teeth", label: "Brush teeth", icon: "🪥" },
+    { id: "eat", label: "Eat breakfast", icon: "🥣" },
+  ];
+  const chosen = new Set(selectedOrder);
+  const orderCorrect = selectedOrder.join(",") === "wake,teeth,eat";
+
+  return (
+    <section className={styles.lessonView}>
+      <div className={styles.lessonTop}>
+        <button className={styles.backLink} onClick={onExit}>← Learning home</button>
+        <span>{activity.level} · Term {activity.term} · Week {activity.week}</span>
+      </div>
+      <div className={styles.lessonProgress}>
+        {STEPS.map((item, index) => <div key={item.key} className={styles.progressStep} data-active={index === stepIndex} data-done={index < stepIndex || done}><span>{index < stepIndex || done ? "✓" : index + 1}</span><small>{item.label}</small></div>)}
+      </div>
+      {done ? (
+        <div className={styles.completion}>
+          <div className={styles.completionIcon}>🏆</div>
+          <span className={styles.eyebrow}>ACTIVITY COMPLETE</span>
+          <h1>You put the steps in order!</h1>
+          <p>You practised an important coding idea: an algorithm is a set of steps in the right order.</p>
+          <div className={styles.mastery}><strong>What you practised</strong><span>✓ Following steps in order</span><span>✓ Giving clear instructions</span><span>✓ Creating a sequence</span></div>
+          <p className={styles.masteryTarget}>{activity.masteryTarget}</p>
+          <button className={styles.primaryButton} onClick={onExit}>Back to my learning <span aria-hidden="true">→</span></button>
+        </div>
+      ) : (
+        <div className={styles.lessonGrid}>
+          <aside className={styles.lessonSidebar}>
+            <div className={styles.rhinoAvatar}><span>🤖</span></div>
+            <strong>RhinoBot says</strong>
+            <p>“We can teach a computer by giving it clear steps. Let’s try it together!”</p>
+            <div className={styles.sidebarRule} />
+            <small>YOUR GOAL</small>
+            <p>{activity.masteryTarget}</p>
+            <div className={styles.sidebarBadge}>Core activity</div>
+          </aside>
+          <article className={styles.lessonMain}>
+            <div className={styles.lessonTitleRow}><span className={styles.bigStepIcon}>{stepIcon}</span><div><span className={styles.eyebrow}>STEP {stepIndex + 1} OF {STEPS.length}</span><h1>{stepTitle}</h1></div></div>
+            <p className={styles.instruction}>{content}</p>
+
+            {stepKey === "code" && (
+              <div className={styles.sequenceBuilder}>
+                <div className={styles.builderHeading}><div><strong>Build the morning sequence</strong><p>Tap the pictures in the order they should happen.</p></div><button className={styles.resetButton} onClick={() => setSelectedOrder([])}>Reset</button></div>
+                <div className={styles.pictureChoices}>
+                  {pictures.filter((picture) => !chosen.has(picture.id)).map((picture) => <button key={picture.id} className={styles.pictureChoice} onClick={() => setSelectedOrder((old) => [...old, picture.id])}><span>{picture.icon}</span><strong>{picture.label}</strong><small>Tap to add</small></button>)}
+                </div>
+                <div className={styles.sequenceSlots}>
+                  {Array.from({ length: 3 }, (_, index) => {
+                    const item = pictures.find((picture) => picture.id === selectedOrder[index]);
+                    return <div key={index} className={styles.sequenceSlot}><small>STEP {index + 1}</small>{item ? <button onClick={() => setSelectedOrder((old) => old.filter((id) => id !== item.id))} aria-label={`Remove ${item.label}`}>{item.icon}<strong>{item.label}</strong><span>Remove</span></button> : <span className={styles.emptySlot}>Choose a picture</span>}</div>;
+                  })}
+                </div>
+                {selectedOrder.length === 3 && <div className={orderCorrect ? styles.feedbackSuccess : styles.feedbackTry}><strong>{orderCorrect ? "Well done! 🎉" : "Good try. Think about what happens first."}</strong><p>{orderCorrect ? "You put the morning steps in the right order. That is a sequence." : "You can remove a picture and try again. What must happen before breakfast?"}</p></div>}
+              </div>
+            )}
+
+            {stepKey === "check" && (
+              <div className={styles.checkPanel}>
+                <strong>Show what you know</strong>
+                <p>What does it mean to put actions in order?</p>
+                <div className={styles.reflectionChoices}>
+                  {["Do them in any order", "Do them in the right order", "Skip the first step"].map((answer) => <button key={answer} className={reflection === answer ? styles.selectedAnswer : ""} onClick={() => setReflection(answer)}>{answer}</button>)}
+                </div>
+                {reflection && <div className={reflection === "Do them in the right order" ? styles.feedbackSuccess : styles.feedbackTry}><strong>{reflection === "Do them in the right order" ? "That’s right! ⭐" : "Try once more."}</strong><p>{reflection === "Do them in the right order" ? "You understand the main idea. Finish the activity to see your learning summary." : "A sequence has a particular order. Think about the morning picture cards."}</p></div>}
+              </div>
+            )}
+
+            {stepKey === "think" && <div className={styles.exampleStrip}><span>☀️</span><span>Wake up</span><b>→</b><span>🪥</span><span>Brush teeth</span><b>→</b><span>🥣</span><span>Eat breakfast</span></div>}
+            {stepKey === "move" && <div className={styles.moveChallenge}><span>👏</span><b>Clap</b><span>→</span><span>👣</span><b>Stamp</b><span>→</span><span>🔄</span><b>Turn</b><p>Ask a grown-up or classmate to call the steps. Follow them in order, then swap and make a new order.</p></div>}
+            {stepKey === "create" && <div className={styles.createPrompt}><span>🎨</span><div><strong>Your turn to create</strong><p>Draw three things you do every day. Number them 1, 2 and 3 to show the order.</p><small>Core task: complete the three-step drawing. Stretch: add a fourth step.</small></div></div>}
+
+            {stepKey !== "check" && <button className={styles.hintButton} onClick={() => setShowHint((shown) => !shown)}>{showHint ? "Hide hint" : "Need a hint?"}</button>}
+            {showHint && <div className={styles.hintBox}><strong>RhinoBot’s hint</strong><p>{stepKey === "think" ? "Ask yourself: what do you usually do first after waking up?" : stepKey === "move" ? "Listen carefully. Finish one action before starting the next." : stepKey === "code" ? "A morning routine usually starts when you wake up, then you get ready, then you eat." : "Choose an everyday routine, such as getting ready for school."}</p></div>}
+
+            <div className={styles.lessonControls}>
+              <button className={styles.secondaryButton} onClick={onBack} disabled={stepIndex === 0}>← Back</button>
+              <span>{stepIndex + 1} / {STEPS.length}</span>
+              <button className={styles.primaryButton} onClick={onNext}>{stepIndex === STEPS.length - 1 ? "Finish activity" : "Next step →"}</button>
+            </div>
+            <p className={styles.coreNote}>Core: {activity.coreParts} · Optional Stretch: {activity.stretch}</p>
+          </article>
+        </div>
+      )}
+    </section>
+  );
+}
