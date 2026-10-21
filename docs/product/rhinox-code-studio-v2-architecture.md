@@ -151,3 +151,10 @@ The existing Python runner, exercise checks, project saving, micro:bit simulator
 ## 10. Immediate next action
 
 Complete Phase 0 against the live repository and the actual v3.15 workbook. Do not start a broad rewrite until the product architecture, curriculum data contract, first vertical slice and migration risks are clear. Then implement the smallest end-to-end experience that proves the product model.
+
+
+## Curriculum intellectual-property boundary
+
+The GitHub repository is public. Do not commit the complete Master Matrix, a full generated 507-row catalogue, teacher-only answer keys, or paid lesson assets into this repository. The importer writes to `.private-data/`, which is ignored by Git.
+
+The learner UI must not import the full catalogue into a client component. For the school-ready product, keep licensed lesson bodies and teacher-only fields in server-side storage, return only the activity the learner is authorised to access, and apply authentication, entitlement checks, and rate limits. Public preview activities can be deliberately selected and published as a separate, reviewed subset. This is a product/IP boundary, not a claim that server delivery makes content impossible to copy.
