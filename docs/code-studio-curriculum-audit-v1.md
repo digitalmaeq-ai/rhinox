@@ -123,3 +123,26 @@ The curriculum workbook remains authoritative. Avoid copying all 507 records man
 ## Audit limitation
 
 This is a source-level audit of the default-branch exercise types, inventory, current grouping and representative curriculum records. It does not certify runtime behaviour, the full Web Studio implementation, hardware fidelity, or a completed 507-record mapping. Those require tests and a dedicated mapping pass before implementation claims are made.
+
+
+## 7. First-pass mapping results
+
+A first-pass inventory of the exercise source files found 49 records:
+- 5 generic Starter Python exercises have no level/term/week tag.
+- 44 records have a term/week label that can be resolved to a v3.15 Master Matrix row.
+- A resolvable label is only a location match. It is **not** a verified learning-objective, platform, Core/Stretch or assessment match.
+
+### Records requiring specific review
+
+- Year 7 “Find and fix the errors” shares Term 1 Week 2 with “Plan It, Then Type It”. Decide whether it is a Core task for that week, a practice variant, or a separate revision resource. Do not automatically treat both as separate weekly outcomes.
+- Year 8 “Naira change” is tagged Term 1 Week 5, whose matrix theme is “Python Functions”. Verify that the function objective and task instructions are the actual curriculum focus, rather than only a contextually related coding exercise.
+- Year 8 “Light sensor as a percent” also points to Term 1 Week 5. Check platform and objective: the weekly lesson is a Python functions rung within an Arduino-focused year, so the relationship needs to be explicit (concept practice versus physical hardware task).
+- Year 9 “AND and OR truth table” and “The stop-line guard” both point to Term 2 Week 2, whose matrix theme is “NOT and Truth Tables”. Confirm that the AND/OR work is an intentional prerequisite or extension and that NOT is actually taught/assessed in the lesson.
+- Several term/week labels are repeated across multiple exercises. That is not automatically wrong, but each must be labelled as a Core activity, practice variant, remediation or extension so the pathway does not imply that each record is a separate weekly lesson.
+- The 13 micro:bit exercises use year/term/week labels, but their group is only “micro:bit”. The UI therefore cannot yet present the actual year-level pathway solely from the exercise group. Use the explicit curriculum record reference to determine whether each exercise belongs to Year 5 or Year 6 and which stage of the week it supports.
+
+### Output and limits
+
+A separate exercise mapping CSV was generated from the 49-record inventory. It includes each exercise ID, display title, current label, resolved matrix theme, strand, platform summary and a status note. Treat it as a working audit artefact, not a final sign-off: semantic mapping still requires checking the complete lesson directions, Core task, competency and evidence against the workbook. The full Master Matrix was also exported as a 507-record index for machine-assisted mapping.
+
+This is still a static mapping pass. No exercise code, UI or curriculum runtime has been changed by this audit.
