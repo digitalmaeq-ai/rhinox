@@ -1,12 +1,13 @@
 #!/usr/bin/env node
 /**
- * Import the v3.15 Master Matrix export into deterministic, level-based JSON.
+ * Import the authoritative v3.15 Master Matrix CSV into typed V2 catalogue JSON.
  *
- * Usage:
- *   node scripts/import-code-studio-curriculum.mjs <master-index.csv> [output-dir]
+ * Export the entire "Master Matrix" sheet from the v3.15 workbook as UTF-8 CSV,
+ * then run:
+ *   node scripts/import-code-studio-curriculum.mjs <master-matrix.csv> [output-dir]
  *
- * This intentionally fails closed. It does not infer missing curriculum fields,
- * silently repair duplicate week keys, or accept a partial export.
+ * Also accepts the normalised master-index CSV schema used by the earlier
+ * tooling. Partial exports fail closed; no missing curriculum rows are guessed.
  */
 import { createHash } from "node:crypto";
 import { mkdir, readFile, writeFile } from "node:fs/promises";
@@ -18,11 +19,41 @@ const LEVELS = [
   "Nursery 1", "Nursery 2",
   ...Array.from({ length: 11 }, (_, index) => `Year ${index + 1}`),
 ];
+const FIELD_ALIASES = {
+  matrixRow: ["matrix_row", "Matrix row", "index"],
+  level: ["level", "Level"],
+  term: ["term", "Term"],
+  week: ["week", "Week"],
+  weekType: ["week_type", "Week type"],
+  theme: ["theme", "Theme (child-facing)"],
+  focus: ["focus", "Focus (Teacher Guide)"],
+  strand: ["strand", "Main strand"],
+  think: ["think", "Think"],
+  move: ["move", "Move"],
+  code: ["code", "Code"],
+  build: ["build", "Build"],
+  create: ["create", "Create"],
+  practicalActivity: ["practical_activity", "Practical activity"],
+  weeklyCheck: ["weekly_check", "Check My Learning (weekly)"],
+  masteryTarget: ["mastery_target", "Mastery target"],
+  priorLearning: ["prior_learning", "Prior Learning"],
+  futureBridge: ["future_bridge", "Future Bridge"],
+  assessmentEvidence: ["assessment_evidence", "Assessment Evidence"],
+  platform: ["platform", "Kit / platform"],
+  coreParts: ["core_parts", "Core parts this week (must do)"],
+  stretch: ["stretch", "Stretch (optional)"],
+  fallback: ["fallback", "Fallback: no power / device / kit"],
+  competency: ["competency", "Competency statement (from Competency Framework)"],
+  keyVocabulary: ["key_vocabulary", "Key vocabulary"],
+  termBigIdea: ["term_big_idea", "Term big idea"],
+  cognitiveDemand: ["cognitive_demand", "Cognitive Demand"],
+  independenceLevel: ["independence_level", "Independence Level"],
+};
 const REQUIRED_FIELDS = [
-  "matrix_row", "level", "term", "week", "week_type", "theme", "strand",
-  "prior_learning", "future_bridge", "assessment_evidence", "platform",
-  "core_parts", "stretch", "fallback", "competency", "code",
-  "practical_activity", "weekly_check",
+  "level", "term", "week", "weekType", "theme", "strand", "code",
+  "practicalActivity", "weeklyCheck", "masteryTarget", "priorLearning",
+  "futureBridge", "assessmentEvidence", "platform", "coreParts", "stretch",
+  "fallback", "competency",
 ];
 
 function parseCsv(source) {
@@ -66,8 +97,8 @@ function parseCsv(source) {
   return rows;
 }
 
-function safeName(level) {
-  return level.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "");
+function safeName(value) {
+  return value.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "");
 }
 
 function fail(message) {
@@ -75,14 +106,18 @@ function fail(message) {
   process.exitCode = 1;
 }
 
+function valueFrom(source, aliases) {
+  for (const key of aliases) {
+    if (Object.hasOwn(source, key)) return String(source[key] ?? "").trim();
+  }
+  return "";
+}
+
 async function main() {
   const inputPath = process.argv[2];
-  const outputPath = path.resolve(
-    process.argv[3] ?? "lib/code-studio-v2/catalogue",
-  );
-
+  const outputPath = path.resolve(process.argv[3] ?? "lib/code-studio-v2/catalogue");
   if (!inputPath) {
-    fail("Provide the CSV export path as the first argument.");
+    fail("Provide the full Master Matrix CSV export path as the first argument.");
     return;
   }
 
@@ -91,23 +126,30 @@ async function main() {
   if (rows.length < 2) throw new Error("CSV has no curriculum records.");
 
   const headers = rows[0].map((header) => header.trim());
-  const missing = REQUIRED_FIELDS.filter((field) => !headers.includes(field));
-  if (missing.length) {
-    throw new Error(`CSV is missing required columns: ${missing.join(", ")}`);
+  const missingSchema = Object.entries(FIELD_ALIASES)
+    .filter(([, aliases]) => !aliases.some((alias) => headers.includes(alias)))
+    .filter(([field]) => REQUIRED_FIELDS.includes(field))
+    .map(([field]) => field);
+  if (missingSchema.length) {
+    throw new Error(`CSV is missing required curriculum columns: ${missingSchema.join(", ")}`);
   }
 
   const records = rows.slice(1).map((values, rowIndex) => {
     if (values.length !== headers.length) {
-      throw new Error(
-        `CSV record ${rowIndex + 2} has ${values.length} fields; expected ${headers.length}.`,
-      );
+      throw new Error(`CSV record ${rowIndex + 2} has ${values.length} fields; expected ${headers.length}.`);
     }
-    const record = Object.fromEntries(headers.map((header, index) => [header, values[index]]));
-    return Object.fromEntries(REQUIRED_FIELDS.map((field) => [field, record[field].trim()]));
+    const raw = Object.fromEntries(headers.map((header, index) => [header, values[index]]));
+    const record = Object.fromEntries(
+      Object.entries(FIELD_ALIASES).map(([field, aliases]) => [field, valueFrom(raw, aliases)]),
+    );
+    record.matrixRow = record.matrixRow || String(rowIndex + 2);
+    record.term = Number(record.term);
+    record.week = Number(record.week);
+    return record;
   });
 
   if (records.length !== EXPECTED_RECORDS) {
-    throw new Error(`Expected ${EXPECTED_RECORDS} weekly records; received ${records.length}.`);
+    throw new Error(`Expected ${EXPECTED_RECORDS} weekly records; received ${records.length}. Export the complete Master Matrix sheet, not the partial helper index.`);
   }
 
   const seenWeeks = new Set();
@@ -115,16 +157,22 @@ async function main() {
   for (const [index, record] of records.entries()) {
     const context = `record ${index + 2} (${record.level}, T${record.term} W${record.week})`;
     if (!LEVELS.includes(record.level)) throw new Error(`${context}: unknown level.`);
-    if (!/^[1-3]$/.test(record.term)) throw new Error(`${context}: term must be 1, 2 or 3.`);
-    if (!/^(?:[1-9]|1[0-3])$/.test(record.week)) throw new Error(`${context}: week must be 1–13.`);
-    if (!record.theme) throw new Error(`${context}: theme is empty.`);
-    if (!record.matrix_row) throw new Error(`${context}: matrix_row is empty.`);
+    if (![1, 2, 3].includes(record.term)) throw new Error(`${context}: term must be 1, 2 or 3.`);
+    if (!Number.isInteger(record.week) || record.week < 1 || record.week > 13) {
+      throw new Error(`${context}: week must be an integer from 1 to 13.`);
+    }
+    for (const field of REQUIRED_FIELDS) {
+      const value = record[field];
+      if (value === "" || value === null || value === undefined) {
+        throw new Error(`${context}: required field '${field}' is empty.`);
+      }
+    }
 
     const weekKey = `${record.level}|T${record.term}|W${record.week}`;
     if (seenWeeks.has(weekKey)) throw new Error(`${context}: duplicate week key ${weekKey}.`);
     seenWeeks.add(weekKey);
-    if (seenRows.has(record.matrix_row)) throw new Error(`${context}: duplicate matrix_row ${record.matrix_row}.`);
-    seenRows.add(record.matrix_row);
+    if (seenRows.has(record.matrixRow)) throw new Error(`${context}: duplicate matrix row ${record.matrixRow}.`);
+    seenRows.add(record.matrixRow);
   }
 
   const expectedKeys = new Set(
@@ -139,14 +187,48 @@ async function main() {
     throw new Error(`Missing expected weeks: ${missingWeeks.slice(0, 8).join(", ")}${missingWeeks.length > 8 ? ", …" : ""}`);
   }
 
-  await mkdir(outputPath, { recursive: true });
   const grouped = new Map(LEVELS.map((level) => [level, []]));
-  for (const record of records) grouped.get(record.level).push(record);
+  const catalogue = records.map((record) => {
+    const activity = {
+      id: `tmc-v3-15-${safeName(record.level)}-t${record.term}-w${record.week}`,
+      matrixRow: record.matrixRow,
+      curriculumVersion: "3.15",
+      level: record.level,
+      term: record.term,
+      week: record.week,
+      weekType: record.weekType,
+      theme: record.theme,
+      focus: record.focus,
+      strand: record.strand,
+      think: record.think,
+      move: record.move,
+      code: record.code,
+      build: record.build,
+      create: record.create,
+      practicalActivity: record.practicalActivity,
+      weeklyCheck: record.weeklyCheck,
+      masteryTarget: record.masteryTarget,
+      priorLearning: record.priorLearning,
+      futureBridge: record.futureBridge,
+      assessmentEvidence: record.assessmentEvidence,
+      platform: record.platform,
+      coreParts: record.coreParts,
+      stretch: record.stretch,
+      fallback: record.fallback,
+      competency: record.competency,
+      keyVocabulary: record.keyVocabulary,
+      termBigIdea: record.termBigIdea,
+      cognitiveDemand: record.cognitiveDemand,
+      independenceLevel: record.independenceLevel,
+    };
+    grouped.get(record.level).push(activity);
+    return activity;
+  });
 
+  await mkdir(outputPath, { recursive: true });
+  await writeFile(path.join(outputPath, "catalogue.json"), `${JSON.stringify(catalogue, null, 2)}\n`, "utf8");
   for (const level of LEVELS) {
-    const levelRecords = grouped.get(level);
-    const filePath = path.join(outputPath, `${safeName(level)}.json`);
-    await writeFile(filePath, `${JSON.stringify(levelRecords, null, 2)}\n`, "utf8");
+    await writeFile(path.join(outputPath, `${safeName(level)}.json`), `${JSON.stringify(grouped.get(level), null, 2)}\n`, "utf8");
   }
 
   const manifest = {
@@ -154,17 +236,17 @@ async function main() {
     sourceFile: path.basename(path.resolve(inputPath)),
     sourceSha256: createHash("sha256").update(source).digest("hex"),
     expectedWeeklyRecords: EXPECTED_RECORDS,
-    importedWeeklyRecords: records.length,
+    importedWeeklyRecords: catalogue.length,
     levels: LEVELS.map((level) => ({
       level,
       recordCount: grouped.get(level).length,
       file: `${safeName(level)}.json`,
     })),
     importedAt: new Date().toISOString(),
-    note: "Source index fields are preserved; this import does not certify the semantic alignment of existing exercises.",
+    note: "This is a source-index import, not semantic certification of existing exercises.",
   };
   await writeFile(path.join(outputPath, "manifest.json"), `${JSON.stringify(manifest, null, 2)}\n`, "utf8");
-  console.log(`Imported ${records.length} weekly records across ${LEVELS.length} levels into ${outputPath}`);
+  console.log(`Imported ${catalogue.length} weekly records across ${LEVELS.length} levels into ${outputPath}`);
   console.log(`Source SHA-256: ${manifest.sourceSha256}`);
 }
 
