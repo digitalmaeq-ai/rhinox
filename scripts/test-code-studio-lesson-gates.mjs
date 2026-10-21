@@ -2,7 +2,7 @@
 import assert from "node:assert/strict";
 import { CURRICULUM_ACTIVITIES } from "../lib/code-studio-v2/curriculum.ts";
 import { isBuildRequired } from "../lib/code-studio-v2/lesson-gates.ts";
-import { isExerciseDefinition } from "../lib/code-studio-v2/exercise-types.ts";
+import { canAttemptExercise, isExerciseDefinition, scoreOrderingAttempt } from "../lib/code-studio-v2/exercise-types.ts";
 import { getLessonSpec, isLessonSpecConsistent, isReviewedInteractiveLesson } from "../lib/code-studio-v2/lesson-specs.ts";
 
 const activity = CURRICULUM_ACTIVITIES.find((item) => item.id === "tmc-v3-15-nursery-1-t1-w1");
@@ -67,3 +67,20 @@ assert.equal(isExerciseDefinition({
   options: [{ id: "a", label: "A" }, { id: "b", label: "B" }], correctOptionId: "missing",
 }), false);
 console.log("Exercise contract checks passed: ordering data, scoring, attempts, evidence mode, accessibility, and invalid-contract rejection.");
+
+assert.deepEqual(scoreOrderingAttempt(
+  ["wake-up", "brush-teeth", "eat-breakfast"], orderingExercise,
+), { correct: true, points: 1 });
+assert.deepEqual(scoreOrderingAttempt(
+  ["brush-teeth", "wake-up", "eat-breakfast"], orderingExercise,
+), { correct: false, points: 0 });
+assert.deepEqual(scoreOrderingAttempt(
+  ["wake-up", "brush-teeth"], orderingExercise,
+), { correct: false, points: 0 }, "Incomplete orders must not receive credit.");
+assert.equal(canAttemptExercise(0, orderingExercise), true);
+assert.equal(canAttemptExercise(2, orderingExercise), true);
+assert.equal(canAttemptExercise(3, orderingExercise), false);
+assert.equal(canAttemptExercise(-1, orderingExercise), false);
+assert.equal(canAttemptExercise(0, { ...orderingExercise, retryPolicy: "single-attempt" }), true);
+assert.equal(canAttemptExercise(1, { ...orderingExercise, retryPolicy: "single-attempt" }), false);
+console.log("Ordering engine checks passed: exact match scoring, incorrect/incomplete answers, and retry limits.");
