@@ -14,10 +14,10 @@
 
 ## Remaining audit items — no new feature work yet
 
-1. Add a regression test for the workspace Clear/reset action, including text mode, parse error and execution trace reset.
-2. Run a dedicated TypeScript check if the repository has a safe, supported command; do not silently change compiler settings to make it pass.
-3. Complete browser/manual keyboard, screen-reader, reduced-motion and mobile viewport checks. CI build/lint do not substitute for these.
-4. Confirm private workbook and raw Master Matrix exports remain excluded from tracked files and generated artifacts.
+1. **Completed in commit `e3300bf6bb6ec7821116972579e23fad0413e89c`:** centralised workspace Clear/reset state and added regression assertions for blocks, text content, parser errors, results/traces and trace navigation. The new check is wired into CI; its run must pass before this item is considered validated.
+2. Added a dedicated `npm run typecheck` (`tsc --noEmit`) script and CI step. Confirm it passes on the resulting workflow run.
+3. Complete browser/manual keyboard, screen-reader, reduced-motion and mobile viewport checks. Existing browser test scripts require a real browser and Playwright; CI build/lint do not substitute for these.
+4. Rechecked the feature-branch tree at commit `e3300bf6bb6ec7821116972579e23fad0413e89c`: no source workbook or raw Master Matrix CSV filename matches were present. Recheck generated artifacts before release.
 5. Revisit the upstream `braces` advisory when a patched version or a justified alternative is available.
 
 ## Explicit limitations
