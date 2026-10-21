@@ -90,7 +90,7 @@ export default function LearningHome() {
                 <h1>Big ideas start with <span>one small step.</span></h1>
                 <p className={styles.heroText}>Learn by trying things, seeing what happens, and making something of your own. RhinoBot will guide you along the way.</p>
                 <div className={styles.heroActions}>
-                  <button className={styles.primaryButton} onClick={startLesson}>Start my lesson <span aria-hidden="true">→</span></button>
+                  <button className={styles.primaryButton} onClick={() => startLesson()}>Start my lesson <span aria-hidden="true">→</span></button>
                   <span className={styles.timeNote}><span className={styles.dot} /> First activity · about 10 minutes</span>
                 </div>
               </div>
