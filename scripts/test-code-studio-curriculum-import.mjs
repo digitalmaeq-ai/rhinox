@@ -154,6 +154,14 @@ try {
   assert.notEqual(missingInstruction.status, 0, "Instructional fields required by the runtime must not be blank");
   assert.match(missingInstruction.stderr, /required field 'think' is empty/);
 
+  const duplicateHeaderPath = path.join(temp, "duplicate-header.csv");
+  await writeFile(duplicateHeaderPath, [normalisedHeaders.join(","), ...makeRows(normalisedHeaders, false)].join("\n"), "utf8");
+  const duplicateHeaderCsv = await readFile(duplicateHeaderPath, "utf8");
+  await writeFile(duplicateHeaderPath, duplicateHeaderCsv.replace("theme,focus", "theme,theme"), "utf8");
+  const duplicateHeader = runImport(duplicateHeaderPath, path.join(temp, "duplicate-header-output"));
+  assert.notEqual(duplicateHeader.status, 0, "Duplicate CSV headers must not silently overwrite data");
+  assert.match(duplicateHeader.stderr, /duplicate column headers/);
+
   console.log("Curriculum importer checks passed: both schemas, 507 records, 13 levels, stable IDs, CSV quoting/newlines, partial-export rejection, and required instructional fields.");
 } finally {
   await rm(temp, { recursive: true, force: true });

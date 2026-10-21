@@ -43,7 +43,11 @@ test("curriculum access policy rejects unauthorized and invalid records", async 
   const requestedId = "tmc-v3-15-nursery-1-t1-w1";
 
   assert.equal(curriculumId(selection), requestedId);
+  assert.equal(curriculumId(null), null, "malformed selection objects must fail closed");
+  assert.equal(curriculumId({ level: null, term: 1, week: 1 }), null);
   assert.equal(authorizeCurriculumActivity(records, selection, validAccess)?.id, requestedId);
+  assert.equal(authorizeCurriculumActivity(records, null, validAccess), null);
+  assert.equal(authorizeCurriculumActivity(records, selection, null), null);
   assert.equal(authorizeCurriculumActivity(records, selection, { learnerId: null, canReadLicensedCurriculum: true }), null);
   assert.equal(authorizeCurriculumActivity(records, selection, { learnerId: "learner-test-1", canReadLicensedCurriculum: false }), null);
   assert.equal(authorizeCurriculumActivity(records, selection, { learnerId: "   ", canReadLicensedCurriculum: true }), null);

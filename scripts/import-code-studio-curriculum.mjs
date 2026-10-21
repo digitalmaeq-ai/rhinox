@@ -126,6 +126,9 @@ async function main() {
   if (rows.length < 2) throw new Error("CSV has no curriculum records.");
 
   const headers = rows[0].map((header) => header.trim());
+  if (new Set(headers).size !== headers.length) {
+    throw new Error("CSV has duplicate column headers. Rename or remove duplicate columns before importing.");
+  }
   const missingSchema = Object.entries(FIELD_ALIASES)
     .filter(([, aliases]) => !aliases.some((alias) => headers.includes(alias)))
     .filter(([field]) => REQUIRED_FIELDS.includes(field))
