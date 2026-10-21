@@ -5,6 +5,7 @@ import Link from "next/link";
 import styles from "./Workspace.module.css";
 import { ROBOT_GOAL, ROBOT_START, runRobotProgram, type RobotCommand, type RobotPosition, type RobotRunResult } from "@/lib/code-studio-v2/robot-simulator";
 import { parseRobotTextProgram } from "@/lib/code-studio-v2/text-code-parser";
+import { createWorkspaceResetState } from "@/lib/code-studio-v2/workspace-state";
 
 type Command = RobotCommand;
 type Block = { id: number; command: Command };
@@ -54,12 +55,13 @@ export default function Workspace() {
     setResult(null);
   }
   function reset() {
-    setBlocks([]);
-    setNextId(1);
-    setTextCode("");
-    setResult(null);
-    setParseError(null);
-    setTraceIndex(-1);
+    const cleared = createWorkspaceResetState();
+    setBlocks(cleared.blocks);
+    setNextId(cleared.nextId);
+    setTextCode(cleared.textCode);
+    setResult(cleared.result);
+    setParseError(cleared.parseError);
+    setTraceIndex(cleared.traceIndex);
   }
   function loadExample() {
     setBlocks(EXAMPLE_PROGRAM.map((command, index) => ({ id: index + 1, command })));
