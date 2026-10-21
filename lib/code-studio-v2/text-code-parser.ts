@@ -1,7 +1,7 @@
 import type { RobotCommand } from "./robot-simulator.ts";
 
 export type TextProgramParseResult =
-  | { ok: true; commands: RobotCommand[] }
+  | { ok: true; commands: RobotCommand[]; sourceLines: number[] }
   | { ok: false; line: number; message: string };
 
 const COMMANDS: Record<string, RobotCommand> = {
@@ -17,6 +17,7 @@ const COMMANDS: Record<string, RobotCommand> = {
  */
 export function parseRobotTextProgram(source: string): TextProgramParseResult {
   const commands: RobotCommand[] = [];
+  const sourceLines: number[] = [];
   const lines = source.split(/\r?\n/);
 
   for (let index = 0; index < lines.length; index += 1) {
@@ -33,7 +34,8 @@ export function parseRobotTextProgram(source: string): TextProgramParseResult {
       };
     }
     commands.push(command);
+    sourceLines.push(index + 1);
   }
 
-  return { ok: true, commands };
+  return { ok: true, commands, sourceLines };
 }
