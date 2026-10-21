@@ -251,7 +251,7 @@ export default function Workspace() {
             <section className={styles.previewPanel}>
               <div className={styles.panelHeader}><div><span className={styles.panelKicker}>02 / TEST</span><h2>Robot playground</h2></div><span className={styles.liveTag}>LIVE PREVIEW</span></div>
               <p className={styles.helper}>Run the program to see where your instructions take the robot.</p>
-              <div className={styles.grid} role="img" aria-label="Five by five robot grid. Blue square is the start and gold star is the goal.">
+              <div className={styles.grid} role="img" aria-label={`Five by five robot grid. Blue square is the start and gold star is the goal. ${result ? `After ${traceIndex === -1 ? "the full program" : `step ${traceIndex + 1}`}, RhinoBot is at column ${current.x + 1}, row ${current.y + 1}, facing ${["north", "east", "south", "west"][current.direction]}.` : "Run a program to see the robot move."}`}>
                 {Array.from({ length: 25 }, (_, index) => {
                   const x = index % 5; const y = Math.floor(index / 5);
                   const isRobot = current.x === x && current.y === y;
@@ -267,7 +267,7 @@ export default function Workspace() {
                 })}
               </div>
               <div className={styles.legend}><span><i className={styles.legendStart} />Start</span><span><i className={styles.legendGoal} />Goal</span><span><i className={styles.legendPath} />Robot path</span></div>
-              <div className={styles.position}><span>ROBOT POSITION</span><strong>Column {current.x + 1}, Row {current.y + 1}</strong><small>Facing {["North", "East", "South", "West"][current.direction]}</small></div>
+              <div className={styles.position} aria-live="polite" aria-atomic="true"><span>ROBOT POSITION</span><strong>Column {current.x + 1}, Row {current.y + 1}</strong><small>Facing {["North", "East", "South", "West"][current.direction]}</small>{result && <small>{traceIndex === -1 ? "Showing final program position." : `Showing position after step ${traceIndex + 1} of ${result.trace.length}.`}</small>}</div>
             </section>
 
             <section className={styles.codePanel}>
