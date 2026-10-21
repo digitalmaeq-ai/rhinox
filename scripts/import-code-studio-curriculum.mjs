@@ -115,7 +115,7 @@ function valueFrom(source, aliases) {
 
 async function main() {
   const inputPath = process.argv[2];
-  const outputPath = path.resolve(process.argv[3] ?? "lib/code-studio-v2/catalogue");
+  const outputPath = path.resolve(process.argv[3] ?? ".private-data/code-studio-v2/catalogue");
   if (!inputPath) {
     fail("Provide the full Master Matrix CSV export path as the first argument.");
     return;
