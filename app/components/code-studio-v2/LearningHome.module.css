@@ -126,3 +126,9 @@
     animation-iteration-count: 1 !important;
   }
 }
+
+.lessonList { display: grid; gap: 14px; }
+.emptyState { max-width: 680px; margin: 70px auto; padding: clamp(24px,5vw,48px); text-align: center; border: 1px solid #d7e7f6; border-radius: 24px; background: #fff; box-shadow: 0 14px 35px #1b54820c; }
+.emptyIcon { display: inline-grid; place-items: center; width: 66px; height: 66px; border-radius: 20px; background: #e8f5ff; font-size: 2rem; }
+.emptyState h1 { color: #102b4b; letter-spacing: -.035em; }
+.emptyState p { max-width: 500px; margin: 0 auto; color: #63778b; line-height: 1.8; }
