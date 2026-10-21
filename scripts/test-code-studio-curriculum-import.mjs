@@ -18,7 +18,6 @@ const headers = [
   "core_parts", "stretch", "fallback", "competency", "code",
   "practical_activity", "weekly_check",
 ];
-const requiredFields = headers.slice(1);
 
 function csvCell(value) {
   const text = String(value ?? "");
