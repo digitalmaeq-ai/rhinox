@@ -35,3 +35,10 @@ test("beep commands produce feedback without moving the robot", () => {
   assert.deepEqual(result.position, ROBOT_START);
   assert.match(result.message, /beeped 2 times/);
 });
+
+test("an empty program safely leaves the robot at the start", () => {
+  const result = runRobotProgram([]);
+  assert.equal(result.success, false);
+  assert.deepEqual(result.position, ROBOT_START);
+  assert.match(result.message, /star is still waiting/);
+});
