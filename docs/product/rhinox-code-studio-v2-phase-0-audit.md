@@ -60,6 +60,14 @@ Examples to verify and correct before official release:
 
 These are review flags, not a complete exercise-by-exercise disposition. They show why a matching free-text theme does not certify an activity. Inspect the full instructions, starter code, hints, tests, hardware requirements and no-device fallback for all 44 tagged exercises. Keep the exercise IDs where practical, but remap, rewrite or retire records where the learning objective differs.
 
+### P0 — The supplied helper index is incomplete and must not be imported
+
+The supplied file `rhinox_code_studio_curriculum_master_index_v3_15.csv` contains **213 curriculum records**, not 507. It has 39 records each for Nursery 1, Nursery 2, and Years 1–3, but only 18 records for Year 4 and no Years 5–11. This was confirmed by parsing the complete helper-index export. It is not the authoritative full Master Matrix export and the importer correctly rejects it.
+
+The workbook `Think-Move-Code-Master-Curriculum-v3.15.xlsx` has a `Master Matrix` sheet with 508 rows including the header and 43 columns. Direct workbook inspection confirms 507 weekly records: 39 for each of the 13 levels from Nursery 1 through Year 11. This is the source to export and import.
+
+The importer has now been updated to accept the actual workbook column names (e.g. `Level`, `Term`, `Week`, `Theme (child-facing)`, `Main strand`, `Kit / platform`) and to generate a combined catalogue plus level files with stable IDs. Regression tests now cover both supported CSV schemas and reject a partial 213-row index. The updated CI run must pass before treating this importer change as verified. The full generated catalogue is not yet committed or connected to the learner route.
+
 ### P1 — Existing exercise content needs curriculum and pedagogy review
 
 The inspected Year 7 exercises contain useful planning, debugging and variables tasks. The `lesson` values are useful hints but do not prove that a task matches the intended week, progression, platform or assessment evidence. A title and a year-group tag are not adequate mapping evidence.
