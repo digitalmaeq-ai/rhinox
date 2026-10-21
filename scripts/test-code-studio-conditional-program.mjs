@@ -31,8 +31,33 @@ test("stops safely when a selected branch attempts to leave the grid", () => {
   assert.match(result.message, /stopped safely/);
 });
 
-test("bounds execution at 100 commands", () => {
+test("bounds execution at 100 commands when more work remains", () => {
   const result = runConditionalRobotProgram(Array.from({ length: 101 }, (_, i) => ({ type: "command", command: "beep", sourceLine: i + 1 })));
   assert.equal(result.events.filter((event) => event.type === "command").length, 100);
+  assert.match(result.message, /safety limit/);
+});
+
+test("does not report a safety stop when exactly 100 commands finish the mission", () => {
+  const commands = [
+    { type: "command", command: "forward", sourceLine: 1 },
+    { type: "command", command: "forward", sourceLine: 2 },
+    { type: "command", command: "right", sourceLine: 3 },
+    { type: "command", command: "forward", sourceLine: 4 },
+    { type: "command", command: "forward", sourceLine: 5 },
+    ...Array.from({ length: 95 }, (_, i) => ({ type: "command", command: "beep", sourceLine: i + 6 })),
+  ];
+  const result = runConditionalRobotProgram(commands);
+  assert.equal(result.success, true);
+  assert.equal(result.events.filter((event) => event.type === "command").length, 100);
+  assert.match(result.message, /Mission complete/);
+  assert.doesNotMatch(result.message, /safety limit/);
+});
+
+test("bounds excessive conditional nesting", () => {
+  let instructions = [{ type: "command", command: "beep", sourceLine: 12 }];
+  for (let depth = 11; depth >= 1; depth -= 1) {
+    instructions = [{ type: "if", condition: "facingNorth", sourceLine: depth, thenBranch: instructions, elseBranch: [] }];
+  }
+  const result = runConditionalRobotProgram(instructions);
   assert.match(result.message, /safety limit/);
 });
