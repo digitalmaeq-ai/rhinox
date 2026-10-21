@@ -16,6 +16,7 @@ on:
       - "scripts/test-code-studio-text-parser.mjs"
       - "scripts/test-code-studio-lesson-gates.mjs"
       - ".github/workflows/code-studio-v2-checks.yml"
+      - ".gitignore"
       - "package.json"
       - "package-lock.json"
       - "tsconfig.json"

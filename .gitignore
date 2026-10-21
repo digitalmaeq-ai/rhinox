@@ -48,3 +48,8 @@ project-files.txt
 
 # Proprietary curriculum import outputs; do not commit into the public repository
 /.private-data/
+
+# Keep the source workbook and raw curriculum exports out of the public repository
+/Think-Move-Code-Master-Curriculum-v3.15.xlsx
+/*Master Matrix*.csv
+/*master-matrix*.csv
