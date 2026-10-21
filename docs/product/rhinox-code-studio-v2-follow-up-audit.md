@@ -2,7 +2,7 @@
 
 **Branch:** `product/rhinox-code-studio-v2`  
 **Pull request:** [#17](https://github.com/digitalmaeq-ai/rhinox/pull/17) — open; not merged.  
-**Validation:** GitHub Actions run [39618311212](https://github.com/digitalmaeq-ai/rhinox/actions/runs/39618311212) passed on commit `785c5ebcd58aef0f5aebc998af79790b3f1581ac`, including conditional parser regression tests, lint, TypeScript check and production build. The next curriculum-importer changes are pending validation. The full development dependency audit still reports five high-severity findings and no critical findings. The comprehensive audit is paused by product decision while planned core development resumes; this is not release approval.
+**Latest completed validation:** GitHub Actions run [39618914479](https://github.com/digitalmaeq-ai/rhinox/actions/runs/39618914479) passed on commit `a790dd91c088b2b3fd7f0b4bbaa1dc6658e17417`, including importer regression tests, conditional parser tests, lint, TypeScript check and production build. The current conditional-example and importer-manifest changes are being validated in the latest run. The full development dependency audit still reports five high-severity findings and no critical findings. The comprehensive audit is paused by product decision while planned core development resumes; this is not release approval.
 
 ## Dependency security disposition
 
@@ -20,7 +20,7 @@
 4. Rechecked the feature-branch tree at commit `e3300bf6bb6ec7821116972579e23fad0413e89c`: no source workbook or raw Master Matrix CSV filename matches were present. Recheck generated artifacts before release.
 5. Revisit the upstream `braces` advisory when a patched version or a justified alternative is available.
 6. Conditional parser, lint, TypeScript and production build checks passed in run [39618046414](https://github.com/digitalmaeq-ai/rhinox/actions/runs/39618046414). Still validate the V2 workspace in a real browser, including conditional branch feedback, keyboard use, screen-reader output, reduced motion and mobile viewport.
-7. Import the current v3.15 workbook export after addressing the documented Year 4 Term 3 Week 13 missing core Build activity; keep source and generated catalogue private.
+7. Import the current v3.15 workbook export into private storage and verify the manifest flags the Year 4 Term 3 Week 13 missing core Build activity; keep source and generated catalogue private. Correct the original source before that lesson can be approved.
 
 ## Explicit limitations
 

@@ -147,8 +147,18 @@ try {
   const missingCoreBuildPath = path.join(temp, "missing-core-build.csv");
   await writeFile(missingCoreBuildPath, [normalisedHeaders.join(","), ...makeRows(normalisedHeaders, false, 507, { core_parts: "Build + Create", build: "" })].join("\n"), "utf8");
   const missingCoreBuild = runImport(missingCoreBuildPath, path.join(temp, "missing-core-build-output"));
-  assert.notEqual(missingCoreBuild.status, 0, "A blank Build activity must fail when Build is listed as core");
-  assert.match(missingCoreBuild.stderr, /Build is listed as a core part but the Build activity is empty/);
+  assert.equal(missingCoreBuild.status, 0, "Source completeness issues should be recorded without discarding the full catalogue");
+  const incompleteCoreCatalogue = JSON.parse(await readFile(path.join(temp, "missing-core-build-output", "catalogue.json"), "utf8"));
+  const incompleteCoreManifest = JSON.parse(await readFile(path.join(temp, "missing-core-build-output", "manifest.json"), "utf8"));
+  assert.match(incompleteCoreCatalogue[0].sourceValidationIssues[0], /Build is listed as a core part but the Build activity is empty/);
+  assert.equal(incompleteCoreManifest.sourceValidationIssueCount, 1);
+  assert.equal(incompleteCoreManifest.recordsWithSourceIssues[0].matrixRow, "2");
+  const missingCoreCreatePath = path.join(temp, "missing-core-create.csv");
+  await writeFile(missingCoreCreatePath, [normalisedHeaders.join(","), ...makeRows(normalisedHeaders, false, 507, { core_parts: "Build + Create", create: "" })].join("\n"), "utf8");
+  const missingCoreCreate = runImport(missingCoreCreatePath, path.join(temp, "missing-core-create-output"));
+  assert.equal(missingCoreCreate.status, 0, "A missing core Create activity should be flagged, not silently filled");
+  const incompleteCreateCatalogue = JSON.parse(await readFile(path.join(temp, "missing-core-create-output", "catalogue.json"), "utf8"));
+  assert.match(incompleteCreateCatalogue[0].sourceValidationIssues[0], /Create is listed as a core part but the Create activity is empty/);
   const incompletePath = path.join(temp, "incomplete.csv");
   await writeFile(incompletePath, [normalisedHeaders.join(","), ...makeRows(normalisedHeaders, false, 213)].join("\n"), "utf8");
   const bad = runImport(incompletePath, path.join(temp, "bad-output"));
@@ -173,7 +183,7 @@ try {
   assert.notEqual(duplicateHeader.status, 0, "Duplicate CSV headers must not silently overwrite data");
   assert.match(duplicateHeader.stderr, /duplicate column headers/);
 
-  console.log("Curriculum importer checks passed: both schemas, 507 records, 13 levels, stable IDs, CSV quoting/newlines, partial-export rejection, and required instructional fields, optional non-core activity blanks, and core-part completeness.");
+  console.log("Curriculum importer checks passed: both schemas, 507 records, 13 levels, stable IDs, CSV quoting/newlines, partial-export rejection, and required instructional fields, optional non-core activity blanks, and source completeness issue reporting.");
 } finally {
   await rm(temp, { recursive: true, force: true });
 }

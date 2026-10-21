@@ -21,6 +21,8 @@ const LEVELS = [
 ];
 const FIELD_ALIASES = {
   matrixRow: ["matrix_row", "Matrix row"],
+  status: ["status", "Status"],
+  notes: ["notes", "Notes"],
   level: ["level", "Level"],
   term: ["term", "Term"],
   week: ["week", "Week"],
@@ -153,6 +155,7 @@ async function main() {
     record.term = Number(record.term);
     record.week = Number(record.week);
     record.strand = record.strand || null;
+    record.validationIssues = [];
     return record;
   });
 
@@ -180,10 +183,10 @@ async function main() {
       }
     }
     if (isCorePartRequired(record.coreParts, "Build") && !record.build) {
-      throw new Error(`${context}: Build is listed as a core part but the Build activity is empty.`);
+      record.validationIssues.push("Build is listed as a core part but the Build activity is empty.");
     }
     if (isCorePartRequired(record.coreParts, "Create") && !record.create) {
-      throw new Error(`${context}: Create is listed as a core part but the Create activity is empty.`);
+      record.validationIssues.push("Create is listed as a core part but the Create activity is empty.");
     }
 
     const weekKey = `${record.level}|T${record.term}|W${record.week}`;
@@ -238,6 +241,9 @@ async function main() {
       termBigIdea: record.termBigIdea,
       cognitiveDemand: record.cognitiveDemand,
       independenceLevel: record.independenceLevel,
+      sourceStatus: record.status || null,
+      sourceNotes: record.notes || null,
+      sourceValidationIssues: record.validationIssues,
     };
     grouped.get(record.level).push(activity);
     return activity;
@@ -249,23 +255,39 @@ async function main() {
     await writeFile(path.join(outputPath, `${safeName(level)}.json`), `${JSON.stringify(grouped.get(level), null, 2)}\n`, "utf8");
   }
 
+  const recordsWithSourceIssues = catalogue
+    .filter((activity) => activity.sourceValidationIssues.length > 0)
+    .map((activity) => ({
+      matrixRow: activity.matrixRow,
+      id: activity.id,
+      level: activity.level,
+      term: activity.term,
+      week: activity.week,
+      sourceStatus: activity.sourceStatus,
+      issues: activity.sourceValidationIssues,
+    }));
   const manifest = {
     curriculumVersion: "3.15",
     sourceFile: path.basename(path.resolve(inputPath)),
     sourceSha256: createHash("sha256").update(source).digest("hex"),
     expectedWeeklyRecords: EXPECTED_RECORDS,
     importedWeeklyRecords: catalogue.length,
+    sourceValidationIssueCount: recordsWithSourceIssues.reduce((count, record) => count + record.issues.length, 0),
+    recordsWithSourceIssues,
     levels: LEVELS.map((level) => ({
       level,
       recordCount: grouped.get(level).length,
       file: `${safeName(level)}.json`,
     })),
     importedAt: new Date().toISOString(),
-    note: "This is a source-index import, not semantic certification of existing exercises.",
+    note: "Successful import preserves source records but does not certify completeness or lesson readiness. Source issues must be resolved before affected records can be approved as runnable lessons.",
   };
   await writeFile(path.join(outputPath, "manifest.json"), `${JSON.stringify(manifest, null, 2)}\n`, "utf8");
   console.log(`Imported ${catalogue.length} weekly records across ${LEVELS.length} levels into ${outputPath}`);
   console.log(`Source SHA-256: ${manifest.sourceSha256}`);
+  if (recordsWithSourceIssues.length) {
+    console.warn(`Imported with ${recordsWithSourceIssues.length} record(s) requiring source review. See manifest.json for row-level issues.`);
+  }
 }
 
 main().catch((error) => {
