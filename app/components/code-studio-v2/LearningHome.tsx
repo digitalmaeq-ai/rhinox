@@ -192,6 +192,7 @@ function LessonView({
   const [orderingPoints, setOrderingPoints] = useState(0);
   const [choicePoints, setChoicePoints] = useState(0);
   const [buildChoice, setBuildChoice] = useState("");
+  const [buildCompleted, setBuildCompleted] = useState(false);
   const [movePracticed, setMovePracticed] = useState(false);
   const [creationCompleted, setCreationCompleted] = useState(false);
 
@@ -227,7 +228,7 @@ function LessonView({
     movePracticed,
     orderingCorrect: orderingResult === "correct",
     buildRequired,
-    buildChoiceSelected: Boolean(buildChoice),
+    buildChoiceSelected: Boolean(buildChoice) && (!buildRequired || buildCompleted),
     creationCompleted,
     choicePassed,
   });
@@ -317,12 +318,13 @@ function LessonView({
                 <p className={styles.buildMaterialsTitle}>{buildRequired ? "Choose what you will use:" : "Optional extension: choose materials if you want to build a model."}</p>
                 <div className={styles.buildChoices}>
                   {["Paper or picture cards", "Blocks or classroom objects", "Drawings in a notebook"].map((choice) => (
-                    <button key={choice} className={buildChoice === choice ? styles.buildChoiceSelected : ""} onClick={() => setBuildChoice(choice)} aria-pressed={buildChoice === choice}>{choice}</button>
+                    <button key={choice} className={buildChoice === choice ? styles.buildChoiceSelected : ""} onClick={() => { setBuildChoice(choice); setBuildCompleted(false); }} aria-pressed={buildChoice === choice}>{choice}</button>
                   ))}
                 </div>
                 <p className={styles.buildPlatform}><strong>Suggested platform:</strong> {activity.platform}</p>
                 {!buildRequired && <p className={styles.buildFallback}>This week’s core parts are {activity.coreParts}. Building is optional, so you can continue without choosing materials.</p>}
                 {buildChoice && <p className={styles.buildReady}>Good choice. Use {buildChoice.toLowerCase()} to represent each step, then test whether the steps are in the correct order.</p>}
+                {buildRequired && buildChoice && <div className={styles.buildReady}><p>When you have made and tested your model, confirm that you completed it. This is your confirmation, not an automatic check.</p><button className={styles.secondaryButton} type="button" onClick={() => setBuildCompleted((value) => !value)} aria-pressed={buildCompleted}>{buildCompleted ? "✓ I built and tested my model" : "I built and tested my model"}</button></div>}
                 <p className={styles.buildFallback}><strong>If you do not have these materials:</strong> {activity.fallback}</p>
               </div>
             )}
