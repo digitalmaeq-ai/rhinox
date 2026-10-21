@@ -68,6 +68,8 @@ jobs:
           '
       - name: Block critical dependency advisories
         run: npm audit --audit-level=critical
+      - name: Block high or critical production dependency advisories
+        run: npm audit --omit=dev --audit-level=high
       - name: Validate curriculum importer
         run: node scripts/test-code-studio-curriculum-import.mjs
       - name: Test private curriculum access boundary
