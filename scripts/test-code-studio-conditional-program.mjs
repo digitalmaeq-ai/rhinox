@@ -26,7 +26,7 @@ test("runs only the selected branch and explains a true condition", () => {
 });
 
 test("stops safely when a selected branch attempts to leave the grid", () => {
-  const result = runConditionalRobotProgram([{ type: "command", command: "left", sourceLine: 1 }, { type: "command", command: "left", sourceLine: 2 }, { type: "if", condition: "facingSouth", sourceLine: 3, thenBranch: [{ type: "command", command: "forward", sourceLine: 4 }], elseBranch: [] }]);
+  const result = runConditionalRobotProgram([{ type: "command", command: "left", sourceLine: 1 }, { type: "command", command: "left", sourceLine: 2 }, { type: "command", command: "forward", sourceLine: 3 }, { type: "if", condition: "facingSouth", sourceLine: 4, thenBranch: [{ type: "command", command: "forward", sourceLine: 5 }], elseBranch: [] }]);
   assert.equal(result.success, false);
   assert.match(result.message, /stopped safely/);
 });
