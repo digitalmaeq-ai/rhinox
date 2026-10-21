@@ -161,9 +161,11 @@ export default function Workspace() {
                 <ol className={styles.traceList}>
                   {result.trace.slice(0, traceIndex === -1 ? result.trace.length : traceIndex + 1).map((item) => (
                     <li key={item.step} className={`${item.blocked ? styles.traceBlocked : styles.traceStep} ${traceIndex === item.step - 1 ? styles.traceSelected : ""}`}>
-                      <span className={styles.traceNumber}>{item.step}</span>
-                      <div><strong>{LABELS[item.command].title}</strong><p>{item.description}</p></div>
-                      <small>Col {item.position.x + 1}, row {item.position.y + 1}</small>
+                      <button type="button" className={styles.traceJump} onClick={() => setTraceIndex(item.step - 1)} aria-current={traceIndex === item.step - 1 ? "step" : undefined} aria-label={`Show robot after step ${item.step}: ${LABELS[item.command].title}`}>
+                        <span className={styles.traceNumber}>{item.step}</span>
+                        <div><strong>{LABELS[item.command].title}</strong><p>{item.description}</p></div>
+                        <small>Col {item.position.x + 1}, row {item.position.y + 1}</small>
+                      </button>
                     </li>
                   ))}
                 </ol>
