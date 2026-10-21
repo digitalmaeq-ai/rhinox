@@ -41,6 +41,48 @@ test("rejects attempts to call unlisted functions", () => {
   assert.equal(result.ok, false);
 });
 
+test("expands a bounded repeat block and preserves original source lines", () => {
+  const result = parseRobotTextProgram([
+    "repeat(3) {",
+    "  robot.moveForward()",
+    "  robot.turnRight()",
+    "}",
+  ].join("\n"));
+  assert.equal(result.ok, true);
+  if (result.ok) {
+    assert.deepEqual(result.commands, ["forward", "right", "forward", "right", "forward", "right"]);
+    assert.deepEqual(result.sourceLines, [2, 3, 2, 3, 2, 3]);
+  }
+});
+
+test("rejects repeat counts outside the safe range", () => {
+  const result = parseRobotTextProgram("repeat(11) {\nrobot.moveForward()\n}");
+  assert.equal(result.ok, false);
+  if (!result.ok) {
+    assert.equal(result.line, 1);
+    assert.match(result.message, /between 1 and 10/);
+  }
+});
+
+test("rejects repeat blocks without a closing brace", () => {
+  const result = parseRobotTextProgram("repeat(2) {\nrobot.moveForward()");
+  assert.equal(result.ok, false);
+  if (!result.ok) assert.match(result.message, /missing its closing brace/);
+});
+
+test("rejects unmatched closing braces", () => {
+  const result = parseRobotTextProgram("robot.moveForward()\n}");
+  assert.equal(result.ok, false);
+  if (!result.ok) assert.match(result.message, /no matching repeat block/);
+});
+
+test("caps expanded instruction count", () => {
+  const body = Array.from({ length: 11 }, () => "robot.moveForward()").join("\n");
+  const result = parseRobotTextProgram("repeat(10) {\n" + body + "\n}");
+  assert.equal(result.ok, false);
+  if (!result.ok) assert.match(result.message, /more than 100 instructions/);
+});
+
 test("an empty program parses to no commands", () => {
   const result = parseRobotTextProgram("// no commands yet");
   assert.deepEqual(result, { ok: true, commands: [], sourceLines: [] });
