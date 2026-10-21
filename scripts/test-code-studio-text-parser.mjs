@@ -83,6 +83,53 @@ test("caps expanded instruction count", () => {
   if (!result.ok) assert.match(result.message, /more than 100 instructions/);
 });
 
+test("supports nested repeat blocks within the documented depth limit", () => {
+  const result = parseRobotTextProgram([
+    "repeat(2) {",
+    "  repeat(2) {",
+    "    robot.beep()",
+    "  }",
+    "}",
+  ].join("\n"));
+  assert.equal(result.ok, true);
+  if (result.ok) {
+    assert.deepEqual(result.commands, ["beep", "beep", "beep", "beep"]);
+    assert.deepEqual(result.sourceLines, [3, 3, 3, 3]);
+  }
+});
+
+test("rejects repeat nesting beyond the supported depth", () => {
+  const result = parseRobotTextProgram([
+    "repeat(2) {",
+    " repeat(2) {",
+    "  repeat(2) {",
+    "   repeat(2) {",
+    "    robot.beep()",
+    "   }",
+    "  }",
+    " }",
+    "}",
+  ].join("\n"));
+  assert.equal(result.ok, false);
+  if (!result.ok) assert.match(result.message, /nested only 3 levels deep/);
+});
+
+test("rejects repeat syntax without an opening brace", () => {
+  const result = parseRobotTextProgram("repeat(2)\nrobot.beep()");
+  assert.equal(result.ok, false);
+  if (!result.ok) {
+    assert.equal(result.line, 1);
+    assert.match(result.message, /Use repeat\(3\)/);
+  }
+});
+
+test("accepts exactly 100 expanded instructions", () => {
+  const body = Array.from({ length: 10 }, () => "robot.beep()").join("\n");
+  const result = parseRobotTextProgram("repeat(10) {\n" + body + "\n}");
+  assert.equal(result.ok, true);
+  if (result.ok) assert.equal(result.commands.length, 100);
+});
+
 test("an empty program parses to no commands", () => {
   const result = parseRobotTextProgram("// no commands yet");
   assert.deepEqual(result, { ok: true, commands: [], sourceLines: [] });
