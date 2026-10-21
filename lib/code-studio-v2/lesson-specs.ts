@@ -1,6 +1,6 @@
 import type { CurriculumActivity } from "./curriculum";
-import { isExerciseDefinition, type ExerciseDefinition } from "./exercise-types";
-import { isBuildRequired } from "./lesson-gates";
+import { isExerciseDefinition, type ExerciseDefinition } from "./exercise-types.ts";
+import { isBuildRequired } from "./lesson-gates.ts";
 type StepKey = "think" | "move" | "code" | "build" | "create" | "check";
 
 /**
