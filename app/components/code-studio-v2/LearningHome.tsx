@@ -195,6 +195,7 @@ function LessonView({
   const [buildCompleted, setBuildCompleted] = useState(false);
   const [movePracticed, setMovePracticed] = useState(false);
   const [creationCompleted, setCreationCompleted] = useState(false);
+  const [learnerReflection, setLearnerReflection] = useState("");
 
   const orderingExercise = lessonSpec?.steps.code.exercise?.kind === "ordering"
     ? lessonSpec.steps.code.exercise
@@ -252,6 +253,12 @@ function LessonView({
           <div className={styles.mastery}><strong>Assessment score</strong><span>{orderingPoints + choicePoints} of {totalPointsAvailable} points earned</span><span>Sequence exercise: {orderingPoints} of {orderingPointsAvailable} points</span><span>Knowledge check: {choicePoints} of {choicePointsAvailable} points</span></div>
           <div className={styles.mastery}><strong>What you practised</strong><span>✓ Following steps in order</span><span>✓ Giving clear instructions</span><span>✓ Creating a sequence</span></div>
           <p className={styles.masteryTarget}>{lessonSpec?.successCriteria.join(" ") ?? activity.masteryTarget}</p>
+          <div className={styles.buildPanel}>
+            <label htmlFor="lesson-reflection"><strong>RhinoBot asks: What did you learn?</strong></label>
+            <p>You can write one thing you learned or leave a short note for yourself. This reflection is not graded or saved to an account.</p>
+            <textarea id="lesson-reflection" value={learnerReflection} onChange={(event) => setLearnerReflection(event.target.value.slice(0, 500))} maxLength={500} rows={3} placeholder="I learned that instructions need to be in the right order..." />
+            <small>{learnerReflection.length}/500 characters · stays in this session</small>
+          </div>
           <button className={styles.primaryButton} onClick={onExit}>Back to my learning <span aria-hidden="true">→</span></button>
         </div>
       ) : (
