@@ -44,6 +44,8 @@ jobs:
           cache: npm
       - name: Install dependencies
         run: npm ci
+      - name: Validate curriculum importer
+        run: node scripts/test-code-studio-curriculum-import.mjs
       - name: Lint
         run: npm run lint
       - name: Build
