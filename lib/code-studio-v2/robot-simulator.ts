@@ -22,8 +22,8 @@ export const ROBOT_GOAL = { x: 3, y: 1 };
 const DIRECTIONS = [{ x: 0, y: -1 }, { x: 1, y: 0 }, { x: 0, y: 1 }, { x: -1, y: 0 }];
 const DIRECTION_NAMES = ["north", "east", "south", "west"];
 
-export function runRobotProgram(commands: readonly RobotCommand[], sourceLines?: readonly number[], repeatPaths?: readonly (readonly number[])[]): RobotRunResult {
-  let position = { ...ROBOT_START };
+export function runRobotProgram(commands: readonly RobotCommand[], sourceLines?: readonly number[], repeatPaths?: readonly (readonly number[])[], startPosition: RobotPosition = ROBOT_START): RobotRunResult {
+  let position = { ...startPosition };
   const visited = [`${position.x},${position.y}`];
   const trace: RobotTraceStep[] = [];
   let beeps = 0;
