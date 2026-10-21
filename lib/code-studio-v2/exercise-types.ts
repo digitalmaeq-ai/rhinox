@@ -116,3 +116,27 @@ export function isExerciseDefinition(value: unknown): value is ExerciseDefinitio
   }
   return false;
 }
+
+/** Pure ordering checks shared by the UI and automated tests. */
+export function isExpectedOrder(actual: readonly string[], expected: readonly string[]): boolean {
+  return actual.length === expected.length && actual.every((id, index) => id === expected[index]);
+}
+
+/** Returns the points for one submitted ordering attempt. No partial credit is awarded unless authored later. */
+export function scoreOrderingAttempt(
+  actual: readonly string[],
+  exercise: OrderingExercise,
+): { correct: boolean; points: number } {
+  const correct = isExpectedOrder(actual, exercise.expectedOrder);
+  return {
+    correct,
+    points: correct ? exercise.scoring.correctPoints : exercise.scoring.incorrectPoints,
+  };
+}
+
+/** Determines whether another submission is permitted after the recorded attempts. */
+export function canAttemptExercise(attemptsUsed: number, exercise: ExerciseBase): boolean {
+  if (!Number.isInteger(attemptsUsed) || attemptsUsed < 0) return false;
+  if (attemptsUsed >= exercise.maxAttempts) return false;
+  return exercise.retryPolicy === "allow-until-limit" || attemptsUsed === 0;
+}
