@@ -147,3 +147,8 @@
 .buildPlatform strong,.buildFallback strong { color: #31587a; }
 .buildReady { padding: 11px; border-radius: 10px; background: #e5f8ef; color: #176b50; }
 @media (max-width: 420px) { .buildChoices { grid-template-columns: 1fr; } }
+
+.orderingActions { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-top: 15px; }
+.orderingActions > span { color: #71869b; font-size: .78rem; font-weight: 800; }
+.orderingActions .primaryButton { padding: 10px 14px; }
+@media (max-width: 420px) { .orderingActions { align-items: stretch; flex-direction: column; } .orderingActions .primaryButton { width: 100%; } }
