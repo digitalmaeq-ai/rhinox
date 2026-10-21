@@ -228,7 +228,7 @@ function LessonView({
         <span>{activity.level} · Term {activity.term} · Week {activity.week}</span>
       </div>
       <div className={styles.lessonProgress}>
-        {STEPS.map((item, index) => <div key={item.key} className={styles.progressStep} data-active={index === stepIndex} data-done={index < stepIndex || done}><span>{index < stepIndex || done ? "✓" : index + 1}</span><small>{item.label}</small></div>)}
+        {STEPS.map((item, index) => <div key={item.key} className={styles.progressStep} data-active={index === stepIndex} data-done={index < stepIndex || done} aria-current={index === stepIndex ? "step" : undefined}><span>{index < stepIndex || done ? "✓" : index + 1}</span><small>{item.label}</small></div>)}
       </div>
       {done ? (
         <div className={styles.completion}>
