@@ -45,3 +45,6 @@ project-files.txt
 
 # Code Studio runtime, copied from node_modules at build time
 /public/pyodide/
+
+# Proprietary curriculum import outputs; do not commit into the public repository
+/.private-data/
