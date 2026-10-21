@@ -4,8 +4,8 @@ import { useState } from "react";
 import Link from "next/link";
 
 import type { CurriculumActivity } from "@/lib/code-studio-v2/curriculum";
-import { isBuildRequired, isReviewedInteractiveLesson } from "@/lib/code-studio-v2/lesson-gates";
-import { getLessonSpec } from "@/lib/code-studio-v2/lesson-specs";
+import { isBuildRequired } from "@/lib/code-studio-v2/lesson-gates";
+import { getLessonSpec, isReviewedInteractiveLesson } from "@/lib/code-studio-v2/lesson-specs";
 import styles from "./LearningHome.module.css";
 
 type Stage = "home" | "lesson";
