@@ -33,5 +33,9 @@
     "eslint-config-next": "16.4.2",
     "tailwindcss": "^4",
     "typescript": "^5"
+  },
+  "overrides": {
+    "dompurify": "3.4.17",
+    "fast-glob": "3.3.3"
   }
 }
