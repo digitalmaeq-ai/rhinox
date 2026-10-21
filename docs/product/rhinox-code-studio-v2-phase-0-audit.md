@@ -2,7 +2,7 @@
 
 **Branch:** `product/rhinox-code-studio-v2`  
 **Scope:** Static review of selected files on `main` and the open Web Studio PR (#15).  
-**Not performed:** Local install, lint, TypeScript check, production build, browser execution, automated tests, security penetration testing, or review of all repository files.  
+**Verification performed on the V2 branch:** GitHub Actions passed the curriculum-importer regression script, repository lint and production build. **Not performed:** Browser/manual interaction tests, dedicated TypeScript-only check, security penetration testing, or review of every repository file. PR #15 tests have not been run.  
 **Curriculum source status:** The authoritative v3.15 workbook was subsequently located in the Library and materialized for inspection. Its Master Matrix has 507 rows and 43 columns. This audit now uses it to ground the first prototype record; it does not certify all existing exercises as aligned to v3.15.
 
 ## Executive decision
@@ -41,7 +41,7 @@ The existing Code Studio has separate Python, Arduino and micro:bit-related UI p
 
 ### P1 — Web Studio PR #15 is a candidate, not an automatic merge
 
-PR #15 adds the Web Studio route, editor, preview, exercise checks, offline handling and saved-project support. Its project-store change adds the `web` project kind and label. The inspected preview builder removes scripts and external resource paths, adds a restrictive Content Security Policy, and displays the result in a sandboxed iframe; this is a promising layered design.
+PR #15 adds the Web Studio route, editor, preview, exercise checks, offline handling and saved-project support. Its project-store change adds the `web` project kind and label. The inspected preview builder removes scripts, event-handler attributes and non-data resource paths, applies a restrictive Content Security Policy, and displays the result in a sandboxed iframe. Its hidden exercise-check iframe disables scripts while allowing same-origin reads for layout assertions. This is a promising layered design, but those assumptions need adversarial browser tests.
 
 However, a static diff review cannot establish runtime security or correctness. The PR adds `scripts/web-browser-tests.cjs`, but this review has not run it. The browser-test coverage, preview edge cases, storage migration, offline behaviour, accessibility, performance and full production build still require verification.
 
@@ -88,7 +88,7 @@ The inspected `package.json` provides content indexing, development, build and l
 
 ## Required next inputs and actions
 
-1. Locate and inspect the authoritative v3.15 workbook; the current Library search did not find it. Import it into a validated data model with source/version provenance.
+1. Run the committed importer against the located v3.15 Master Matrix index export, inspect the source SHA-256 manifest and generated record counts, then connect the reviewed catalogue to V2. The importer has passed synthetic regression tests, but the real 507-row export has not yet been imported into the repository.
 2. Complete a full exercise inventory with stable IDs, current group, environment, current lesson label, mapped matrix ID, disposition and evidence.
 3. Review PR #15's complete changed-file list and run its browser tests, lint, typecheck and production build in a real checkout.
 4. Define the first vertical slice from one actual curriculum record: Learning Home → Guided Lesson → correct workspace → run/test → feedback → evidence/progress → next step.
@@ -96,4 +96,4 @@ The inspected `package.json` provides content indexing, development, build and l
 
 ## Confidence and limits
 
-This is a targeted static audit of selected GitHub source files and PR #15, plus inspection of the v3.15 Master Matrix structure and first Nursery 1 row. It is not a full repository audit. It identifies architectural risks and decisions, not proof that the current runtime is broken or secure. The V2 branch now contains an isolated learner home and guided activity preview; no code has been removed or changed on `main`. The new UI has not yet passed a local build or browser test.
+This is a targeted static audit of selected GitHub source files and PR #15, plus inspection of the v3.15 Master Matrix structure and first Nursery 1 row. It is not a full repository audit. The V2 branch production build and lint passed in GitHub Actions; the learner interface has not yet passed browser/manual interaction tests. The importer regression suite passed on a synthetic 507-record fixture; the actual curriculum export has not yet been imported. These results do not establish security or production readiness. No code has been removed or changed on `main`.
