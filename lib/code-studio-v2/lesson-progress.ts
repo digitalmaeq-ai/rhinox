@@ -26,7 +26,7 @@ export function canAdvanceLessonStep(
     case "code":
       return evidence.orderingCorrect === true;
     case "build":
-      return evidence.buildRequired !== true || evidence.buildChoiceSelected === true;
+      return evidence.buildRequired === false || evidence.buildChoiceSelected === true;
     case "create":
       return evidence.creationCompleted === true;
     case "check":

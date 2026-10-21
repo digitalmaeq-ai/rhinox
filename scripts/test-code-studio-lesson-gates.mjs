@@ -54,6 +54,7 @@ assert.equal(canAdvanceLessonStep("move", { movePracticed: true }), true);
 assert.equal(canAdvanceLessonStep("code", { orderingCorrect: false }), false);
 assert.equal(canAdvanceLessonStep("code", { orderingCorrect: true }), true);
 assert.equal(canAdvanceLessonStep("build", { buildRequired: false, buildChoiceSelected: false }), true, "Optional build must not block progression.");
+assert.equal(canAdvanceLessonStep("build", {}), false, "Missing build requirement data must fail closed.");
 assert.equal(canAdvanceLessonStep("build", { buildRequired: true, buildChoiceSelected: false }), false);
 assert.equal(canAdvanceLessonStep("build", { buildRequired: true, buildChoiceSelected: true }), true);
 assert.equal(canAdvanceLessonStep("create", { creationCompleted: false }), false);
