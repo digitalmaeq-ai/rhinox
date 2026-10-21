@@ -15,6 +15,7 @@ const LABELS: Record<Command, { title: string; icon: string; code: string; hint:
   beep: { title: "Beep", icon: "🔔", code: "beep()", hint: "Make the robot signal that it reached a checkpoint." },
 };
 const EXAMPLE_PROGRAM: Command[] = ["forward", "forward", "right", "forward", "forward"];
+const MAX_BLOCKS = 30;
 
 export default function Workspace() {
   const [blocks, setBlocks] = useState<Block[]>([]);
@@ -26,6 +27,7 @@ export default function Workspace() {
   const visited = new Set(result?.visited ?? [`${ROBOT_START.x},${ROBOT_START.y}`]);
 
   function addBlock(command: Command) {
+    if (blocks.length >= MAX_BLOCKS) return;
     setBlocks((items) => [...items, { id: nextId, command }]);
     setNextId((id) => id + 1);
     setResult(null);
@@ -74,11 +76,11 @@ export default function Workspace() {
 
         <section className={styles.workspace}>
           <div className={styles.programPanel}>
-            <div className={styles.panelHeader}><div><span className={styles.panelKicker}>01 / BUILD</span><h2>Your instructions</h2></div><span className={styles.count}>{blocks.length} blocks</span></div>
-            <p className={styles.helper}>Add an instruction from the toolbox. Use the arrows to change its order.</p>
+            <div className={styles.panelHeader}><div><span className={styles.panelKicker}>01 / BUILD</span><h2>Your instructions</h2></div><span className={styles.count}>{blocks.length}/{MAX_BLOCKS} blocks</span></div>
+            <p className={styles.helper}>Add an instruction from the toolbox. Use the arrows to change its order. You can use up to {MAX_BLOCKS} instructions in one mission.</p>
             <div className={styles.toolbox}>
               {(Object.keys(LABELS) as Command[]).map((command) => (
-                <button key={command} className={styles.tool} onClick={() => addBlock(command)} title={LABELS[command].hint}>
+                <button key={command} className={styles.tool} onClick={() => addBlock(command)} disabled={blocks.length >= MAX_BLOCKS} title={blocks.length >= MAX_BLOCKS ? `Maximum ${MAX_BLOCKS} instructions reached` : LABELS[command].hint}>
                   <span>{LABELS[command].icon}</span><span>{LABELS[command].title}</span><b>+</b>
                 </button>
               ))}
