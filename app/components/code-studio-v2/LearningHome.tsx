@@ -5,6 +5,7 @@ import Link from "next/link";
 
 import type { CurriculumActivity } from "@/lib/code-studio-v2/curriculum";
 import { isBuildRequired } from "@/lib/code-studio-v2/lesson-gates";
+import { canAttemptExercise, scoreOrderingAttempt } from "@/lib/code-studio-v2/exercise-types";
 import { getLessonSpec, isReviewedInteractiveLesson } from "@/lib/code-studio-v2/lesson-specs";
 import styles from "./LearningHome.module.css";
 
@@ -200,11 +201,12 @@ function LessonView({
   const chosen = new Set(selectedOrder);
   const orderCorrect = Boolean(orderingExercise && selectedOrder.length === orderingExercise.expectedOrder.length &&
     selectedOrder.every((id, index) => id === orderingExercise.expectedOrder[index]));
-  const attemptsExhausted = Boolean(orderingExercise && orderingAttempts >= orderingExercise.maxAttempts && orderingResult !== "correct");
+  const attemptsExhausted = Boolean(orderingExercise && !canAttemptExercise(orderingAttempts, orderingExercise) && orderingResult !== "correct");
   function checkOrderingAnswer() {
-    if (!orderingExercise || selectedOrder.length !== orderingExercise.items.length || attemptsExhausted) return;
+    if (!orderingExercise || selectedOrder.length !== orderingExercise.items.length || !canAttemptExercise(orderingAttempts, orderingExercise)) return;
+    const result = scoreOrderingAttempt(selectedOrder, orderingExercise);
     setOrderingAttempts((attempts) => attempts + 1);
-    setOrderingResult(orderCorrect ? "correct" : "incorrect");
+    setOrderingResult(result.correct ? "correct" : "incorrect");
   }
   function resetOrderingAnswer() {
     if (attemptsExhausted) return;
