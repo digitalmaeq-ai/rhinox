@@ -106,3 +106,7 @@ export function isLessonSpecConsistent(spec: InteractiveLessonSpec, activity: Cu
     spec.successCriteria.length > 0 &&
     (activity.coreParts.toLowerCase().includes("build") || spec.steps.build.evidence.toLowerCase().includes("not a core"));
 }
+
+export function isReviewedInteractiveLesson(activityId: string): boolean {
+  return getLessonSpec(activityId)?.status === "reviewed";
+}
