@@ -2,6 +2,7 @@
 import assert from "node:assert/strict";
 import { CURRICULUM_ACTIVITIES } from "../lib/code-studio-v2/curriculum.ts";
 import { isBuildRequired } from "../lib/code-studio-v2/lesson-gates.ts";
+import { isExerciseDefinition } from "../lib/code-studio-v2/exercise-types.ts";
 import { getLessonSpec, isLessonSpecConsistent, isReviewedInteractiveLesson } from "../lib/code-studio-v2/lesson-specs.ts";
 
 const activity = CURRICULUM_ACTIVITIES.find((item) => item.id === "tmc-v3-15-nursery-1-t1-w1");
@@ -45,3 +46,24 @@ for (const coreParts of ["Builder + Code", "Rebuild + Move", ""]) {
 }
 
 console.log("Lesson spec checks passed: reviewed allowlist, six step specifications, evidence, hints, fallbacks, accessibility, and core-part gating.");
+
+const orderingExercise = spec.steps.code.exercise;
+assert.ok(orderingExercise, "The reviewed Code step must bind a concrete exercise contract.");
+assert.equal(isExerciseDefinition(orderingExercise), true);
+assert.equal(orderingExercise.kind, "ordering");
+assert.deepEqual(orderingExercise.expectedOrder, ["wake-up", "brush-teeth", "eat-breakfast"]);
+assert.equal(orderingExercise.maxAttempts, 3);
+assert.equal(orderingExercise.retryPolicy, "allow-until-limit");
+assert.equal(orderingExercise.pointsAvailable, 1);
+assert.equal(orderingExercise.evidenceMode, "automatic");
+assert.equal(orderingExercise.accessibility.keyboardOperable, true);
+assert.equal(isExerciseDefinition({ ...orderingExercise, expectedOrder: ["wake-up", "wake-up", "eat-breakfast"] }), false);
+assert.equal(isExerciseDefinition({ ...orderingExercise, maxAttempts: 0 }), false);
+assert.equal(isExerciseDefinition({
+  id: "bad-choice", kind: "choice", prompt: "Choose", instructions: "Pick one", hint: "Think",
+  fallback: "Point to an answer", evidenceMode: "automatic", maxAttempts: 2,
+  retryPolicy: "single-attempt", pointsAvailable: 1,
+  accessibility: { keyboardOperable: true, touchOperable: true, textAlternative: true },
+  options: [{ id: "a", label: "A" }, { id: "b", label: "B" }], correctOptionId: "missing",
+}), false);
+console.log("Exercise contract checks passed: ordering data, scoring, attempts, evidence mode, accessibility, and invalid-contract rejection.");

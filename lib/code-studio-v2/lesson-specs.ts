@@ -1,4 +1,5 @@
 import type { CurriculumActivity } from "./curriculum";
+import type { ExerciseDefinition } from "./exercise-types";
 type StepKey = "think" | "move" | "code" | "build" | "create" | "check";
 
 /**
@@ -11,6 +12,7 @@ export type LessonStepSpec = {
   evidence: string;
   hint: string;
   fallback: string;
+  exercise?: ExerciseDefinition;
 };
 
 export type InteractiveLessonSpec = {
@@ -65,6 +67,26 @@ const NURSERY_1_T1_W1: InteractiveLessonSpec = {
       evidence: "The interactive sequence is exactly wake up, brush teeth, eat breakfast.",
       hint: "Which action normally happens before brushing your teeth? What comes after?",
       fallback: "Use three printed or hand-drawn cards and arrange them on a table.",
+      exercise: {
+        id: "morning-routine-order",
+        kind: "ordering",
+        prompt: "Put the morning actions in the order they usually happen.",
+        instructions: "Choose the cards in order: first, next, and last.",
+        hint: "Wake up comes before brushing your teeth. Eating breakfast comes after.",
+        fallback: "Arrange printed or hand-drawn cards on a table with a teacher or caregiver.",
+        evidenceMode: "automatic",
+        maxAttempts: 3,
+        retryPolicy: "allow-until-limit",
+        pointsAvailable: 1,
+        accessibility: { keyboardOperable: true, touchOperable: true, textAlternative: true },
+        items: [
+          { id: "wake-up", label: "Wake up" },
+          { id: "brush-teeth", label: "Brush teeth" },
+          { id: "eat-breakfast", label: "Eat breakfast" },
+        ],
+        expectedOrder: ["wake-up", "brush-teeth", "eat-breakfast"],
+        scoring: { correctPoints: 1, incorrectPoints: 0, partialCredit: false },
+      },
     },
     build: {
       instruction: "Building a model is optional this week. You can skip this step and continue.",
