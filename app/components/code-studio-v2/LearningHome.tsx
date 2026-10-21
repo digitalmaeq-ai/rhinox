@@ -29,13 +29,15 @@ function activityText(activity: CurriculumActivity, key: StepKey): string {
 }
 
 export default function LearningHome() {
-  const activity = CURRICULUM_ACTIVITIES[0];
+  const [selectedActivityId, setSelectedActivityId] = useState(CURRICULUM_ACTIVITIES[0]?.id ?? "");
+  const activity = CURRICULUM_ACTIVITIES.find((item) => item.id === selectedActivityId) ?? CURRICULUM_ACTIVITIES[0];
   const [stage, setStage] = useState<Stage>("home");
   const [stepIndex, setStepIndex] = useState(0);
   const [done, setDone] = useState(false);
   const step = STEPS[stepIndex];
 
-  function startLesson() {
+  function startLesson(activityId?: string) {
+    if (activityId) setSelectedActivityId(activityId);
     setStepIndex(0);
     setDone(false);
     setStage("lesson");
@@ -71,7 +73,13 @@ export default function LearningHome() {
           </div>
         </header>
 
-        {stage === "home" ? (
+        {!activity ? (
+          <section className={styles.emptyState}>
+            <span className={styles.emptyIcon}>🧭</span>
+            <h1>Your learning path is being prepared</h1>
+            <p>No verified lessons are available in this build yet. We will show activities here after their curriculum records have been imported and validated.</p>
+          </section>
+        ) : stage === "home" ? (
           <>
             <section className={styles.hero}>
               <div className={styles.heroCopy}>
@@ -103,17 +111,21 @@ export default function LearningHome() {
                 <div><span className={styles.eyebrow}>YOUR LEARNING PATH</span><h2>Your next adventure</h2></div>
                 <span className={styles.versionTag}>Master Curriculum v3.15</span>
               </div>
-              <article className={styles.lessonCard}>
-                <div className={styles.lessonIcon}>🧠</div>
-                <div className={styles.lessonInfo}>
-                  <div className={styles.lessonMeta}><span>{activity.level}</span><span>Term {activity.term}</span><span>Week {activity.week}</span><span className={styles.strand}>Coding & Computational Thinking</span></div>
-                  <h3>{activity.theme}</h3>
-                  <p>{activity.focus}. Learn how to put everyday actions in the right order.</p>
-                  <div className={styles.lessonFooter}><span>✓ No device needed</span><span>✓ Play and picture cards</span><span>✓ RhinoBot guided</span></div>
-                </div>
-                <button className={styles.cardButton} onClick={startLesson}>Start <span aria-hidden="true">→</span></button>
-              </article>
-              <p className={styles.scopeNote}><strong>Prototype scope:</strong> this preview currently contains one verified activity from the v3.15 Master Matrix. Other levels and weeks will appear after their records have been imported and validated; they are not being represented as complete yet.</p>
+              <div className={styles.lessonList}>
+                {CURRICULUM_ACTIVITIES.map((item) => (
+                  <article className={styles.lessonCard} key={item.id}>
+                    <div className={styles.lessonIcon}>🧠</div>
+                    <div className={styles.lessonInfo}>
+                      <div className={styles.lessonMeta}><span>{item.level}</span><span>Term {item.term}</span><span>Week {item.week}</span><span className={styles.strand}>{item.strand === "CT" ? "Coding & Computational Thinking" : item.strand === "RB" ? "Robotics" : item.strand === "ED" ? "Engineering Design" : item.strand === "AI" ? "Artificial Intelligence" : "Integrated learning"}</span></div>
+                      <h3>{item.theme}</h3>
+                      <p>{item.focus}</p>
+                      <div className={styles.lessonFooter}><span>✓ Curriculum linked</span><span>✓ RhinoBot guided</span><span>✓ Mastery target included</span></div>
+                    </div>
+                    <button className={styles.cardButton} onClick={() => startLesson(item.id)}>{selectedActivityId === item.id ? "Continue" : "Start"} <span aria-hidden="true">→</span></button>
+                  </article>
+                ))}
+              </div>
+              <p className={styles.scopeNote}><strong>Verified content only:</strong> {CURRICULUM_ACTIVITIES.length} activity {CURRICULUM_ACTIVITIES.length === 1 ? "is" : "records are"} currently available in this preview. Additional levels and weeks will appear only after their curriculum records are imported and validated.</p>
             </section>
 
             <section className={styles.principles}>
