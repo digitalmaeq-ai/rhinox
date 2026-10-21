@@ -10,7 +10,7 @@ export default function ChoiceExercise({
   onCorrect,
 }: {
   exercise: ChoiceExerciseDefinition;
-  onCorrect: () => void;
+  onCorrect: (points: number) => void;
 }) {
   const [selectedId, setSelectedId] = useState("");
   const [attempts, setAttempts] = useState(0);
@@ -23,7 +23,7 @@ export default function ChoiceExercise({
     const score = scoreChoiceAttempt(selectedId, exercise);
     setAttempts((current) => current + 1);
     setResult(score.correct ? "correct" : "incorrect");
-    if (score.correct) onCorrect();
+    if (score.correct) onCorrect(score.points);
   }
 
   return (

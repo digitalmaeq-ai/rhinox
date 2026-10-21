@@ -188,6 +188,8 @@ function LessonView({
   const [orderingResult, setOrderingResult] = useState<"correct" | "incorrect" | null>(null);
   const [showHint, setShowHint] = useState(false);
   const [choicePassed, setChoicePassed] = useState(false);
+  const [orderingPoints, setOrderingPoints] = useState(0);
+  const [choicePoints, setChoicePoints] = useState(0);
   const [buildChoice, setBuildChoice] = useState("");
   const [movePracticed, setMovePracticed] = useState(false);
   const [creationCompleted, setCreationCompleted] = useState(false);
@@ -208,6 +210,7 @@ function LessonView({
     if (!orderingExercise || selectedOrder.length !== orderingExercise.items.length || !canAttemptExercise(orderingAttempts, orderingExercise)) return;
     const result = scoreOrderingAttempt(selectedOrder, orderingExercise);
     setOrderingAttempts((attempts) => attempts + 1);
+    setOrderingPoints(result.points);
     setOrderingResult(result.correct ? "correct" : "incorrect");
   }
   function resetOrderingAnswer() {
@@ -233,7 +236,8 @@ function LessonView({
           <span className={styles.eyebrow}>ACTIVITY COMPLETE</span>
           <h1>Great work. You completed the activity!</h1>
           <p>You practised following instructions, building a sequence and checking your work. These are foundations of computational thinking.</p>
-          <p className={styles.coreNote}>Evidence note: your picture sequence was checked automatically. Movement and drawing were marked by your own confirmation, not by a camera or teacher. Progress is kept only for this session.</p>
+          <p className={styles.coreNote}>Assessment: your picture sequence and final answer were checked automatically. Movement and drawing were marked by your own confirmation, not by a camera or teacher. Progress and points are kept only for this session.</p>
+          <div className={styles.mastery}><strong>Assessment score</strong><span>{orderingPoints + choicePoints} of 2 points earned</span><span>Sequence exercise: {orderingPoints} of 1 point</span><span>Knowledge check: {choicePoints} of 1 point</span></div>
           <div className={styles.mastery}><strong>What you practised</strong><span>✓ Following steps in order</span><span>✓ Giving clear instructions</span><span>✓ Creating a sequence</span></div>
           <p className={styles.masteryTarget}>{lessonSpec?.successCriteria.join(" ") ?? activity.masteryTarget}</p>
           <button className={styles.primaryButton} onClick={onExit}>Back to my learning <span aria-hidden="true">→</span></button>
@@ -291,7 +295,7 @@ function LessonView({
             )}
 
             {stepKey === "check" && choiceExercise && (
-              <ChoiceExercise exercise={choiceExercise} onCorrect={() => setChoicePassed(true)} />
+              <ChoiceExercise exercise={choiceExercise} onCorrect={(points) => { setChoicePassed(true); setChoicePoints(points); }} />
             )}
 
             {stepKey === "think" && <div className={styles.exampleStrip}><span>☀️</span><span>Wake up</span><b>→</b><span>🪥</span><span>Brush teeth</span><b>→</b><span>🥣</span><span>Eat breakfast</span></div>}
