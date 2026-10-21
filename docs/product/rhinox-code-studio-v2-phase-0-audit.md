@@ -3,7 +3,7 @@
 **Branch:** `product/rhinox-code-studio-v2`  
 **Scope:** Static review of selected files on `main` and the open Web Studio PR (#15).  
 **Not performed:** Local install, lint, TypeScript check, production build, browser execution, automated tests, security penetration testing, or review of all repository files.  
-**Curriculum source status:** The current Library search surfaced v3.6 and v3.5 workbooks, but did not locate the stated authoritative v3.15 workbook. Therefore this audit does not certify any exercise as aligned to v3.15.
+**Curriculum source status:** The authoritative v3.15 workbook was subsequently located in the Library and materialized for inspection. Its Master Matrix has 507 rows and 43 columns. This audit now uses it to ground the first prototype record; it does not certify all existing exercises as aligned to v3.15.
 
 ## Executive decision
 
@@ -83,4 +83,4 @@ The inspected `package.json` provides content indexing, development, build and l
 
 ## Confidence and limits
 
-This is a targeted static audit of selected GitHub source files and PR #15, not a full repository audit. It identifies architectural risks and decisions, not proof that the current runtime is broken or secure. No code has been removed or changed on `main`.
+This is a targeted static audit of selected GitHub source files and PR #15, plus inspection of the v3.15 Master Matrix structure and first Nursery 1 row. It is not a full repository audit. It identifies architectural risks and decisions, not proof that the current runtime is broken or secure. The V2 branch now contains an isolated learner home and guided activity preview; no code has been removed or changed on `main`. The new UI has not yet passed a local build or browser test.
