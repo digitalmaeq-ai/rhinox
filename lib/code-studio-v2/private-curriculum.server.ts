@@ -6,6 +6,7 @@ import "server-only";
 import { readFile } from "node:fs/promises";
 import path from "node:path";
 import type { CurriculumActivity } from "./curriculum";
+import { getAuthenticatedCurriculumAccess } from "./learner-access.server";
 import {
   authorizeCurriculumActivity,
   curriculumId,
@@ -24,10 +25,10 @@ const PRIVATE_ROOT = path.resolve(process.cwd(), ".private-data/code-studio-v2/c
  */
 export async function getLicensedCurriculumActivity(
   selection: CurriculumSelection,
-  access: CurriculumAccess,
 ): Promise<CurriculumActivity | null> {
   const id = curriculumId(selection);
-  if (!id || typeof access?.learnerId !== "string" || access.learnerId.trim().length === 0 ||
+  const access = await getAuthenticatedCurriculumAccess();
+  if (!id || !access || typeof access.learnerId !== "string" || access.learnerId.trim().length === 0 ||
       access.canReadLicensedCurriculum !== true) return null;
 
   const filename = `${selection.level.toLowerCase().replace(/ +/g, "-")}.json`;
