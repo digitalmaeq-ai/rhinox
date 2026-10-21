@@ -182,21 +182,37 @@ function LessonView({
 }) {
   const lessonSpec = getLessonSpec(activity.id);
   const [selectedOrder, setSelectedOrder] = useState<string[]>([]);
+  const [orderingAttempts, setOrderingAttempts] = useState(0);
+  const [orderingResult, setOrderingResult] = useState<"correct" | "incorrect" | null>(null);
   const [showHint, setShowHint] = useState(false);
   const [reflection, setReflection] = useState("");
   const [buildChoice, setBuildChoice] = useState("");
   const [movePracticed, setMovePracticed] = useState(false);
   const [creationCompleted, setCreationCompleted] = useState(false);
 
-  const pictures = [
-    { id: "wake", label: "Wake up", icon: "☀️" },
-    { id: "teeth", label: "Brush teeth", icon: "🪥" },
-    { id: "eat", label: "Eat breakfast", icon: "🥣" },
-  ];
+  const orderingExercise = lessonSpec?.steps.code.exercise?.kind === "ordering"
+    ? lessonSpec.steps.code.exercise
+    : undefined;
+  const pictures = orderingExercise?.items.map((item) => ({
+    ...item,
+    icon: item.id === "wake-up" ? "☀️" : item.id === "brush-teeth" ? "🪥" : item.id === "eat-breakfast" ? "🥣" : "🧩",
+  })) ?? [];
   const chosen = new Set(selectedOrder);
-  const orderCorrect = selectedOrder.join(",") === "wake,teeth,eat";
+  const orderCorrect = Boolean(orderingExercise && selectedOrder.length === orderingExercise.expectedOrder.length &&
+    selectedOrder.every((id, index) => id === orderingExercise.expectedOrder[index]));
+  const attemptsExhausted = Boolean(orderingExercise && orderingAttempts >= orderingExercise.maxAttempts && orderingResult !== "correct");
+  function checkOrderingAnswer() {
+    if (!orderingExercise || selectedOrder.length !== orderingExercise.items.length || attemptsExhausted) return;
+    setOrderingAttempts((attempts) => attempts + 1);
+    setOrderingResult(orderCorrect ? "correct" : "incorrect");
+  }
+  function resetOrderingAnswer() {
+    if (attemptsExhausted) return;
+    setSelectedOrder([]);
+    setOrderingResult(null);
+  }
   const buildRequired = isBuildRequired(activity.coreParts);
-  const canContinue = stepKey === "move" ? movePracticed : stepKey === "code" ? orderCorrect : stepKey === "build" ? (!buildRequired || Boolean(buildChoice)) : stepKey === "create" ? creationCompleted : stepKey === "check" ? reflection === "Do them in the right order" : true;
+  const canContinue = stepKey === "move" ? movePracticed : stepKey === "code" ? orderingResult === "correct" : stepKey === "build" ? (!buildRequired || Boolean(buildChoice)) : stepKey === "create" ? creationCompleted : stepKey === "check" ? reflection === "Do them in the right order" : true;
 
   return (
     <section className={styles.lessonView}>
@@ -233,19 +249,39 @@ function LessonView({
             <p className={styles.instruction}>{content}</p>
             {lessonSpec?.steps[stepKey] && <p className={styles.instruction}><strong>Your task:</strong> {lessonSpec.steps[stepKey].task}</p>}
 
-            {stepKey === "code" && (
+            {stepKey === "code" && orderingExercise && (
               <div className={styles.sequenceBuilder}>
-                <div className={styles.builderHeading}><div><strong>Build the morning sequence</strong><p>Tap the pictures in the order they should happen.</p></div><button className={styles.resetButton} onClick={() => setSelectedOrder([])}>Reset</button></div>
+                <div className={styles.builderHeading}>
+                  <div><strong>{orderingExercise.prompt}</strong><p>{orderingExercise.instructions}</p></div>
+                  <button className={styles.resetButton} onClick={resetOrderingAnswer} disabled={attemptsExhausted || orderingResult === "correct"}>Reset</button>
+                </div>
                 <div className={styles.pictureChoices}>
-                  {pictures.filter((picture) => !chosen.has(picture.id)).map((picture) => <button key={picture.id} className={styles.pictureChoice} onClick={() => setSelectedOrder((old) => [...old, picture.id])}><span>{picture.icon}</span><strong>{picture.label}</strong><small>Tap to add</small></button>)}
+                  {pictures.filter((picture) => !chosen.has(picture.id)).map((picture) => (
+                    <button key={picture.id} className={styles.pictureChoice}
+                      disabled={attemptsExhausted || orderingResult === "correct" || selectedOrder.length >= orderingExercise.items.length}
+                      onClick={() => { setSelectedOrder((old) => [...old, picture.id]); setOrderingResult(null); }}>
+                      <span aria-hidden="true">{picture.icon}</span><strong>{picture.label}</strong><small>Tap to add</small>
+                    </button>
+                  ))}
                 </div>
                 <div className={styles.sequenceSlots}>
-                  {Array.from({ length: 3 }, (_, index) => {
+                  {Array.from({ length: orderingExercise.items.length }, (_, index) => {
                     const item = pictures.find((picture) => picture.id === selectedOrder[index]);
-                    return <div key={index} className={styles.sequenceSlot}><small>STEP {index + 1}</small>{item ? <button onClick={() => setSelectedOrder((old) => old.filter((id) => id !== item.id))} aria-label={`Remove ${item.label}`}>{item.icon}<strong>{item.label}</strong><span>Remove</span></button> : <span className={styles.emptySlot}>Choose a picture</span>}</div>;
+                    return <div key={index} className={styles.sequenceSlot}><small>STEP {index + 1}</small>{item
+                      ? <button disabled={attemptsExhausted || orderingResult === "correct"} onClick={() => { setSelectedOrder((old) => old.filter((id) => id !== item.id)); setOrderingResult(null); }} aria-label={`Remove ${item.label} from step ${index + 1}`}><span aria-hidden="true">{item.icon}</span><strong>{item.label}</strong><span>Remove</span></button>
+                      : <span className={styles.emptySlot}>Choose a picture</span>}</div>;
                   })}
                 </div>
-                {selectedOrder.length === 3 && <div className={orderCorrect ? styles.feedbackSuccess : styles.feedbackTry}><strong>{orderCorrect ? "Well done! 🎉" : "Good try. Think about what happens first."}</strong><p>{orderCorrect ? "You put the morning steps in the right order. That is a sequence." : "You can remove a picture and try again. What must happen before breakfast?"}</p></div>}
+                <div className={styles.orderingActions}>
+                  <span>Attempts: {orderingAttempts} of {orderingExercise.maxAttempts}</span>
+                  <button className={styles.primaryButton} onClick={checkOrderingAnswer} disabled={selectedOrder.length !== orderingExercise.items.length || attemptsExhausted || orderingResult === "correct"}>Check my order</button>
+                </div>
+                {orderingResult && <div role="status" aria-live="polite" className={orderingResult === "correct" ? styles.feedbackSuccess : styles.feedbackTry}>
+                  <strong>{orderingResult === "correct" ? "Well done! 🎉" : attemptsExhausted ? "Let’s learn from this try." : "Good try. You can try again."}</strong>
+                  <p>{orderingResult === "correct" ? `You earned ${orderingExercise.scoring.correctPoints} point. You put the morning steps in the right order.` : attemptsExhausted ? orderingExercise.fallback : orderingExercise.hint}</p>
+                  {attemptsExhausted && <p>Ask a teacher or caregiver to help you arrange the picture cards.</p>}
+                </div>}
+                {attemptsExhausted && <p className={styles.coreNote}>You have used all your tries. You can still review the correct order with a teacher or caregiver.</p>}
               </div>
             )}
 
