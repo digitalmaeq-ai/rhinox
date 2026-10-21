@@ -21,6 +21,7 @@ on:
     branches: ["product/rhinox-code-studio-v2"]
     paths:
       - "app/coding-robotics/code-studio/learn/**"
+      - "app/coding-robotics/code-studio/workspace/**"
       - "app/components/code-studio-v2/**"
       - "lib/code-studio-v2/**"
       - "scripts/import-code-studio-curriculum.mjs"
