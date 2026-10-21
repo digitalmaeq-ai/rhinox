@@ -77,6 +77,8 @@ assert.equal(orderingExercise.accessibility.keyboardOperable, true);
 assert.equal(isExerciseDefinition({ ...orderingExercise, expectedOrder: ["wake-up", "wake-up", "eat-breakfast"] }), false);
 assert.equal(isExerciseDefinition({ ...orderingExercise, evidenceMode: "learner-confirmed" }), false, "Auto-scored ordering must declare automatic evidence.");
 assert.equal(isExerciseDefinition({ ...orderingExercise, maxAttempts: 0 }), false);
+assert.equal(isExerciseDefinition({ ...orderingExercise, scoring: { ...orderingExercise.scoring, partialCredit: true } }), false, "Partial credit must be rejected until the scoring engine implements it.");
+assert.equal(isExerciseDefinition({ ...orderingExercise, scoring: { ...orderingExercise.scoring, incorrectPoints: orderingExercise.pointsAvailable + 1 } }), false, "Incorrect-answer points cannot exceed the exercise maximum.");
 assert.equal(isExerciseDefinition({
   id: "bad-choice", kind: "choice", prompt: "Choose", instructions: "Pick one", hint: "Think",
   fallback: "Point to an answer", evidenceMode: "automatic", maxAttempts: 2,

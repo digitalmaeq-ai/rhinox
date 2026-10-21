@@ -95,7 +95,8 @@ export function isExerciseDefinition(value: unknown): value is ExerciseDefinitio
       new Set(candidate.expectedOrder).size === candidate.expectedOrder.length &&
       Number.isFinite(scoring.correctPoints) && Number(scoring.correctPoints) >= 0 &&
       Number.isFinite(scoring.incorrectPoints) && Number(scoring.incorrectPoints) >= 0 &&
-      typeof scoring.partialCredit === "boolean" &&
+      Number(scoring.incorrectPoints) <= Number(scoring.correctPoints) &&
+      scoring.partialCredit === false &&
       Number(candidate.pointsAvailable) === Number(scoring.correctPoints);
   }
   if (candidate.kind === "choice") {
