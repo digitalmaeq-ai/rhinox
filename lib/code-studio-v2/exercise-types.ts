@@ -140,3 +140,15 @@ export function canAttemptExercise(attemptsUsed: number, exercise: ExerciseBase)
   if (attemptsUsed >= exercise.maxAttempts) return false;
   return exercise.retryPolicy === "allow-until-limit" || attemptsUsed === 0;
 }
+
+/** Scores one multiple-choice submission without awarding credit for an incorrect answer. */
+export function scoreChoiceAttempt(
+  selectedOptionId: string,
+  exercise: ChoiceExercise,
+): { correct: boolean; points: number } {
+  const correct = selectedOptionId === exercise.correctOptionId;
+  return {
+    correct,
+    points: correct ? exercise.pointsAvailable : 0,
+  };
+}
