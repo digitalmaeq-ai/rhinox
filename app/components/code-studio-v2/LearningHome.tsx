@@ -6,6 +6,7 @@ import ChoiceExercise from "./ChoiceExercise";
 
 import type { CurriculumActivity } from "@/lib/code-studio-v2/curriculum";
 import { isBuildRequired } from "@/lib/code-studio-v2/lesson-gates";
+import { canAdvanceLessonStep } from "@/lib/code-studio-v2/lesson-progress";
 import { canAttemptExercise, scoreOrderingAttempt } from "@/lib/code-studio-v2/exercise-types";
 import { getLessonSpec, isReviewedInteractiveLesson } from "@/lib/code-studio-v2/lesson-specs";
 import styles from "./LearningHome.module.css";
@@ -222,7 +223,14 @@ function LessonView({
     setOrderingResult(null);
   }
   const buildRequired = isBuildRequired(activity.coreParts);
-  const canContinue = stepKey === "move" ? movePracticed : stepKey === "code" ? orderingResult === "correct" : stepKey === "build" ? (!buildRequired || Boolean(buildChoice)) : stepKey === "create" ? creationCompleted : stepKey === "check" ? choicePassed : true;
+  const canContinue = canAdvanceLessonStep(stepKey, {
+    movePracticed,
+    orderingCorrect: orderingResult === "correct",
+    buildRequired,
+    buildChoiceSelected: Boolean(buildChoice),
+    creationCompleted,
+    choicePassed,
+  });
 
   return (
     <section className={styles.lessonView}>

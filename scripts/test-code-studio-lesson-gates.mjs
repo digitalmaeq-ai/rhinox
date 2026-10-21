@@ -2,6 +2,7 @@
 import assert from "node:assert/strict";
 import { CURRICULUM_ACTIVITIES } from "../lib/code-studio-v2/curriculum.ts";
 import { isBuildRequired } from "../lib/code-studio-v2/lesson-gates.ts";
+import { canAdvanceLessonStep } from "../lib/code-studio-v2/lesson-progress.ts";
 import { canAttemptExercise, isExerciseDefinition, scoreChoiceAttempt, scoreOrderingAttempt } from "../lib/code-studio-v2/exercise-types.ts";
 import { getLessonSpec, isLessonSpecConsistent, isReviewedInteractiveLesson } from "../lib/code-studio-v2/lesson-specs.ts";
 
@@ -46,6 +47,21 @@ for (const coreParts of ["Builder + Code", "Rebuild + Move", ""]) {
 }
 
 console.log("Lesson spec checks passed: reviewed allowlist, six step specifications, evidence, hints, fallbacks, accessibility, and core-part gating.");
+
+assert.equal(canAdvanceLessonStep("think", {}), true, "Think is an instructional introduction.");
+assert.equal(canAdvanceLessonStep("move", { movePracticed: false }), false);
+assert.equal(canAdvanceLessonStep("move", { movePracticed: true }), true);
+assert.equal(canAdvanceLessonStep("code", { orderingCorrect: false }), false);
+assert.equal(canAdvanceLessonStep("code", { orderingCorrect: true }), true);
+assert.equal(canAdvanceLessonStep("build", { buildRequired: false, buildChoiceSelected: false }), true, "Optional build must not block progression.");
+assert.equal(canAdvanceLessonStep("build", { buildRequired: true, buildChoiceSelected: false }), false);
+assert.equal(canAdvanceLessonStep("build", { buildRequired: true, buildChoiceSelected: true }), true);
+assert.equal(canAdvanceLessonStep("create", { creationCompleted: false }), false);
+assert.equal(canAdvanceLessonStep("create", { creationCompleted: true }), true);
+assert.equal(canAdvanceLessonStep("check", { choicePassed: false }), false);
+assert.equal(canAdvanceLessonStep("check", { choicePassed: true }), true);
+console.log("Lesson progression checks passed: each stage requires its defined evidence, while optional build never blocks progression.");
+
 
 const orderingExercise = spec.steps.code.exercise;
 assert.ok(orderingExercise, "The reviewed Code step must bind a concrete exercise contract.");
