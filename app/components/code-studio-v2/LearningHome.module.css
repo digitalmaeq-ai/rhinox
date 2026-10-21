@@ -48,7 +48,8 @@
 .lessonInfo p { margin: 0; color: #63778b; }
 .lessonFooter { display: flex; flex-wrap: wrap; gap: 8px 16px; margin-top: 13px; color: #178264; font-size: .78rem; font-weight: 700; }
 .cardButton { padding: 12px 16px; background: #fff; color: #0f6fde; border: 1px solid #bcd8f4; border-radius: 12px; font-weight: 850; white-space: nowrap; }
-.cardButton:hover { background: #eff8ff; }
+.cardButton:hover:not(:disabled) { background: #eff8ff; }
+.cardButton:disabled { cursor: not-allowed; color: #71849a; background: #f4f7fa; border-color: #dce5ed; }
 .scopeNote { margin: 13px 4px 0; color: #74879a; font-size: .79rem; line-height: 1.65; }
 .scopeNote strong { color: #506b83; }
 .principles { display: grid; grid-template-columns: repeat(3,1fr); gap: 14px; margin: 28px 0 35px; }
