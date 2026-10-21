@@ -168,6 +168,7 @@ function LessonView({
   ];
   const chosen = new Set(selectedOrder);
   const orderCorrect = selectedOrder.join(",") === "wake,teeth,eat";
+  const canContinue = stepKey === "code" ? orderCorrect : stepKey === "check" ? reflection === "Do them in the right order" : true;
 
   return (
     <section className={styles.lessonView}>
@@ -240,7 +241,7 @@ function LessonView({
             <div className={styles.lessonControls}>
               <button className={styles.secondaryButton} onClick={onBack} disabled={stepIndex === 0}>← Back</button>
               <span>{stepIndex + 1} / {STEPS.length}</span>
-              <button className={styles.primaryButton} onClick={onNext}>{stepIndex === STEPS.length - 1 ? "Finish activity" : "Next step →"}</button>
+              <button className={styles.primaryButton} onClick={onNext} disabled={!canContinue}>{stepIndex === STEPS.length - 1 ? "Finish activity" : "Next step →"}</button>
             </div>
             <p className={styles.coreNote}>Core: {activity.coreParts} · Optional Stretch: {activity.stretch}</p>
           </article>
