@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 
 import LearningHome from "@/app/components/code-studio-v2/LearningHome";
+import { CURRICULUM_ACTIVITIES } from "@/lib/code-studio-v2/curriculum";
 
 export const metadata: Metadata = {
   title: "Learn | Rhinox Code Studio",
@@ -8,5 +9,5 @@ export const metadata: Metadata = {
 };
 
 export default function Page() {
-  return <LearningHome />;
+  return <LearningHome activities={CURRICULUM_ACTIVITIES} />;
 }
