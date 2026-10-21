@@ -103,6 +103,20 @@ export default function Workspace() {
               <button className={styles.resetButton} onClick={reset}>Clear</button>
             </div>
             {result && <div className={result.success ? styles.success : styles.feedback} role="status"><strong>{result.success ? "Mission accomplished" : "Keep experimenting"}</strong><p>{result.message}</p></div>}
+            {result && result.trace.length > 0 && (
+              <section className={styles.tracePanel} aria-label="Program execution trace">
+                <div className={styles.traceHeading}><strong>What happened, step by step</strong><span>{result.trace.length} steps</span></div>
+                <ol className={styles.traceList}>
+                  {result.trace.map((item) => (
+                    <li key={item.step} className={item.blocked ? styles.traceBlocked : styles.traceStep}>
+                      <span className={styles.traceNumber}>{item.step}</span>
+                      <div><strong>{LABELS[item.command].title}</strong><p>{item.description}</p></div>
+                      <small>Col {item.position.x + 1}, row {item.position.y + 1}</small>
+                    </li>
+                  ))}
+                </ol>
+              </section>
+            )}
           </div>
 
           <div className={styles.previewColumn}>
