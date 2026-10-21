@@ -30,6 +30,7 @@ on:
       - "scripts/test-code-studio-curriculum-import.mjs"
       - "scripts/test-private-curriculum-loader.mjs"
       - "scripts/test-code-studio-robot-simulator.mjs"
+      - "scripts/test-code-studio-text-parser.mjs"
       - ".github/workflows/code-studio-v2-checks.yml"
       - "package.json"
       - "package-lock.json"

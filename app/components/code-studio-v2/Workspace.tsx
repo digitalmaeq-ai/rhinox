@@ -85,6 +85,19 @@ export default function Workspace() {
     setParseError(null);
     setResult(null);
   }
+  function switchToBlocks() {
+    const parsed = parseRobotTextProgram(textCode);
+    if (!parsed.ok) {
+      setParseError(`Line ${parsed.line}: ${parsed.message} Fix the text before switching back to blocks.`);
+      return;
+    }
+    const nextBlocks = parsed.commands.map((command, index) => ({ id: index + 1, command }));
+    setBlocks(nextBlocks);
+    setNextId(nextBlocks.length + 1);
+    setEditorMode("blocks");
+    setParseError(null);
+    setResult(null);
+  }
 
   return (
     <main className={styles.page}>
@@ -172,7 +185,7 @@ export default function Workspace() {
             </section>
 
             <section className={styles.codePanel}>
-              <div className={styles.panelHeader}><div><span className={styles.panelKicker}>03 / UNDERSTAND</span><h2>{editorMode === "text" ? "Text editor" : "Code view"}</h2></div><div className={styles.blockActions}><button className={styles.hintToggle} onClick={() => setShowHints((value) => !value)}>{showHints ? "Hide guide" : "Explain code"}</button><button className={styles.hintToggle} onClick={() => { if (editorMode === "blocks") switchToText(); else { setEditorMode("blocks"); setParseError(null); setResult(null); } }}>{editorMode === "text" ? "Use blocks" : "Edit text"}</button></div></div>
+              <div className={styles.panelHeader}><div><span className={styles.panelKicker}>03 / UNDERSTAND</span><h2>{editorMode === "text" ? "Text editor" : "Code view"}</h2></div><div className={styles.blockActions}><button className={styles.hintToggle} onClick={() => setShowHints((value) => !value)}>{showHints ? "Hide guide" : "Explain code"}</button><button className={styles.hintToggle} onClick={() => { if (editorMode === "blocks") switchToText(); else switchToBlocks(); }}>{editorMode === "text" ? "Use blocks" : "Edit text"}</button></div></div>
               <p className={styles.helper}>{editorMode === "text" ? "Edit one supported robot instruction per line. Unsupported code is rejected safely." : "Your instruction blocks are translated into a readable code-like form. Select Edit text to try the text language."}</p>
               {editorMode === "text" ? <textarea className={styles.textEditor} aria-label="RhinoBot text code" spellCheck={false} value={textCode} onChange={(event) => { setTextCode(event.target.value); setParseError(null); setResult(null); }} /> : <pre className={styles.code}><code>{code || "// Add blocks to build your program"}</code></pre>}
               {parseError && <div className={styles.feedback} role="alert"><strong>Code needs a fix</strong><p>{parseError}</p></div>}
