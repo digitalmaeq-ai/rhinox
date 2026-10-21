@@ -20,7 +20,7 @@ const LEVELS = [
   ...Array.from({ length: 11 }, (_, index) => `Year ${index + 1}`),
 ];
 const FIELD_ALIASES = {
-  matrixRow: ["matrix_row", "Matrix row", "index"],
+  matrixRow: ["matrix_row", "Matrix row"],
   level: ["level", "Level"],
   term: ["term", "Term"],
   week: ["week", "Week"],
@@ -50,7 +50,7 @@ const FIELD_ALIASES = {
   independenceLevel: ["independence_level", "Independence Level"],
 };
 const REQUIRED_FIELDS = [
-  "level", "term", "week", "weekType", "theme", "strand", "code",
+  "level", "term", "week", "weekType", "theme", "code",
   "practicalActivity", "weeklyCheck", "masteryTarget", "priorLearning",
   "futureBridge", "assessmentEvidence", "platform", "coreParts", "stretch",
   "fallback", "competency",
@@ -145,6 +145,7 @@ async function main() {
     record.matrixRow = record.matrixRow || String(rowIndex + 2);
     record.term = Number(record.term);
     record.week = Number(record.week);
+    record.strand = record.strand || null;
     return record;
   });
 
@@ -160,6 +161,9 @@ async function main() {
     if (![1, 2, 3].includes(record.term)) throw new Error(`${context}: term must be 1, 2 or 3.`);
     if (!Number.isInteger(record.week) || record.week < 1 || record.week > 13) {
       throw new Error(`${context}: week must be an integer from 1 to 13.`);
+    }
+    if (record.strand !== null && !["CT", "RB", "ED", "AI"].includes(record.strand)) {
+      throw new Error(`${context}: strand must be CT, RB, ED, AI, or blank for a non-themed week.`);
     }
     for (const field of REQUIRED_FIELDS) {
       const value = record[field];
