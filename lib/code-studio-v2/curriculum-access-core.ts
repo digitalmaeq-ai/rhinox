@@ -8,8 +8,11 @@ export type CurriculumAccess = {
   canReadLicensedCurriculum: boolean;
 };
 
-export function curriculumId({ level, term, week }: CurriculumSelection): string | null {
-  if (!LEVELS.has(level) || !Number.isInteger(term) || term < 1 || term > 3 ||
+export function curriculumId(selection: CurriculumSelection): string | null {
+  if (!selection || typeof selection !== "object") return null;
+  const { level, term, week } = selection;
+  if (typeof level !== "string" || !LEVELS.has(level) ||
+      !Number.isInteger(term) || term < 1 || term > 3 ||
       !Number.isInteger(week) || week < 1 || week > 13) return null;
   return `tmc-v3-15-${level.toLowerCase().replace(/ +/g, "-")}-t${term}-w${week}`;
 }
@@ -26,7 +29,8 @@ export function isValidCurriculumActivity(
   selection: CurriculumSelection,
   expectedId: string,
 ): record is CurriculumActivity {
-  if (record === null || typeof record !== "object" || Array.isArray(record)) return false;
+  if (!selection || typeof selection !== "object" ||
+      record === null || typeof record !== "object" || Array.isArray(record)) return false;
   const value = record as Record<string, unknown>;
   return value.id === expectedId && value.curriculumVersion === "3.15" &&
     value.level === selection.level && value.term === selection.term &&
@@ -41,7 +45,7 @@ export function authorizeCurriculumActivity(
   access: CurriculumAccess,
 ): CurriculumActivity | null {
   const id = curriculumId(selection);
-  if (!id || typeof access?.learnerId !== "string" || access.learnerId.trim().length === 0 ||
+  if (!id || !access || typeof access.learnerId !== "string" || access.learnerId.trim().length === 0 ||
       access.canReadLicensedCurriculum !== true || !Array.isArray(records) || records.length !== 39) return null;
   const matches = records.filter((record) => isValidCurriculumActivity(record, selection, id));
   return matches.length === 1 ? matches[0] : null;

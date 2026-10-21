@@ -50,7 +50,7 @@ const FIELD_ALIASES = {
   independenceLevel: ["independence_level", "Independence Level"],
 };
 const REQUIRED_FIELDS = [
-  "level", "term", "week", "weekType", "theme", "code",
+  "level", "term", "week", "weekType", "theme", "focus", "think", "move", "code", "build", "create",
   "practicalActivity", "weeklyCheck", "masteryTarget", "priorLearning",
   "futureBridge", "assessmentEvidence", "platform", "coreParts", "stretch",
   "fallback", "competency",

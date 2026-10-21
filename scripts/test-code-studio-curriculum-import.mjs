@@ -13,8 +13,8 @@ const levels = [
   ...Array.from({ length: 11 }, (_, index) => `Year ${index + 1}`),
 ];
 const normalisedHeaders = [
-  "index", "matrix_row", "level", "term", "week", "week_type", "theme", "strand",
-  "prior_learning", "future_bridge", "assessment_evidence", "platform",
+  "index", "matrix_row", "level", "term", "week", "week_type", "theme", "focus", "strand",
+  "think", "move", "build", "create", "prior_learning", "future_bridge", "assessment_evidence", "platform",
   "core_parts", "stretch", "fallback", "competency", "code",
   "practical_activity", "weekly_check", "mastery_target",
 ];
@@ -144,7 +144,17 @@ try {
   assert.notEqual(bad.status, 0, "Partial helper index must be rejected");
   assert.match(bad.stderr, /Expected 507 weekly records/);
 
-  console.log("Curriculum importer checks passed: both schemas, 507 records, 13 levels, stable IDs, CSV quoting/newlines, partial-export rejection.");
+  const missingInstructionPath = path.join(temp, "missing-instruction.csv");
+  const validRows = makeRows(normalisedHeaders, false);
+  const firstRecord = validRows[0].split(",");
+  firstRecord[normalisedHeaders.indexOf("think")] = "";
+  validRows[0] = firstRecord.join(",");
+  await writeFile(missingInstructionPath, [normalisedHeaders.join(","), ...validRows].join("\n"), "utf8");
+  const missingInstruction = runImport(missingInstructionPath, path.join(temp, "missing-instruction-output"));
+  assert.notEqual(missingInstruction.status, 0, "Instructional fields required by the runtime must not be blank");
+  assert.match(missingInstruction.stderr, /required field 'think' is empty/);
+
+  console.log("Curriculum importer checks passed: both schemas, 507 records, 13 levels, stable IDs, CSV quoting/newlines, partial-export rejection, and required instructional fields.");
 } finally {
   await rm(temp, { recursive: true, force: true });
 }
