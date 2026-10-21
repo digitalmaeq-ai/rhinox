@@ -58,6 +58,7 @@ assert.equal(orderingExercise.pointsAvailable, 1);
 assert.equal(orderingExercise.evidenceMode, "automatic");
 assert.equal(orderingExercise.accessibility.keyboardOperable, true);
 assert.equal(isExerciseDefinition({ ...orderingExercise, expectedOrder: ["wake-up", "wake-up", "eat-breakfast"] }), false);
+assert.equal(isExerciseDefinition({ ...orderingExercise, evidenceMode: "learner-confirmed" }), false, "Auto-scored ordering must declare automatic evidence.");
 assert.equal(isExerciseDefinition({ ...orderingExercise, maxAttempts: 0 }), false);
 assert.equal(isExerciseDefinition({
   id: "bad-choice", kind: "choice", prompt: "Choose", instructions: "Pick one", hint: "Think",
@@ -95,4 +96,5 @@ assert.deepEqual(scoreChoiceAttempt("right-order", choiceExercise), { correct: t
 assert.deepEqual(scoreChoiceAttempt("any-order", choiceExercise), { correct: false, points: 0 });
 assert.deepEqual(scoreChoiceAttempt("", choiceExercise), { correct: false, points: 0 }, "An empty choice must never earn points.");
 assert.equal(isExerciseDefinition({ ...choiceExercise, correctOptionId: "missing-option" }), false);
+assert.equal(isExerciseDefinition({ ...choiceExercise, evidenceMode: "teacher-observed" }), false, "Auto-scored choice must declare automatic evidence.");
 console.log("Multiple-choice checks passed: reviewed choice contract, correct/incorrect scoring, and invalid answer rejection.");
