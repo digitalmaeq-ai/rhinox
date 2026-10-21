@@ -4,6 +4,7 @@ import { useMemo, useState } from "react";
 import Link from "next/link";
 import styles from "./Workspace.module.css";
 import { ROBOT_GOAL, ROBOT_START, runRobotProgram, type RobotCommand, type RobotPosition, type RobotRunResult } from "@/lib/code-studio-v2/robot-simulator";
+import { parseRobotTextProgram } from "@/lib/code-studio-v2/text-code-parser";
 
 type Command = RobotCommand;
 type Block = { id: number; command: Command };
@@ -22,6 +23,9 @@ export default function Workspace() {
   const [nextId, setNextId] = useState(1);
   const [result, setResult] = useState<RobotRunResult | null>(null);
   const [showHints, setShowHints] = useState(false);
+  const [editorMode, setEditorMode] = useState<"blocks" | "text">("blocks");
+  const [textCode, setTextCode] = useState("");
+  const [parseError, setParseError] = useState<string | null>(null);
   const code = useMemo(() => blocks.map((block, index) => `// ${index + 1}. ${LABELS[block.command].title}\nrobot.${LABELS[block.command].code}`).join("\n"), [blocks]);
   const current: RobotPosition = result?.position ?? ROBOT_START;
   const visited = new Set(result?.visited ?? [`${ROBOT_START.x},${ROBOT_START.y}`]);
@@ -31,6 +35,7 @@ export default function Workspace() {
     setBlocks((items) => [...items, { id: nextId, command }]);
     setNextId((id) => id + 1);
     setResult(null);
+    setParseError(null);
   }
   function moveBlock(index: number, offset: -1 | 1) {
     setBlocks((items) => {
@@ -54,6 +59,30 @@ export default function Workspace() {
   function loadExample() {
     setBlocks(EXAMPLE_PROGRAM.map((command, index) => ({ id: index + 1, command })));
     setNextId(EXAMPLE_PROGRAM.length + 1);
+    setTextCode(EXAMPLE_PROGRAM.map((command, index) => `// ${index + 1}. ${LABELS[command].title}\\nrobot.${LABELS[command].code}`).join("\\n"));
+    setEditorMode("blocks");
+    setParseError(null);
+    setResult(null);
+  }
+  function runProgram() {
+    if (editorMode === "text") {
+      const parsed = parseRobotTextProgram(textCode);
+      if (!parsed.ok) {
+        setParseError(`Line ${parsed.line}: ${parsed.message}`);
+        setResult(null);
+        return;
+      }
+      setParseError(null);
+      setResult(runRobotProgram(parsed.commands));
+      return;
+    }
+    setParseError(null);
+    setResult(runRobotProgram(blocks.map((block) => block.command)));
+  }
+  function switchToText() {
+    setTextCode(code);
+    setEditorMode("text");
+    setParseError(null);
     setResult(null);
   }
 
@@ -98,7 +127,7 @@ export default function Workspace() {
               ))}
             </div>
             <div className={styles.programActions}>
-              <button className={styles.runButton} onClick={() => setResult(runRobotProgram(blocks.map((block) => block.command)))}>▶ Run program</button>
+              <button className={styles.runButton} onClick={runProgram}>▶ Run program</button>
               <button className={styles.resetButton} onClick={loadExample}>Load example</button>
               <button className={styles.resetButton} onClick={reset}>Clear</button>
             </div>
@@ -143,9 +172,10 @@ export default function Workspace() {
             </section>
 
             <section className={styles.codePanel}>
-              <div className={styles.panelHeader}><div><span className={styles.panelKicker}>03 / UNDERSTAND</span><h2>Code view</h2></div><button className={styles.hintToggle} onClick={() => setShowHints((value) => !value)}>{showHints ? "Hide guide" : "Explain code"}</button></div>
-              <p className={styles.helper}>Your instruction blocks are translated into a readable code-like form.</p>
-              <pre className={styles.code}><code>{code || "// Add blocks to build your program"}</code></pre>
+              <div className={styles.panelHeader}><div><span className={styles.panelKicker}>03 / UNDERSTAND</span><h2>{editorMode === "text" ? "Text editor" : "Code view"}</h2></div><div className={styles.blockActions}><button className={styles.hintToggle} onClick={() => setShowHints((value) => !value)}>{showHints ? "Hide guide" : "Explain code"}</button><button className={styles.hintToggle} onClick={() => { if (editorMode === "blocks") switchToText(); else { setEditorMode("blocks"); setParseError(null); setResult(null); } }}>{editorMode === "text" ? "Use blocks" : "Edit text"}</button></div></div>
+              <p className={styles.helper}>{editorMode === "text" ? "Edit one supported robot instruction per line. Unsupported code is rejected safely." : "Your instruction blocks are translated into a readable code-like form. Select Edit text to try the text language."}</p>
+              {editorMode === "text" ? <textarea className={styles.textEditor} aria-label="RhinoBot text code" spellCheck={false} value={textCode} onChange={(event) => { setTextCode(event.target.value); setParseError(null); setResult(null); }} /> : <pre className={styles.code}><code>{code || "// Add blocks to build your program"}</code></pre>}
+              {parseError && <div className={styles.feedback} role="alert"><strong>Code needs a fix</strong><p>{parseError}</p></div>}
               {showHints && <div className={styles.explanation}><strong>What is an algorithm?</strong><p>An algorithm is a set of steps that solves a problem. Computers follow instructions in order. Changing the order can change the result.</p><strong>Try this</strong><p>Move a turn block earlier or later, then run the program again. Observe how the robot&apos;s path changes.</p></div>}
             </section>
           </div>
