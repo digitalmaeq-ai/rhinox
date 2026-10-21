@@ -14,7 +14,7 @@ export type CurriculumActivity = {
   weekType: string;
   theme: string;
   focus: string;
-  strand: "CT" | "RB" | "ED" | "AI";
+  strand: "CT" | "RB" | "ED" | "AI" | null;
   think: string;
   move: string;
   code: string;
