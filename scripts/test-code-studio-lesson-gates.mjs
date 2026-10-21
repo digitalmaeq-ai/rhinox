@@ -118,3 +118,11 @@ assert.deepEqual(scoreChoiceAttempt("", choiceExercise), { correct: false, point
 assert.equal(isExerciseDefinition({ ...choiceExercise, correctOptionId: "missing-option" }), false);
 assert.equal(isExerciseDefinition({ ...choiceExercise, evidenceMode: "teacher-observed" }), false, "Auto-scored choice must declare automatic evidence.");
 console.log("Multiple-choice checks passed: reviewed choice contract, correct/incorrect scoring, and invalid answer rejection.");
+
+assert.equal(isLessonSpecConsistent({ ...spec, estimatedMinutes: 0 }, activity), false, "Invalid duration must fail the lesson review gate.");
+assert.equal(isLessonSpecConsistent({ ...spec, objective: "   " }, activity), false, "Blank objectives must fail the lesson review gate.");
+assert.equal(isLessonSpecConsistent({ ...spec, accessibility: { ...spec.accessibility, keyboardOperable: false } }, activity), false, "Lessons must remain keyboard operable.");
+assert.equal(isLessonSpecConsistent({ ...spec, steps: { ...spec.steps, think: { ...spec.steps.think, evidence: "" } } }, activity), false, "Every step must define evidence.");
+assert.equal(isLessonSpecConsistent({ ...spec, steps: { ...spec.steps, code: { ...spec.steps.code, exercise: { ...orderingExercise, expectedOrder: ["wake-up", "wake-up", "eat-breakfast"] } } } }, activity), false, "Invalid embedded exercise contracts must block a lesson.");
+assert.equal(isLessonSpecConsistent(spec, { ...activity, coreParts: "Move + Build + Code" }), false, "A required Build step cannot be labelled optional.");
+console.log("Lesson consistency gate checks passed: malformed content, accessibility regressions, invalid exercises, and Build/core-part mismatches are rejected.");

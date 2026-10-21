@@ -1,5 +1,6 @@
 import type { CurriculumActivity } from "./curriculum";
-import type { ExerciseDefinition } from "./exercise-types";
+import { isExerciseDefinition, type ExerciseDefinition } from "./exercise-types";
+import { isBuildRequired } from "./lesson-gates";
 type StepKey = "think" | "move" | "code" | "build" | "create" | "check";
 
 /**
@@ -140,12 +141,44 @@ export function getLessonSpec(activityId: string): InteractiveLessonSpec | undef
 }
 
 export function isLessonSpecConsistent(spec: InteractiveLessonSpec, activity: CurriculumActivity): boolean {
-  return spec.activityId === activity.id &&
-    spec.status === "reviewed" &&
-    spec.estimatedMinutes > 0 &&
-    spec.objective.trim().length > 0 &&
-    spec.successCriteria.length > 0 &&
-    (activity.coreParts.toLowerCase().includes("build") || spec.steps.build.evidence.toLowerCase().includes("not a core"));
+  if (
+    spec.activityId !== activity.id ||
+    spec.status !== "reviewed" ||
+    !Number.isInteger(spec.estimatedMinutes) ||
+    spec.estimatedMinutes <= 0 ||
+    !spec.objective.trim() ||
+    spec.successCriteria.length === 0 ||
+    !spec.successCriteria.every((criterion) => criterion.trim().length > 0)
+  ) return false;
+
+  const accessibility = spec.accessibility;
+  if (
+    accessibility.keyboardOperable !== true ||
+    accessibility.touchOperable !== true ||
+    accessibility.reducedMotionSafe !== true ||
+    accessibility.textInstructionsAvailable !== true
+  ) return false;
+
+  const stepKeys: StepKey[] = ["think", "move", "code", "build", "create", "check"];
+  for (const key of stepKeys) {
+    const step = spec.steps[key];
+    if (
+      !step ||
+      !step.instruction.trim() ||
+      !step.task.trim() ||
+      !step.evidence.trim() ||
+      !step.hint.trim() ||
+      !step.fallback.trim()
+    ) return false;
+    if (step.exercise && !isExerciseDefinition(step.exercise)) return false;
+  }
+
+  const buildRequired = isBuildRequired(activity.coreParts);
+  const buildEvidence = spec.steps.build.evidence.toLowerCase();
+  if (buildRequired && /optional|not a core|no evidence is required/.test(buildEvidence)) return false;
+  if (!buildRequired && !/optional|not a core|no evidence is required/.test(buildEvidence)) return false;
+
+  return true;
 }
 
 export function isReviewedInteractiveLesson(activityId: string): boolean {
