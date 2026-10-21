@@ -30,9 +30,9 @@ function activityText(activity: CurriculumActivity, key: StepKey): string {
   }
 }
 
-export default function LearningHome() {
-  const [selectedActivityId, setSelectedActivityId] = useState(CURRICULUM_ACTIVITIES[0]?.id ?? "");
-  const activity = CURRICULUM_ACTIVITIES.find((item) => item.id === selectedActivityId) ?? CURRICULUM_ACTIVITIES[0];
+export default function LearningHome({ activities = CURRICULUM_ACTIVITIES }: { activities?: readonly CurriculumActivity[] }) {
+  const [selectedActivityId, setSelectedActivityId] = useState(activities[0]?.id ?? "");
+  const activity = activities.find((item) => item.id === selectedActivityId) ?? activities[0];
   const [stage, setStage] = useState<Stage>("home");
   const [stepIndex, setStepIndex] = useState(0);
   const [done, setDone] = useState(false);
@@ -115,7 +115,7 @@ export default function LearningHome() {
                 <span className={styles.versionTag}>Master Curriculum v3.15</span>
               </div>
               <div className={styles.lessonList}>
-                {CURRICULUM_ACTIVITIES.map((item) => (
+                {activities.map((item) => (
                   <article className={styles.lessonCard} key={item.id}>
                     <div className={styles.lessonIcon}>🧠</div>
                     <div className={styles.lessonInfo}>
@@ -128,7 +128,7 @@ export default function LearningHome() {
                   </article>
                 ))}
               </div>
-              <p className={styles.scopeNote}><strong>Verified content only:</strong> {CURRICULUM_ACTIVITIES.length} activity {CURRICULUM_ACTIVITIES.length === 1 ? "is" : "records are"} currently available in this preview. Additional levels and weeks will appear only after their curriculum records are imported and validated.</p>
+              <p className={styles.scopeNote}><strong>Verified content only:</strong> {activities.length} activity {activities.length === 1 ? "is" : "records are"} currently available in this preview. Additional levels and weeks will appear only after their curriculum records are imported and validated.</p>
             </section>
 
             <section className={styles.principles}>
