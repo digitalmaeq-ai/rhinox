@@ -12,6 +12,7 @@ const STEPS = [
   { key: "think", label: "Think", icon: "💡", title: "Think about the steps" },
   { key: "move", label: "Move", icon: "🤸", title: "Move like a robot" },
   { key: "code", label: "Code", icon: "🧩", title: "Put the picture steps in order" },
+  { key: "build", label: "Build", icon: "🛠️", title: "Build it and try it" },
   { key: "create", label: "Create", icon: "🎨", title: "Create your own sequence" },
   { key: "check", label: "Show what you know", icon: "⭐", title: "Show what you know" },
 ] as const;
@@ -23,6 +24,7 @@ function activityText(activity: CurriculumActivity, key: StepKey): string {
     case "think": return activity.think;
     case "move": return activity.move;
     case "code": return activity.code;
+    case "build": return activity.build;
     case "create": return activity.create;
     case "check": return activity.weeklyCheck;
   }
@@ -172,6 +174,7 @@ function LessonView({
   const [selectedOrder, setSelectedOrder] = useState<string[]>([]);
   const [showHint, setShowHint] = useState(false);
   const [reflection, setReflection] = useState("");
+  const [buildChoice, setBuildChoice] = useState("");
 
   const pictures = [
     { id: "wake", label: "Wake up", icon: "☀️" },
@@ -245,6 +248,21 @@ function LessonView({
 
             {stepKey === "think" && <div className={styles.exampleStrip}><span>☀️</span><span>Wake up</span><b>→</b><span>🪥</span><span>Brush teeth</span><b>→</b><span>🥣</span><span>Eat breakfast</span></div>}
             {stepKey === "move" && <div className={styles.moveChallenge}><span>👏</span><b>Clap</b><span>→</span><span>👣</span><b>Stamp</b><span>→</span><span>🔄</span><b>Turn</b><p>Ask a grown-up or classmate to call the steps. Follow them in order, then swap and make a new order.</p></div>}
+            {stepKey === "build" && (
+              <div className={styles.buildPanel}>
+                <div className={styles.buildPanelHeading}><span>🛠️</span><div><strong>Make your idea real</strong><p>{activity.practicalActivity}</p></div></div>
+                <p className={styles.buildMaterialsTitle}>Choose what you will use:</p>
+                <div className={styles.buildChoices}>
+                  {["Paper or picture cards", "Blocks or classroom objects", "Drawings in a notebook"].map((choice) => (
+                    <button key={choice} className={buildChoice === choice ? styles.buildChoiceSelected : ""} onClick={() => setBuildChoice(choice)} aria-pressed={buildChoice === choice}>{choice}</button>
+                  ))}
+                </div>
+                <p className={styles.buildPlatform}><strong>Suggested platform:</strong> {activity.platform}</p>
+                {buildChoice && <p className={styles.buildReady}>Good choice. Use {buildChoice.toLowerCase()} to represent each step, then test whether the steps are in the correct order.</p>}
+                <p className={styles.buildFallback}><strong>If you do not have these materials:</strong> {activity.fallback}</p>
+              </div>
+            )}
+
             {stepKey === "create" && <div className={styles.createPrompt}><span>🎨</span><div><strong>Your turn to create</strong><p>Draw three things you do every day. Number them 1, 2 and 3 to show the order.</p><small>Core task: complete the three-step drawing. Stretch: add a fourth step.</small></div></div>}
 
             {stepKey !== "check" && <button className={styles.hintButton} onClick={() => setShowHint((shown) => !shown)}>{showHint ? "Hide hint" : "Need a hint?"}</button>}
