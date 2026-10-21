@@ -132,7 +132,7 @@ export default function Workspace() {
               <div className={styles.panelHeader}><div><span className={styles.panelKicker}>03 / UNDERSTAND</span><h2>Code view</h2></div><button className={styles.hintToggle} onClick={() => setShowHints((value) => !value)}>{showHints ? "Hide guide" : "Explain code"}</button></div>
               <p className={styles.helper}>Your instruction blocks are translated into a readable code-like form.</p>
               <pre className={styles.code}><code>{code || "// Add blocks to build your program"}</code></pre>
-              {showHints && <div className={styles.explanation}><strong>What is an algorithm?</strong><p>An algorithm is a set of steps that solves a problem. Computers follow instructions in order. Changing the order can change the result.</p><strong>Try this</strong><p>Move a turn block earlier or later, then run the program again. Observe how the robot's path changes.</p></div>}
+              {showHints && <div className={styles.explanation}><strong>What is an algorithm?</strong><p>An algorithm is a set of steps that solves a problem. Computers follow instructions in order. Changing the order can change the result.</p><strong>Try this</strong><p>Move a turn block earlier or later, then run the program again. Observe how the robot&apos;s path changes.</p></div>}
             </section>
           </div>
         </section>
