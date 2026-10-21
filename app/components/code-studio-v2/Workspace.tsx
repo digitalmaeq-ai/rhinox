@@ -26,9 +26,11 @@ export default function Workspace() {
   const [editorMode, setEditorMode] = useState<"blocks" | "text">("blocks");
   const [textCode, setTextCode] = useState("");
   const [parseError, setParseError] = useState<string | null>(null);
+  const [traceIndex, setTraceIndex] = useState(-1);
   const code = useMemo(() => blocks.map((block, index) => `// ${index + 1}. ${LABELS[block.command].title}\nrobot.${LABELS[block.command].code}`).join("\n"), [blocks]);
-  const current: RobotPosition = result?.position ?? ROBOT_START;
-  const visited = new Set(result?.visited ?? [`${ROBOT_START.x},${ROBOT_START.y}`]);
+  const activeTrace = result && traceIndex >= 0 ? result.trace[Math.min(traceIndex, result.trace.length - 1)] : null;
+  const current: RobotPosition = activeTrace?.position ?? (result && traceIndex === -1 ? result.position : ROBOT_START);
+  const visited = new Set(result && traceIndex === -1 ? result.visited : [`${ROBOT_START.x},${ROBOT_START.y}`, ...(result?.trace.slice(0, traceIndex + 1).filter((step) => step.command === "forward" && !step.blocked).map((step) => `${step.position.x},${step.position.y}`) ?? [])]);
 
   function addBlock(command: Command) {
     if (blocks.length >= MAX_BLOCKS) return;
@@ -74,10 +76,12 @@ export default function Workspace() {
       }
       setParseError(null);
       setResult(runRobotProgram(parsed.commands));
+      setTraceIndex(0);
       return;
     }
     setParseError(null);
     setResult(runRobotProgram(blocks.map((block) => block.command)));
+    setTraceIndex(0);
   }
   function switchToText() {
     setTextCode(code);
@@ -148,8 +152,14 @@ export default function Workspace() {
             {result && result.trace.length > 0 && (
               <section className={styles.tracePanel} aria-label="Program execution trace">
                 <div className={styles.traceHeading}><strong>What happened, step by step</strong><span>{result.trace.length} steps</span></div>
+                <div className={styles.traceControls}>
+                  <button type="button" onClick={() => setTraceIndex(-1)} disabled={traceIndex === -1}>Show final</button>
+                  <button type="button" onClick={() => setTraceIndex((value) => Math.max(0, value - 1))} disabled={traceIndex <= 0}>Previous</button>
+                  <span>{traceIndex === -1 ? "Final position" : `Step ${traceIndex + 1} of ${result.trace.length}`}</span>
+                  <button type="button" onClick={() => setTraceIndex((value) => Math.min(result.trace.length - 1, value + 1))} disabled={traceIndex >= result.trace.length - 1}>Next step</button>
+                </div>
                 <ol className={styles.traceList}>
-                  {result.trace.map((item) => (
+                  {result.trace.slice(0, traceIndex === -1 ? result.trace.length : traceIndex + 1).map((item) => (
                     <li key={item.step} className={item.blocked ? styles.traceBlocked : styles.traceStep}>
                       <span className={styles.traceNumber}>{item.step}</span>
                       <div><strong>{LABELS[item.command].title}</strong><p>{item.description}</p></div>
