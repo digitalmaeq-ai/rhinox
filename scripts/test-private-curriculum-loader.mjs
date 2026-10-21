@@ -1,17 +1,10 @@
 #!/usr/bin/env node
 /**
- * Integration tests for the private curriculum access boundary.
- * Run with: node --conditions=react-server --experimental-strip-types scripts/test-private-curriculum-loader.mjs
+ * Tests the pure access policy used by the private server loader.
+ * Run with: node --experimental-strip-types scripts/test-private-curriculum-loader.mjs
  */
 import assert from "node:assert/strict";
-import { mkdtemp, mkdir, rm, writeFile } from "node:fs/promises";
-import os from "node:os";
-import path from "node:path";
 import { test } from "node:test";
-
-let root;
-let file;
-const requestedId = "tmc-v3-15-nursery-1-t1-w1";
 
 function makeRecord(term, week) {
   return {
@@ -21,7 +14,7 @@ function makeRecord(term, week) {
     term,
     week,
     weekType: "Themed learning",
-    theme: `Theme ${week}`,
+    theme: `Theme ${term}-${week}`,
     focus: "Thinking in steps",
     strand: week === 12 ? null : "CT",
     think: "Think about the sequence.",
@@ -42,45 +35,25 @@ function makeRecord(term, week) {
   };
 }
 
-async function writeFixture(records) {
-  await mkdir(root, { recursive: true });
-  await writeFile(file, `${JSON.stringify(records, null, 2)}\n`, "utf8");
-}
-
-test("private curriculum loader enforces identity, entitlement and record integrity", async (t) => {
-  const originalCwd = process.cwd();
-  const temporaryCwd = await mkdtemp(path.join(os.tmpdir(), "rhinox-curriculum-test-"));
-  const moduleUrl = new URL("../lib/code-studio-v2/private-curriculum.server.ts", import.meta.url).href;
-  process.chdir(temporaryCwd);
-  root = path.resolve(".private-data/code-studio-v2/catalogue");
-  file = path.join(root, "nursery-1.json");
-  const { getLicensedCurriculumActivity, curriculumId } = await import(moduleUrl);
-  t.after(async () => {
-    process.chdir(originalCwd);
-    await rm(temporaryCwd, { recursive: true, force: true });
-  });
-
+test("curriculum access policy rejects unauthorized and invalid records", async () => {
+  const { authorizeCurriculumActivity, curriculumId } = await import("../lib/code-studio-v2/curriculum-access-core.ts");
   const records = Array.from({ length: 39 }, (_, index) => makeRecord(Math.floor(index / 13) + 1, (index % 13) + 1));
-  await writeFixture(records);
   const selection = { level: "Nursery 1", term: 1, week: 1 };
   const validAccess = { learnerId: "learner-test-1", canReadLicensedCurriculum: true };
+  const requestedId = "tmc-v3-15-nursery-1-t1-w1";
 
   assert.equal(curriculumId(selection), requestedId);
-  assert.equal(await getLicensedCurriculumActivity(selection, validAccess).then((value) => value?.id), requestedId);
-  assert.equal(await getLicensedCurriculumActivity(selection, { learnerId: null, canReadLicensedCurriculum: true }), null);
-  assert.equal(await getLicensedCurriculumActivity(selection, { learnerId: "learner-test-1", canReadLicensedCurriculum: false }), null);
-  assert.equal(await getLicensedCurriculumActivity(selection, { learnerId: "   ", canReadLicensedCurriculum: true }), null);
-  assert.equal(await getLicensedCurriculumActivity({ level: "Year 12", term: 1, week: 1 }, validAccess), null);
-  assert.equal(await getLicensedCurriculumActivity({ level: "Nursery 1", term: 4, week: 1 }, validAccess), null);
-
-  await writeFixture(records.slice(0, 38));
-  assert.equal(await getLicensedCurriculumActivity(selection, validAccess), null, "rejects incomplete level files");
+  assert.equal(authorizeCurriculumActivity(records, selection, validAccess)?.id, requestedId);
+  assert.equal(authorizeCurriculumActivity(records, selection, { learnerId: null, canReadLicensedCurriculum: true }), null);
+  assert.equal(authorizeCurriculumActivity(records, selection, { learnerId: "learner-test-1", canReadLicensedCurriculum: false }), null);
+  assert.equal(authorizeCurriculumActivity(records, selection, { learnerId: "   ", canReadLicensedCurriculum: true }), null);
+  assert.equal(authorizeCurriculumActivity(records, { level: "Year 12", term: 1, week: 1 }, validAccess), null);
+  assert.equal(authorizeCurriculumActivity(records, { level: "Nursery 1", term: 4, week: 1 }, validAccess), null);
+  assert.equal(authorizeCurriculumActivity(records.slice(0, 38), selection, validAccess), null, "rejects incomplete level files");
 
   const duplicate = records.map((record, index) => index === 1 ? { ...records[0] } : record);
-  await writeFixture(duplicate);
-  assert.equal(await getLicensedCurriculumActivity(selection, validAccess), null, "rejects duplicate matching lesson IDs");
+  assert.equal(authorizeCurriculumActivity(duplicate, selection, validAccess), null, "rejects duplicate matching lesson IDs");
 
   const invalidRecord = records.map((record) => record.id === requestedId ? { ...record, theme: "  " } : record);
-  await writeFixture(invalidRecord);
-  assert.equal(await getLicensedCurriculumActivity(selection, validAccess), null, "rejects malformed matching lesson");
+  assert.equal(authorizeCurriculumActivity(invalidRecord, selection, validAccess), null, "rejects malformed matching lesson");
 });
