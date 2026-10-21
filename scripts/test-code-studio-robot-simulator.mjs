@@ -18,6 +18,11 @@ test("text source lines stay attached to their execution trace steps", () => {
   assert.deepEqual(result.trace.map((step) => step.sourceLine), [4, 9]);
 });
 
+test("repeat iteration context remains attached to execution trace steps", () => {
+  const result = runRobotProgram(["forward", "right", "forward", "right"], [2, 3, 2, 3], [[1], [1], [2], [2]]);
+  assert.deepEqual(result.trace.map((step) => step.repeatPath), [[1], [1], [2], [2]]);
+});
+
 test("turning changes direction without changing position", () => {
   const result = runRobotProgram(["right"]);
   assert.deepEqual(result.position, { ...ROBOT_START, direction: 1 });

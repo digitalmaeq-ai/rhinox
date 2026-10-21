@@ -48,7 +48,7 @@ export function runRobotProgram(commands: readonly RobotCommand[], sourceLines?:
         trace.push({
           step: index + 1,
           sourceLine: sourceLines?.[index],
-          ...(repeatPaths?.[index]?.length ? { repeatPath: [...repeatPaths[index]] } : {}),
+          ...(repeatPaths?.[index]?.length ? { repeatPath: [...(repeatPaths[index] ?? [])] } : {}),
           command,
           position: { ...position },
           description: "Blocked: this move would take RhinoBot outside the grid.",
