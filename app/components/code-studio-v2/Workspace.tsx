@@ -54,7 +54,6 @@ export default function Workspace() {
   const [blocks, setBlocks] = useState<Block[]>(() => INITIAL.map((command, index) => ({ id: index + 1, command })));
   const [nextId, setNextId] = useState(INITIAL.length + 1);
   const [result, setResult] = useState<RunResult | null>(null);
-  const [selectedCommand, setSelectedCommand] = useState<Command>("forward");
   const [showHints, setShowHints] = useState(false);
   const code = useMemo(() => blocks.map((block, index) => `// ${index + 1}. ${LABELS[block.command].title}\nrobot.${LABELS[block.command].code}`).join("\n"), [blocks]);
   const current = result?.position ?? START;
