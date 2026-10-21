@@ -48,12 +48,20 @@ export async function getLicensedCurriculumActivity(
     return null;
   }
   if (!Array.isArray(records) || records.length !== 39) return null;
-  const matches = records.filter((record): record is CurriculumActivity =>
-    record !== null && typeof record === "object" &&
-    (record as CurriculumActivity).id === id &&
-    (record as CurriculumActivity).curriculumVersion === "3.15" &&
-    (record as CurriculumActivity).level === selection.level &&
-    (record as CurriculumActivity).term === selection.term &&
-    (record as CurriculumActivity).week === selection.week);
+  const textFields = [
+    "id", "level", "weekType", "theme", "focus", "think", "move", "code",
+    "build", "create", "practicalActivity", "weeklyCheck", "masteryTarget",
+    "priorLearning", "futureBridge", "assessmentEvidence", "platform",
+    "coreParts", "stretch", "fallback",
+  ] as const;
+  const matches = records.filter((record): record is CurriculumActivity => {
+    if (record === null || typeof record !== "object" || Array.isArray(record)) return false;
+    const value = record as Record<string, unknown>;
+    return value.id === id && value.curriculumVersion === "3.15" &&
+      value.level === selection.level && value.term === selection.term &&
+      value.week === selection.week &&
+      (value.strand === null || ["CT", "RB", "ED", "AI"].includes(value.strand as string)) &&
+      textFields.every((field) => typeof value[field] === "string" && (value[field] as string).trim().length > 0);
+  });
   return matches.length === 1 ? matches[0] : null;
 }
