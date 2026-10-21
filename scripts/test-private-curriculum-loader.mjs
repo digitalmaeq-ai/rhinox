@@ -13,12 +13,12 @@ let root;
 let file;
 const requestedId = "tmc-v3-15-nursery-1-t1-w1";
 
-function makeRecord(week) {
+function makeRecord(term, week) {
   return {
-    id: `tmc-v3-15-nursery-1-t1-w${week}`,
+    id: `tmc-v3-15-nursery-1-t${term}-w${week}`,
     curriculumVersion: "3.15",
     level: "Nursery 1",
-    term: 1,
+    term,
     week,
     weekType: "Themed learning",
     theme: `Theme ${week}`,
@@ -60,7 +60,7 @@ test("private curriculum loader enforces identity, entitlement and record integr
     await rm(temporaryCwd, { recursive: true, force: true });
   });
 
-  const records = Array.from({ length: 39 }, (_, index) => makeRecord(index + 1));
+  const records = Array.from({ length: 39 }, (_, index) => makeRecord(Math.floor(index / 13) + 1, (index % 13) + 1));
   await writeFixture(records);
   const selection = { level: "Nursery 1", term: 1, week: 1 };
   const validAccess = { learnerId: "learner-test-1", canReadLicensedCurriculum: true };
@@ -76,9 +76,9 @@ test("private curriculum loader enforces identity, entitlement and record integr
   await writeFixture(records.slice(0, 38));
   assert.equal(await getLicensedCurriculumActivity(selection, validAccess), null, "rejects incomplete level files");
 
-  const duplicate = [...records, { ...records[0] }];
+  const duplicate = records.map((record, index) => index === 1 ? { ...records[0] } : record);
   await writeFixture(duplicate);
-  assert.equal(await getLicensedCurriculumActivity(selection, validAccess), null, "rejects unexpected catalogue length");
+  assert.equal(await getLicensedCurriculumActivity(selection, validAccess), null, "rejects duplicate matching lesson IDs");
 
   const invalidRecord = records.map((record) => record.id === requestedId ? { ...record, theme: "  " } : record);
   await writeFixture(invalidRecord);
