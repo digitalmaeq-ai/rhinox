@@ -4,12 +4,13 @@
  * Run with: node --conditions=react-server --experimental-strip-types scripts/test-private-curriculum-loader.mjs
  */
 import assert from "node:assert/strict";
-import { mkdir, rm, writeFile } from "node:fs/promises";
+import { mkdtemp, mkdir, rm, writeFile } from "node:fs/promises";
+import os from "node:os";
 import path from "node:path";
 import { test } from "node:test";
 
-const root = path.resolve(".private-data/code-studio-v2/catalogue");
-const file = path.join(root, "nursery-1.json");
+let root;
+let file;
 const requestedId = "tmc-v3-15-nursery-1-t1-w1";
 
 function makeRecord(week) {
@@ -47,10 +48,17 @@ async function writeFixture(records) {
 }
 
 test("private curriculum loader enforces identity, entitlement and record integrity", async (t) => {
-  const { getLicensedCurriculumActivity, curriculumId } = await import("../lib/code-studio-v2/private-curriculum.server.ts");
   const originalCwd = process.cwd();
-  assert.equal(originalCwd, process.cwd());
-  t.after(async () => rm(path.resolve(".private-data/code-studio-v2"), { recursive: true, force: true }));
+  const temporaryCwd = await mkdtemp(path.join(os.tmpdir(), "rhinox-curriculum-test-"));
+  const moduleUrl = new URL("../lib/code-studio-v2/private-curriculum.server.ts", import.meta.url).href;
+  process.chdir(temporaryCwd);
+  root = path.resolve(".private-data/code-studio-v2/catalogue");
+  file = path.join(root, "nursery-1.json");
+  const { getLicensedCurriculumActivity, curriculumId } = await import(moduleUrl);
+  t.after(async () => {
+    process.chdir(originalCwd);
+    await rm(temporaryCwd, { recursive: true, force: true });
+  });
 
   const records = Array.from({ length: 39 }, (_, index) => makeRecord(index + 1));
   await writeFixture(records);
