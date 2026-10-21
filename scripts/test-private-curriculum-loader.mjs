@@ -44,7 +44,7 @@ function makeRecord(term, week) {
 
 async function writeFixture(records) {
   await mkdir(root, { recursive: true });
-  await writeFile(file, `${JSON.stringify(records, null, 2)}\\n`, "utf8");
+  await writeFile(file, `${JSON.stringify(records, null, 2)}\n`, "utf8");
 }
 
 test("private curriculum loader enforces identity, entitlement and record integrity", async (t) => {
