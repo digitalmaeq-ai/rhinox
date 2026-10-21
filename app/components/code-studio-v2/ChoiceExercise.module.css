@@ -20,3 +20,6 @@
 .hintButton { margin-top: 12px; border: 0; background: transparent; color: #1769b7; padding: 6px 0; font-weight: 800; text-decoration: underline; text-underline-offset: 3px; }
 .hint,.fallback { margin: 7px 0 0; color: #637b91; font-size: .85rem; line-height: 1.7; }
 @media (max-width: 420px) { .actions { align-items: stretch; flex-direction: column; } .actions button { width: 100%; } }
+.option:focus-within { outline: 3px solid #83c4ff; outline-offset: 2px; }
+.actions button:focus-visible,.hintButton:focus-visible { outline: 3px solid #83c4ff; outline-offset: 3px; }
+@media (prefers-reduced-motion: reduce) { *,*::before,*::after { scroll-behavior: auto !important; animation-duration: .01ms !important; animation-iteration-count: 1 !important; transition-duration: .01ms !important; } }

@@ -56,7 +56,10 @@ export default function Workspace() {
   function reset() {
     setBlocks([]);
     setNextId(1);
+    setTextCode("");
     setResult(null);
+    setParseError(null);
+    setTraceIndex(-1);
   }
   function loadExample() {
     setBlocks(EXAMPLE_PROGRAM.map((command, index) => ({ id: index + 1, command })));
