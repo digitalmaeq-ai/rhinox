@@ -53,7 +53,7 @@ export default function ChoiceExercise({
       </fieldset>
       <div className={styles.actions}>
         <span>Attempts: {attempts} of {exercise.maxAttempts}</span>
-        <button type="button" onClick={checkAnswer} disabled={!selectedId || exhausted || result === "correct"}>Check answer</button>
+        <button type="button" onClick={checkAnswer} disabled={!selectedId || exhausted || result !== null}>Check answer</button>
       </div>
       {result && (
         <div role="status" aria-live="polite" className={result === "correct" ? styles.success : styles.retry}>
