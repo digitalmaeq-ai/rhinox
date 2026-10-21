@@ -134,7 +134,7 @@ export default function LearningHome({ activities }: { activities: readonly Curr
                       <p>{item.focus}</p>
                       <div className={styles.lessonFooter}><span>✓ Curriculum linked</span><span>✓ RhinoBot guided</span><span>✓ Mastery target included</span></div>
                     </div>
-                    <button className={styles.cardButton} onClick={() => startLesson(item.id)} disabled={!isReviewedInteractiveLesson(item.id)}>{isReviewedInteractiveLesson(item.id) ? (selectedActivityId === item.id ? "Continue" : "Start") : "In review"} <span aria-hidden="true">{isReviewedInteractiveLesson(item.id) ? "→" : "•"}</span></button>
+                    <button className={styles.cardButton} onClick={() => startLesson(item.id)} disabled={!isReviewedInteractiveLesson(item.id)}>{isReviewedInteractiveLesson(item.id) ? "Start" : "In review"} <span aria-hidden="true">{isReviewedInteractiveLesson(item.id) ? "→" : "•"}</span></button>
                   </article>
                 ))}
               </div>
