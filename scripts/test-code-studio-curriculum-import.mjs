@@ -146,9 +146,9 @@ try {
 
   const missingInstructionPath = path.join(temp, "missing-instruction.csv");
   const validRows = makeRows(normalisedHeaders, false);
-  const firstRecord = validRows[0].split(",");
+  const firstRecord = validRows[1].split(",");
   firstRecord[normalisedHeaders.indexOf("think")] = "";
-  validRows[0] = firstRecord.join(",");
+  validRows[1] = firstRecord.join(",");
   await writeFile(missingInstructionPath, [normalisedHeaders.join(","), ...validRows].join("\n"), "utf8");
   const missingInstruction = runImport(missingInstructionPath, path.join(temp, "missing-instruction-output"));
   assert.notEqual(missingInstruction.status, 0, "Instructional fields required by the runtime must not be blank");
