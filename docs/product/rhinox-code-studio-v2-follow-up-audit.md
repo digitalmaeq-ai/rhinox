@@ -2,7 +2,7 @@
 
 **Branch:** `product/rhinox-code-studio-v2`  
 **Pull request:** [#17](https://github.com/digitalmaeq-ai/rhinox/pull/17) — open; not merged.  
-**Validation:** GitHub Actions run [39618046414](https://github.com/digitalmaeq-ai/rhinox/actions/runs/39618046414) passed on commit `bb48d110f03646a2276dba804aed71a8e74a9fc0`, including the conditional text parser tests, lint, TypeScript check and production build. The full development dependency audit still reports five high-severity findings and no critical findings. The comprehensive audit is paused by product decision while planned core development resumes; this is not release approval.
+**Validation:** GitHub Actions run [39618311212](https://github.com/digitalmaeq-ai/rhinox/actions/runs/39618311212) passed on commit `785c5ebcd58aef0f5aebc998af79790b3f1581ac`, including conditional parser regression tests, lint, TypeScript check and production build. The next curriculum-importer changes are pending validation. The full development dependency audit still reports five high-severity findings and no critical findings. The comprehensive audit is paused by product decision while planned core development resumes; this is not release approval.
 
 ## Dependency security disposition
 
@@ -20,7 +20,8 @@
 4. Rechecked the feature-branch tree at commit `e3300bf6bb6ec7821116972579e23fad0413e89c`: no source workbook or raw Master Matrix CSV filename matches were present. Recheck generated artifacts before release.
 5. Revisit the upstream `braces` advisory when a patched version or a justified alternative is available.
 6. Conditional parser, lint, TypeScript and production build checks passed in run [39618046414](https://github.com/digitalmaeq-ai/rhinox/actions/runs/39618046414). Still validate the V2 workspace in a real browser, including conditional branch feedback, keyboard use, screen-reader output, reduced motion and mobile viewport.
+7. Import the current v3.15 workbook export after addressing the documented Year 4 Term 3 Week 13 missing core Build activity; keep source and generated catalogue private.
 
 ## Explicit limitations
 
-The conditional runtime is integrated with learner-written `if/else` syntax through a bounded parser, and its automated CI checks passed in run [39618046414](https://github.com/digitalmaeq-ai/rhinox/actions/runs/39618046414). Browser-level validation remains outstanding. Account-backed progress and trusted authentication/entitlement are not implemented; licensed curriculum access remains disabled. No production release or merge is authorized by this audit.
+The conditional runtime is integrated with learner-written `if/else` syntax through a bounded parser, and its automated CI checks passed in run [39618046414](https://github.com/digitalmaeq-ai/rhinox/actions/runs/39618046414). Browser-level validation remains outstanding. The private curriculum importer is being corrected to distinguish optional blank Build/Create fields from missing required core activities. Account-backed progress and trusted authentication/entitlement are not implemented; licensed curriculum access remains disabled. No production release or merge is authorized by this audit.

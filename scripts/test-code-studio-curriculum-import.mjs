@@ -31,7 +31,7 @@ function csvCell(value) {
   const text = String(value ?? "");
   return /[",\r\n]/.test(text) ? `"${text.replace(/"/g, '""')}"` : text;
 }
-function makeRecord(level, term, week, index, workbookFormat = false) {
+function makeRecord(level, term, week, index, workbookFormat = false, overrides = {}) {
   const record = {
     index: String(index),
     matrix_row: String(index + 2),
@@ -59,6 +59,7 @@ function makeRecord(level, term, week, index, workbookFormat = false) {
     weekly_check: "Learner explains the order",
     mastery_target: "Can sequence three steps",
   };
+  Object.assign(record, overrides);
   if (!workbookFormat) return record;
   return {
     Level: record.level,
@@ -86,14 +87,14 @@ function makeRecord(level, term, week, index, workbookFormat = false) {
     "Competency statement (from Competency Framework)": record.competency,
   };
 }
-function makeRows(headers, workbookFormat = false, count = 507) {
+function makeRows(headers, workbookFormat = false, count = 507, firstRecordOverrides = {}) {
   const rows = [];
   let index = 0;
   for (const level of levels) {
     for (let term = 1; term <= 3; term += 1) {
       for (let week = 1; week <= 13; week += 1) {
         if (index >= count) return rows;
-        const record = makeRecord(level, term, week, index, workbookFormat);
+        const record = makeRecord(level, term, week, index, workbookFormat, index === 0 ? firstRecordOverrides : {});
         rows.push(headers.map((header) => csvCell(record[header] ?? record[header.replaceAll(" ", "_")] ?? "")).join(","));
         index += 1;
       }
@@ -138,6 +139,16 @@ try {
     assert.equal(fullCatalogue.length, 507);
   }
 
+  const optionalActivityPath = path.join(temp, "optional-activity-blanks.csv");
+  await writeFile(optionalActivityPath, [normalisedHeaders.join(","), ...makeRows(normalisedHeaders, false, 507, { build: "", create: "" })].join("\n"), "utf8");
+  const optionalActivity = runImport(optionalActivityPath, path.join(temp, "optional-activity-output"));
+  assert.equal(optionalActivity.status, 0, "Blank non-core Build/Create fields should be accepted: " + optionalActivity.stderr);
+
+  const missingCoreBuildPath = path.join(temp, "missing-core-build.csv");
+  await writeFile(missingCoreBuildPath, [normalisedHeaders.join(","), ...makeRows(normalisedHeaders, false, 507, { core_parts: "Build + Create", build: "" })].join("\n"), "utf8");
+  const missingCoreBuild = runImport(missingCoreBuildPath, path.join(temp, "missing-core-build-output"));
+  assert.notEqual(missingCoreBuild.status, 0, "A blank Build activity must fail when Build is listed as core");
+  assert.match(missingCoreBuild.stderr, /Build is listed as a core part but the Build activity is empty/);
   const incompletePath = path.join(temp, "incomplete.csv");
   await writeFile(incompletePath, [normalisedHeaders.join(","), ...makeRows(normalisedHeaders, false, 213)].join("\n"), "utf8");
   const bad = runImport(incompletePath, path.join(temp, "bad-output"));
@@ -162,7 +173,7 @@ try {
   assert.notEqual(duplicateHeader.status, 0, "Duplicate CSV headers must not silently overwrite data");
   assert.match(duplicateHeader.stderr, /duplicate column headers/);
 
-  console.log("Curriculum importer checks passed: both schemas, 507 records, 13 levels, stable IDs, CSV quoting/newlines, partial-export rejection, and required instructional fields.");
+  console.log("Curriculum importer checks passed: both schemas, 507 records, 13 levels, stable IDs, CSV quoting/newlines, partial-export rejection, and required instructional fields, optional non-core activity blanks, and core-part completeness.");
 } finally {
   await rm(temp, { recursive: true, force: true });
 }

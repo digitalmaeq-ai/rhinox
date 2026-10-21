@@ -6,7 +6,7 @@ The V2 learner interface must use a versioned curriculum catalogue rather than t
 
 ## Input
 
-Export the complete **Master Matrix** sheet from `Think-Move-Code-Master-Curriculum-v3.15.xlsx` as UTF-8 CSV. Do not use `rhinox_code_studio_curriculum_master_index_v3_15.csv`: that helper index currently contains only 213 records and omits the remainder of the curriculum. The importer accepts the actual workbook column names, including:
+Export the complete **Master Matrix** sheet from `Think-Move-Code-Master-Curriculum-v3.15.xlsx` as UTF-8 CSV. Do not use `rhinox_code_studio_curriculum_master_index_v3_15.csv` as importer input: it contains 507 weekly records but only 18 columns, omitting required source fields such as Focus, Think, Move, Build, Create and Mastery target. The importer accepts the actual workbook column names, including:
 
 - `Level`, `Term`, `Week`, `Week type`, `Theme (child-facing)`, `Main strand`
 - `Prior Learning`, `Future Bridge`, `Assessment Evidence`, `Kit / platform`
@@ -29,7 +29,7 @@ Optional output directory:
 node scripts/import-code-studio-curriculum.mjs ./path/to/v3.15-master-matrix.csv ./.private-data/code-studio-v2/catalogue
 ```
 
-The importer stops on missing fields, malformed CSV, duplicate week keys, duplicate matrix row identifiers, invalid levels or terms, missing themes, missing weeks, or a record count other than 507. It writes one JSON file per level and a manifest containing the source file hash.
+The importer stops on missing schema columns, malformed CSV, duplicate week keys, duplicate matrix row identifiers, invalid levels or terms, missing themes, missing weeks, or a record count other than 507. Build and Create may be blank only when they are not listed as core parts. If either is required by `Core parts this week (must do)` but the corresponding activity is blank, the importer fails with a source-row error rather than inventing an activity. It writes one JSON file per level and a manifest containing the source file hash.
 
 ## Release gates after import
 
@@ -44,10 +44,10 @@ The importer stops on missing fields, malformed CSV, duplicate week keys, duplic
 
 The importer now accepts the workbook's actual Master Matrix headers and generates a combined `catalogue.json`, per-level JSON files, and a source-hash manifest under `.private-data/code-studio-v2/catalogue` by default. `.private-data/` is ignored by Git because the full curriculum is commercially valuable content and the GitHub repository is public. Regression tests cover both schemas and rejection of the incomplete 213-row helper index. GitHub Actions for commit `01a93a597b05bac4a6215c3bdfc6c1aeba182e05` passed importer regression tests, lint and production build. The generated full catalogue is **not yet committed or connected to the learner route**. The first prototype remains limited to one detailed lesson until the real full workbook export is imported and reviewed.
 
-## Actual workbook export: independent local validation
+## Actual workbook inspection (21 October 2026)
 
-The complete Master Matrix was inspected from the original `.xlsx`. It contains 508 rows including the header and 43 columns. The workbook contains exactly 507 unique level/term/week records, 39 per each of the 13 levels, and 156 intentionally blank primary strands for weeks where a single strand is not assigned. The private catalogue archive in the working environment contains 507 records, all 13 per-level files, a manifest, and an exercise-review file. It is not committed to this public repository.
+The current private workbook was inspected locally. The **Master Matrix** sheet has 508 rows including the header and 43 columns. It contains 507 weekly records, with 39 records for each of the 13 levels, unique level/term/week keys, and no missing expected weeks. The companion CSV has 507 records but only 18 columns and is not a complete import source. The current workbook SHA-256 is `1258742f7c808eb16d2c35bc2c2283a152e3121afda21a6f25fc9eb1f39bb980`.
 
-A field-by-field comparison between the original workbook and all 507 records in that private catalogue found **zero missing keys and zero mismatches** across the mapped fields: level, term, week, week type, theme, focus, strand, Think/Move/Code/Build/Create, practical activity, weekly check, mastery target, prior learning, future bridge, assessment evidence, platform, core parts, stretch, fallback, competency, vocabulary, term big idea, cognitive demand and independence level. The archive manifest records source SHA-256 `77e90685e7347a7185c0fdcb6fe0978d8454c30e57a5ae64c08b396c170fc32b`.
+The import validation identified a source inconsistency: **Excel row 235 (Year 4, Term 3, Week 13)** lists `Build + Create` as the required core parts but has a blank Build activity. The importer should accept blank Build/Create fields when those parts are not core requirements, but it must reject this row until the curriculum source is corrected. Do not fabricate the missing activity or modify the original workbook without approval.
 
-**Important distinction:** this verifies that the private catalogue matches the mapped source workbook fields. The repository's JavaScript importer has passed synthetic regression tests in CI but has **not yet been executed against the exact source CSV**. The private catalogue is also **not deployed or connected to the learner route**. Existing exercise mappings still require semantic review; a curriculum row alone does not certify an exercise as aligned. Do not expose licensed lesson content until a real authentication and entitlement provider is connected server-side. The lesson component now receives an explicit `activities` prop from the server page rather than importing the catalogue itself. A server-only learner-access adapter currently returns `null` because no trusted identity/entitlement provider is configured; the licensed loader therefore fails closed. The current page intentionally passes only the one reviewed public-preview activity. This is an integration seam, not a completed authentication system.
+The full catalogue remains private and must not be committed to this public repository. Even after the source inconsistency is corrected and the catalogue imports successfully, curriculum records are not automatically approved runnable lessons: lesson specs require separate review, and licensed access stays disabled until trusted server-side authentication and entitlement are implemented.

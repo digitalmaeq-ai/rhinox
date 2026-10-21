@@ -113,6 +113,10 @@ function valueFrom(source, aliases) {
   return "";
 }
 
+function isCorePartRequired(coreParts, part) {
+  return coreParts.split(/[+,]/).some((value) => value.trim().toLowerCase() === part.toLowerCase());
+}
+
 async function main() {
   const inputPath = process.argv[2];
   const outputPath = path.resolve(process.argv[3] ?? ".private-data/code-studio-v2/catalogue");
@@ -169,10 +173,17 @@ async function main() {
       throw new Error(`${context}: strand must be CT, RB, ED, AI, or blank for a non-themed week.`);
     }
     for (const field of REQUIRED_FIELDS) {
+      if (field === "build" || field === "create") continue;
       const value = record[field];
       if (value === "" || value === null || value === undefined) {
         throw new Error(`${context}: required field '${field}' is empty.`);
       }
+    }
+    if (isCorePartRequired(record.coreParts, "Build") && !record.build) {
+      throw new Error(`${context}: Build is listed as a core part but the Build activity is empty.`);
+    }
+    if (isCorePartRequired(record.coreParts, "Create") && !record.create) {
+      throw new Error(`${context}: Create is listed as a core part but the Create activity is empty.`);
     }
 
     const weekKey = `${record.level}|T${record.term}|W${record.week}`;
