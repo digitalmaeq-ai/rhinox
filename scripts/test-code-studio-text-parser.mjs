@@ -12,13 +12,19 @@ test("parses supported commands in order", () => {
     "robot.beep()",
   ].join("\n"));
   assert.equal(result.ok, true);
-  if (result.ok) {\n    assert.deepEqual(result.commands, ["forward", "forward", "right", "beep"]);\n    assert.deepEqual(result.sourceLines, [2, 3, 4, 5]);\n  }
+  if (result.ok) {
+    assert.deepEqual(result.commands, ["forward", "forward", "right", "beep"]);
+    assert.deepEqual(result.sourceLines, [2, 3, 4, 5]);
+  }
 });
 
 test("ignores blank lines and comments", () => {
   const result = parseRobotTextProgram("\n// comment\n robot.turnLeft(); // turn\n");
   assert.equal(result.ok, true);
-  if (result.ok) {\n    assert.deepEqual(result.commands, ["left"]);\n    assert.deepEqual(result.sourceLines, [3]);\n  }
+  if (result.ok) {
+    assert.deepEqual(result.commands, ["left"]);
+    assert.deepEqual(result.sourceLines, [3]);
+  }
 });
 
 test("rejects unsupported syntax and reports the line", () => {

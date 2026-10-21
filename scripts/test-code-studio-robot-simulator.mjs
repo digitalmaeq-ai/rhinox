@@ -13,7 +13,12 @@ test("the starter program reaches the goal and records every instruction", () =>
   assert.match(result.message, /Mission complete/);
 });
 
-test("text source lines stay attached to their execution trace steps", () => {\n  const result = runRobotProgram(["forward", "right"], [4, 9]);\n  assert.deepEqual(result.trace.map((step) => step.sourceLine), [4, 9]);\n});\n\ntest("turning changes direction without changing position", () => {
+test("text source lines stay attached to their execution trace steps", () => {
+  const result = runRobotProgram(["forward", "right"], [4, 9]);
+  assert.deepEqual(result.trace.map((step) => step.sourceLine), [4, 9]);
+});
+
+test("turning changes direction without changing position", () => {
   const result = runRobotProgram(["right"]);
   assert.deepEqual(result.position, { ...ROBOT_START, direction: 1 });
   assert.equal(result.visited.length, 1);

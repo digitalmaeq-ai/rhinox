@@ -2,6 +2,7 @@ export type RobotCommand = "forward" | "left" | "right" | "beep";
 export type RobotPosition = { x: number; y: number; direction: 0 | 1 | 2 | 3 };
 export type RobotTraceStep = {
   step: number;
+  sourceLine: number | undefined;
   command: RobotCommand;
   position: RobotPosition;
   description: string;
@@ -45,6 +46,7 @@ export function runRobotProgram(commands: readonly RobotCommand[], sourceLines?:
       if (next.x < 0 || next.x > 4 || next.y < 0 || next.y > 4) {
         trace.push({
           step: index + 1,
+          sourceLine: sourceLines?.[index],
           command,
           position: { ...position },
           description: "Blocked: this move would take RhinoBot outside the grid.",
@@ -64,6 +66,7 @@ export function runRobotProgram(commands: readonly RobotCommand[], sourceLines?:
     }
     trace.push({
       step: index + 1,
+      sourceLine: sourceLines?.[index],
       command,
       position: { ...position },
       description,
