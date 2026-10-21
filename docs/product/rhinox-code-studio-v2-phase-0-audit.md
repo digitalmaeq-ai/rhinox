@@ -47,6 +47,19 @@ However, a static diff review cannot establish runtime security or correctness. 
 
 **Decision:** Do not merge solely because the feature exists. Run the PR's checks, inspect the preview sandbox and project-store tests, verify the route and offline behaviour, and test on a mobile viewport. If it passes, retain it as an execution adapter that can be opened by the curriculum journey; do not let its standalone exercise list define the overall product architecture.
 
+### P0/P1 — The existing mapping sheet contains likely semantic mismatches
+
+The mapping CSV contains 49 exercise records: 5 Starter exercises are untagged, and 44 have a level/term/week tag whose theme string matches the corresponding v3.15 Master Matrix row. That exact string match is necessary but not sufficient: comparing the mapped row's actual Code activity with the exercise source reveals candidate misalignments.
+
+Examples to verify and correct before official release:
+- `mb-dice` (“Shake the dice”) is tagged Year 6 T1 W3, “Choose the Right Loop”. The matrix row's Core activity teaches three loop patterns and a countdown; the exercise teaches shake detection and random numbers. This is a substantive concept mismatch.
+- `mb-hot` (“If it's hot…”) is tagged Year 5 T2 W4, “If It’s Dark…”. The matrix activity uses the light sensor and corrects a reversed light threshold; the exercise uses the temperature sensor and a hot-temperature threshold.
+- `mb-radio-send` is tagged Year 6 T2 W1, “Readings in a List”, while its title implies radio messaging. The matrix row teaches collecting sensor readings in a list.
+- `mb-radio-receive` is tagged Year 6 T2 W2, “First Spreadsheet”, while its title implies radio receiving. The matrix row teaches collecting readings and building a spreadsheet/chart.
+- `mb-radio-group` is tagged Year 6 T2 W3, “And / Or”, while its title implies radio group messaging. The matrix row teaches AND/OR sensor conditions and a truth table.
+
+These are review flags, not a complete exercise-by-exercise disposition. They show why a matching free-text theme does not certify an activity. Inspect the full instructions, starter code, hints, tests, hardware requirements and no-device fallback for all 44 tagged exercises. Keep the exercise IDs where practical, but remap, rewrite or retire records where the learning objective differs.
+
 ### P1 — Existing exercise content needs curriculum and pedagogy review
 
 The inspected Year 7 exercises contain useful planning, debugging and variables tasks. The `lesson` values are useful hints but do not prove that a task matches the intended week, progression, platform or assessment evidence. A title and a year-group tag are not adequate mapping evidence.
