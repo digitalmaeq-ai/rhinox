@@ -231,6 +231,7 @@ function LessonView({
           <article className={styles.lessonMain}>
             <div className={styles.lessonTitleRow}><span className={styles.bigStepIcon}>{stepIcon}</span><div><span className={styles.eyebrow}>STEP {stepIndex + 1} OF {STEPS.length}</span><h1>{stepTitle}</h1></div></div>
             <p className={styles.instruction}>{content}</p>
+            {lessonSpec?.steps[stepKey] && <p className={styles.instruction}><strong>Your task:</strong> {lessonSpec.steps[stepKey].task}</p>}
 
             {stepKey === "code" && (
               <div className={styles.sequenceBuilder}>
@@ -280,7 +281,7 @@ function LessonView({
             {stepKey === "create" && <div className={styles.createPrompt}><span>🎨</span><div><strong>Your turn to create</strong><p>Draw three things you do every day. Number them 1, 2 and 3 to show the order.</p><small>Core task: complete the three-step drawing. Stretch: add a fourth step.</small><p><button className={styles.secondaryButton} type="button" onClick={() => setCreationCompleted((value) => !value)} aria-pressed={creationCompleted}>{creationCompleted ? "✓ I completed my three-step drawing" : "I completed my three-step drawing"}</button></p></div></div>}
 
             {stepKey !== "check" && <button className={styles.hintButton} onClick={() => setShowHint((shown) => !shown)}>{showHint ? "Hide hint" : "Need a hint?"}</button>}
-            {showHint && <div className={styles.hintBox}><strong>RhinoBot’s hint</strong><p>{stepKey === "think" ? "Ask yourself: what do you usually do first after waking up?" : stepKey === "move" ? "Listen carefully. Finish one action before starting the next." : stepKey === "code" ? "A morning routine usually starts when you wake up, then you get ready, then you eat." : "Choose an everyday routine, such as getting ready for school."}</p></div>}
+            {showHint && <div className={styles.hintBox}><strong>RhinoBot’s hint</strong><p>{lessonSpec?.steps[stepKey].hint ?? "Choose one small step and try again."}</p></div>}
 
             <div className={styles.lessonControls}>
               <button className={styles.secondaryButton} onClick={onBack} disabled={stepIndex === 0}>← Back</button>
