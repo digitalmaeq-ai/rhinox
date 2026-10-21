@@ -57,7 +57,7 @@ jobs:
       - name: Validate curriculum importer
         run: node scripts/test-code-studio-curriculum-import.mjs
       - name: Test private curriculum access boundary
-        run: node --conditions=react-server --experimental-strip-types scripts/test-private-curriculum-loader.mjs
+        run: node --experimental-strip-types scripts/test-private-curriculum-loader.mjs
       - name: Test robot simulator
         run: node --experimental-strip-types scripts/test-code-studio-robot-simulator.mjs
       - name: Lint
