@@ -79,6 +79,26 @@ export default function Workspace() {
     setResult(null);
     setConditionalEvents([]);
   }
+  function loadConditionalExample() {
+    setTextCode([
+      "// Reach the star, then choose what to do.",
+      "robot.moveForward()",
+      "robot.moveForward()",
+      "robot.turnRight()",
+      "robot.moveForward()",
+      "robot.moveForward()",
+      "if (robot.atGoal()) {",
+      "  robot.beep()",
+      "} else {",
+      "  robot.turnLeft()",
+      "}",
+    ].join("\n"));
+    setEditorMode("text");
+    setParseError(null);
+    setResult(null);
+    setConditionalEvents([]);
+    setTraceIndex(-1);
+  }
   function runProgram() {
     if (editorMode === "text") {
       const hasConditionalSyntax = /^\s*if\s*\(/m.test(textCode) || /^\s*else\s*\{/m.test(textCode) || /^\s*\}\s*else\s*\{/m.test(textCode);
@@ -249,7 +269,7 @@ export default function Workspace() {
             </section>
 
             <section className={styles.codePanel}>
-              <div className={styles.panelHeader}><div><span className={styles.panelKicker}>03 / UNDERSTAND</span><h2>{editorMode === "text" ? "Text editor" : "Code view"}</h2></div><div className={styles.blockActions}><button className={styles.hintToggle} onClick={() => setShowHints((value) => !value)}>{showHints ? "Hide guide" : "Explain code"}</button><button className={styles.hintToggle} onClick={() => { if (editorMode === "blocks") switchToText(); else switchToBlocks(); }}>{editorMode === "text" ? "Use blocks" : "Edit text"}</button></div></div>
+              <div className={styles.panelHeader}><div><span className={styles.panelKicker}>03 / UNDERSTAND</span><h2>{editorMode === "text" ? "Text editor" : "Code view"}</h2></div><div className={styles.blockActions}><button className={styles.hintToggle} onClick={() => setShowHints((value) => !value)}>{showHints ? "Hide guide" : "Explain code"}</button>{editorMode === "text" && <button className={styles.hintToggle} onClick={loadConditionalExample}>Load if/else example</button>}<button className={styles.hintToggle} onClick={() => { if (editorMode === "blocks") switchToText(); else switchToBlocks(); }}>{editorMode === "text" ? "Use blocks" : "Edit text"}</button></div></div>
               <p className={styles.helper}>{editorMode === "text" ? "Use one robot instruction per line. For repetition, use repeat(3) { on its own line, then close the block with }. For branching, use if (robot.atGoal()) { ... } else { ... } or robot.facingNorth/East/South/West() conditions. Conditional programs use the safe, bounded robot language; arbitrary JavaScript is rejected." : "Your instruction blocks are translated into a readable code-like form. Select Edit text to try the text language."}</p>
               {editorMode === "text" ? <textarea className={styles.textEditor} aria-label="RhinoBot text code" spellCheck={false} value={textCode} onChange={(event) => { setTextCode(event.target.value); setParseError(null); setResult(null); setConditionalEvents([]); }} /> : <pre className={styles.code}><code>{code || "// Add blocks to build your program"}</code></pre>}
               {parseError && <div className={styles.feedback} role="alert"><strong>Code needs a fix</strong><p>{parseError}</p></div>}
