@@ -71,7 +71,8 @@ export default function LearningHome() {
           </Link>
           <div className={styles.topActions}>
             <span className={styles.previewPill}>V2 learning preview</span>
-            <Link className={styles.exitLink} href="/coding-robotics/code-studio">Open Python Studio ↗</Link>
+            <Link className={styles.exitLink} href="/coding-robotics/code-studio/workspace">Beginner Workspace ↗</Link>
+            <Link className={styles.exitLink} href="/coding-robotics/code-studio">Python Studio ↗</Link>
           </div>
         </header>
 
