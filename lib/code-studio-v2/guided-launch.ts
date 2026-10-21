@@ -12,22 +12,35 @@ export type GuidedRobotLaunch = {
   returnPath: "/coding-robotics/code-studio/learn";
 };
 
-const REVIEWED_LAUNCHES: Readonly<Record<string, GuidedRobotLaunch>> = Object.freeze({});
+const VALID_COMMANDS = new Set<RobotCommand>(["forward", "left", "right", "beep"]);
+const RETURN_PATH = "/coding-robotics/code-studio/learn" as const;
+const REVIEWED_LAUNCHES: Readonly<Record<string, GuidedRobotLaunch>> = Object.freeze(Object.create(null));
+
+/** Validate authored launch metadata independently of its registration or UI. */
+export function isGuidedRobotLaunch(value: unknown): value is GuidedRobotLaunch {
+  if (!value || typeof value !== "object" || Array.isArray(value)) return false;
+  const item = value as Record<string, unknown>;
+  return typeof item.activityId === "string" && item.activityId.trim().length > 0 &&
+    typeof item.reviewedTaskId === "string" && item.reviewedTaskId.trim().length > 0 &&
+    (item.adapter === "robot-blocks" || item.adapter === "robot-text") &&
+    item.returnPath === RETURN_PATH &&
+    Array.isArray(item.starterProgram) && item.starterProgram.length <= 100 &&
+    item.starterProgram.every((command: unknown) => VALID_COMMANDS.has(command as RobotCommand)) &&
+    Array.isArray(item.successCriteria) && item.successCriteria.length > 0 &&
+    item.successCriteria.every((criterion: unknown) => typeof criterion === "string" && criterion.trim().length > 0);
+}
 
 /**
  * Fail closed until a curriculum-linked robot task is separately authored and reviewed.
  * The current Nursery 1 Week 1 exercise is unplugged ordering, not a robot simulator task.
  */
 export function resolveGuidedRobotLaunch(activityId: string, taskId: string): GuidedRobotLaunch | null {
-  if (typeof activityId !== "string" || typeof taskId !== "string") return null;
+  if (typeof activityId !== "string" || typeof taskId !== "string" || !activityId || !taskId) return null;
   const activity = getCurriculumActivity(activityId);
   const spec = getLessonSpec(activityId);
   if (!activity || !spec || !isLessonSpecConsistent(spec, activity)) return null;
+  if (!Object.hasOwn(REVIEWED_LAUNCHES, taskId)) return null;
   const launch = REVIEWED_LAUNCHES[taskId];
-  if (!launch || launch.activityId !== activityId || launch.reviewedTaskId !== taskId) return null;
-  if (launch.adapter !== "robot-blocks" && launch.adapter !== "robot-text") return null;
-  if (!launch.successCriteria.length || !launch.successCriteria.every((item) => item.trim())) return null;
-  if (launch.starterProgram.length > 100 ||
-      !launch.starterProgram.every((command) => ["forward", "left", "right", "beep"].includes(command))) return null;
+  if (!isGuidedRobotLaunch(launch) || launch.activityId !== activityId || launch.reviewedTaskId !== taskId) return null;
   return launch;
 }
