@@ -6,23 +6,17 @@ import "server-only";
 import { readFile } from "node:fs/promises";
 import path from "node:path";
 import type { CurriculumActivity } from "./curriculum";
+import {
+  authorizeCurriculumActivity,
+  curriculumId,
+  type CurriculumAccess,
+  type CurriculumSelection,
+} from "./curriculum-access-core";
 
-const LEVELS = new Set(["Nursery 1", "Nursery 2", ...Array.from({ length: 11 }, (_, i) => `Year ${i + 1}`)]);
+export { curriculumId };
+export type { CurriculumAccess, CurriculumSelection };
+
 const PRIVATE_ROOT = path.resolve(process.cwd(), ".private-data/code-studio-v2/catalogue");
-
-export type CurriculumSelection = { level: string; term: number; week: number };
-export type CurriculumAccess = {
-  /** Must be resolved from a trusted server-side session, never from request input. */
-  learnerId: string | null;
-  /** A verified server-side entitlement, not a client-provided flag. */
-  canReadLicensedCurriculum: boolean;
-};
-
-export function curriculumId({ level, term, week }: CurriculumSelection): string | null {
-  if (!LEVELS.has(level) || !Number.isInteger(term) || term < 1 || term > 3 ||
-      !Number.isInteger(week) || week < 1 || week > 13) return null;
-  return `tmc-v3-15-${level.toLowerCase().replace(/ +/g, "-")}-t${term}-w${week}`;
-}
 
 /**
  * Fail closed if no authenticated learner, no entitlement, no private mount,
@@ -33,7 +27,9 @@ export async function getLicensedCurriculumActivity(
   access: CurriculumAccess,
 ): Promise<CurriculumActivity | null> {
   const id = curriculumId(selection);
-  if (!id || typeof access.learnerId !== "string" || access.learnerId.trim().length === 0 || access.canReadLicensedCurriculum !== true) return null;
+  if (!id || typeof access?.learnerId !== "string" || access.learnerId.trim().length === 0 ||
+      access.canReadLicensedCurriculum !== true) return null;
+
   const filename = `${selection.level.toLowerCase().replace(/ +/g, "-")}.json`;
   let source: string;
   try {
@@ -41,27 +37,13 @@ export async function getLicensedCurriculumActivity(
   } catch {
     return null;
   }
+
   let records: unknown;
   try {
     records = JSON.parse(source);
   } catch {
     return null;
   }
-  if (!Array.isArray(records) || records.length !== 39) return null;
-  const textFields = [
-    "id", "level", "weekType", "theme", "focus", "think", "move", "code",
-    "build", "create", "practicalActivity", "weeklyCheck", "masteryTarget",
-    "priorLearning", "futureBridge", "assessmentEvidence", "platform",
-    "coreParts", "stretch", "fallback",
-  ] as const;
-  const matches = records.filter((record): record is CurriculumActivity => {
-    if (record === null || typeof record !== "object" || Array.isArray(record)) return false;
-    const value = record as Record<string, unknown>;
-    return value.id === id && value.curriculumVersion === "3.15" &&
-      value.level === selection.level && value.term === selection.term &&
-      value.week === selection.week &&
-      (value.strand === null || ["CT", "RB", "ED", "AI"].includes(value.strand as string)) &&
-      textFields.every((field) => typeof value[field] === "string" && (value[field] as string).trim().length > 0);
-  });
-  return matches.length === 1 ? matches[0] : null;
+
+  return authorizeCurriculumActivity(records, selection, access);
 }
