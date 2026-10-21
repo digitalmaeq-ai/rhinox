@@ -2,6 +2,7 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
 import { ROBOT_START, runRobotProgram } from "../lib/code-studio-v2/robot-simulator.ts";
+import { parseRobotTextProgram } from "../lib/code-studio-v2/text-code-parser.ts";
 
 test("the starter program reaches the goal and records every instruction", () => {
   const result = runRobotProgram(["forward", "forward", "right", "forward", "forward"]);
@@ -21,6 +22,22 @@ test("text source lines stay attached to their execution trace steps", () => {
 test("repeat iteration context remains attached to execution trace steps", () => {
   const result = runRobotProgram(["forward", "right", "forward", "right"], [2, 3, 2, 3], [[1], [1], [2], [2]]);
   assert.deepEqual(result.trace.map((step) => step.repeatPath), [[1], [1], [2], [2]]);
+});
+
+test("nested text repeats retain their iteration path in the visible execution trace", () => {
+  const parsed = parseRobotTextProgram([
+    "repeat(2) {",
+    "  repeat(2) {",
+    "    robot.beep()",
+    "  }",
+    "}",
+  ].join("\n"));
+  assert.equal(parsed.ok, true);
+  if (!parsed.ok) return;
+  const result = runRobotProgram(parsed.commands, parsed.sourceLines, parsed.repeatPaths);
+  assert.deepEqual(result.trace.map((step) => step.repeatPath), [[1, 1], [1, 2], [2, 1], [2, 2]]);
+  assert.deepEqual(result.trace.map((step) => step.sourceLine), [3, 3, 3, 3]);
+  assert.match(result.message, /beeped 4 times/);
 });
 
 test("turning changes direction without changing position", () => {
