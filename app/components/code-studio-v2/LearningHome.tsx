@@ -203,8 +203,6 @@ function LessonView({
     icon: item.id === "wake-up" ? "☀️" : item.id === "brush-teeth" ? "🪥" : item.id === "eat-breakfast" ? "🥣" : "🧩",
   })) ?? [];
   const chosen = new Set(selectedOrder);
-  const orderCorrect = Boolean(orderingExercise && selectedOrder.length === orderingExercise.expectedOrder.length &&
-    selectedOrder.every((id, index) => id === orderingExercise.expectedOrder[index]));
   const attemptsExhausted = Boolean(orderingExercise && !canAttemptExercise(orderingAttempts, orderingExercise) && orderingResult !== "correct");
   function checkOrderingAnswer() {
     if (!orderingExercise || selectedOrder.length !== orderingExercise.items.length || !canAttemptExercise(orderingAttempts, orderingExercise)) return;
