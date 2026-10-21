@@ -1,5 +1,5 @@
 import type { CurriculumActivity } from "./curriculum";
-import type { StepKey } from "./lesson-gates";
+type StepKey = "think" | "move" | "code" | "build" | "create" | "check";
 
 /**
  * Exercise specification for an individually reviewed lesson.
