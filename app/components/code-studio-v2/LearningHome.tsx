@@ -3,7 +3,7 @@
 import { useState } from "react";
 import Link from "next/link";
 
-import { CURRICULUM_ACTIVITIES, type CurriculumActivity } from "@/lib/code-studio-v2/curriculum";
+import type { CurriculumActivity } from "@/lib/code-studio-v2/curriculum";
 import styles from "./LearningHome.module.css";
 
 type Stage = "home" | "lesson";
@@ -30,7 +30,7 @@ function activityText(activity: CurriculumActivity, key: StepKey): string {
   }
 }
 
-export default function LearningHome({ activities = CURRICULUM_ACTIVITIES }: { activities?: readonly CurriculumActivity[] }) {
+export default function LearningHome({ activities }: { activities: readonly CurriculumActivity[] }) {
   const [selectedActivityId, setSelectedActivityId] = useState(activities[0]?.id ?? "");
   const activity = activities.find((item) => item.id === selectedActivityId) ?? activities[0];
   const [stage, setStage] = useState<Stage>("home");
