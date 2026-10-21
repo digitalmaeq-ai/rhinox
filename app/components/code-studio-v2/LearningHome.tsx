@@ -176,6 +176,8 @@ function LessonView({
   const [showHint, setShowHint] = useState(false);
   const [reflection, setReflection] = useState("");
   const [buildChoice, setBuildChoice] = useState("");
+  const [movePracticed, setMovePracticed] = useState(false);
+  const [creationCompleted, setCreationCompleted] = useState(false);
 
   const pictures = [
     { id: "wake", label: "Wake up", icon: "☀️" },
@@ -184,7 +186,7 @@ function LessonView({
   ];
   const chosen = new Set(selectedOrder);
   const orderCorrect = selectedOrder.join(",") === "wake,teeth,eat";
-  const canContinue = stepKey === "code" ? orderCorrect : stepKey === "check" ? reflection === "Do them in the right order" : true;
+  const canContinue = stepKey === "move" ? movePracticed : stepKey === "code" ? orderCorrect : stepKey === "build" ? Boolean(buildChoice) : stepKey === "create" ? creationCompleted : stepKey === "check" ? reflection === "Do them in the right order" : true;
 
   return (
     <section className={styles.lessonView}>
@@ -199,8 +201,8 @@ function LessonView({
         <div className={styles.completion}>
           <div className={styles.completionIcon}>🏆</div>
           <span className={styles.eyebrow}>ACTIVITY COMPLETE</span>
-          <h1>You put the steps in order!</h1>
-          <p>You practised an important coding idea: an algorithm is a set of steps in the right order.</p>
+          <h1>Great work. You completed the activity!</h1>
+          <p>You practised following instructions, building a sequence and checking your work. These are foundations of computational thinking.</p>
           <div className={styles.mastery}><strong>What you practised</strong><span>✓ Following steps in order</span><span>✓ Giving clear instructions</span><span>✓ Creating a sequence</span></div>
           <p className={styles.masteryTarget}>{activity.masteryTarget}</p>
           <button className={styles.primaryButton} onClick={onExit}>Back to my learning <span aria-hidden="true">→</span></button>
@@ -248,7 +250,7 @@ function LessonView({
             )}
 
             {stepKey === "think" && <div className={styles.exampleStrip}><span>☀️</span><span>Wake up</span><b>→</b><span>🪥</span><span>Brush teeth</span><b>→</b><span>🥣</span><span>Eat breakfast</span></div>}
-            {stepKey === "move" && <div className={styles.moveChallenge}><span>👏</span><b>Clap</b><span>→</span><span>👣</span><b>Stamp</b><span>→</span><span>🔄</span><b>Turn</b><p>Ask a grown-up or classmate to call the steps. Follow them in order, then swap and make a new order.</p></div>}
+            {stepKey === "move" && <div className={styles.moveChallenge}><span>👏</span><b>Clap</b><span>→</span><span>👣</span><b>Stamp</b><span>→</span><span>🔄</span><b>Turn</b><p>Ask a grown-up or classmate to call the steps. Follow them in order, then swap and make a new order.</p><button className={styles.secondaryButton} type="button" onClick={() => setMovePracticed(true)} aria-pressed={movePracticed}>{movePracticed ? "✓ I tried the movement challenge" : "I tried the movement challenge"}</button></div>}
             {stepKey === "build" && (
               <div className={styles.buildPanel}>
                 <div className={styles.buildPanelHeading}><span>🛠️</span><div><strong>Make your idea real</strong><p>{activity.practicalActivity}</p></div></div>
@@ -264,7 +266,7 @@ function LessonView({
               </div>
             )}
 
-            {stepKey === "create" && <div className={styles.createPrompt}><span>🎨</span><div><strong>Your turn to create</strong><p>Draw three things you do every day. Number them 1, 2 and 3 to show the order.</p><small>Core task: complete the three-step drawing. Stretch: add a fourth step.</small></div></div>}
+            {stepKey === "create" && <div className={styles.createPrompt}><span>🎨</span><div><strong>Your turn to create</strong><p>Draw three things you do every day. Number them 1, 2 and 3 to show the order.</p><small>Core task: complete the three-step drawing. Stretch: add a fourth step.</small><p><button className={styles.secondaryButton} type="button" onClick={() => setCreationCompleted((value) => !value)} aria-pressed={creationCompleted}>{creationCompleted ? "✓ I completed my three-step drawing" : "I completed my three-step drawing"}</button></p></div></div>}
 
             {stepKey !== "check" && <button className={styles.hintButton} onClick={() => setShowHint((shown) => !shown)}>{showHint ? "Hide hint" : "Need a hint?"}</button>}
             {showHint && <div className={styles.hintBox}><strong>RhinoBot’s hint</strong><p>{stepKey === "think" ? "Ask yourself: what do you usually do first after waking up?" : stepKey === "move" ? "Listen carefully. Finish one action before starting the next." : stepKey === "code" ? "A morning routine usually starts when you wake up, then you get ready, then you eat." : "Choose an everyday routine, such as getting ready for school."}</p></div>}
@@ -274,6 +276,7 @@ function LessonView({
               <span>{stepIndex + 1} / {STEPS.length}</span>
               <button className={styles.primaryButton} onClick={onNext} disabled={!canContinue}>{stepIndex === STEPS.length - 1 ? "Finish activity" : "Next step →"}</button>
             </div>
+            {!canContinue && <p className={styles.coreNote}>Complete this step’s task before moving on. Your progress is only for this session and is not saved to an account yet.</p>}
             <p className={styles.coreNote}>Core: {activity.coreParts} · Optional Stretch: {activity.stretch}</p>
           </article>
         </div>
