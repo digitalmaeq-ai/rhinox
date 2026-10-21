@@ -200,6 +200,9 @@ function LessonView({
   const choiceExercise = lessonSpec?.steps.check.exercise?.kind === "choice"
     ? lessonSpec.steps.check.exercise
     : undefined;
+  const orderingPointsAvailable = orderingExercise?.pointsAvailable ?? 0;
+  const choicePointsAvailable = choiceExercise?.pointsAvailable ?? 0;
+  const totalPointsAvailable = orderingPointsAvailable + choicePointsAvailable;
   const pictures = orderingExercise?.items.map((item) => ({
     ...item,
     icon: item.id === "wake-up" ? "☀️" : item.id === "brush-teeth" ? "🪥" : item.id === "eat-breakfast" ? "🥣" : "🧩",
