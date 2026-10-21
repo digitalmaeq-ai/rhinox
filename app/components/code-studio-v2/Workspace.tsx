@@ -3,10 +3,18 @@
 import { useMemo, useState } from "react";
 import Link from "next/link";
 import styles from "./Workspace.module.css";
+import { ROBOT_GOAL, ROBOT_START, runRobotProgram, type RobotCommand, type RobotPosition, type RobotRunResult } from "@/lib/code-studio-v2/robot-simulator";
 
 type Command = RobotCommand;
 type Block = { id: number; command: Command };
-import { ROBOT_GOAL, ROBOT_START, runRobotProgram, type RobotCommand, type RobotPosition, type RobotRunResult } from "@/lib/code-studio-v2/robot-simulator";
+
+const LABELS: Record<Command, { title: string; icon: string; code: string; hint: string }> = {
+  forward: { title: "Move forward", icon: "⬆️", code: "moveForward()", hint: "Move one square in the direction the robot faces." },
+  left: { title: "Turn left", icon: "↶", code: "turnLeft()", hint: "Turn 90 degrees to the left without moving." },
+  right: { title: "Turn right", icon: "↷", code: "turnRight()", hint: "Turn 90 degrees to the right without moving." },
+  beep: { title: "Beep", icon: "🔔", code: "beep()", hint: "Make the robot signal that it reached a checkpoint." },
+};
+const INITIAL: Command[] = ["forward", "forward", "right", "forward", "forward"];
 
 export default function Workspace() {
   const [blocks, setBlocks] = useState<Block[]>(() => INITIAL.map((command, index) => ({ id: index + 1, command })));
