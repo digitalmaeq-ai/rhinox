@@ -2,7 +2,7 @@
 import assert from "node:assert/strict";
 import { CURRICULUM_ACTIVITIES } from "../lib/code-studio-v2/curriculum.ts";
 import { isBuildRequired } from "../lib/code-studio-v2/lesson-gates.ts";
-import { canAttemptExercise, isExerciseDefinition, scoreOrderingAttempt } from "../lib/code-studio-v2/exercise-types.ts";
+import { canAttemptExercise, isExerciseDefinition, scoreChoiceAttempt, scoreOrderingAttempt } from "../lib/code-studio-v2/exercise-types.ts";
 import { getLessonSpec, isLessonSpecConsistent, isReviewedInteractiveLesson } from "../lib/code-studio-v2/lesson-specs.ts";
 
 const activity = CURRICULUM_ACTIVITIES.find((item) => item.id === "tmc-v3-15-nursery-1-t1-w1");
@@ -84,3 +84,14 @@ assert.equal(canAttemptExercise(-1, orderingExercise), false);
 assert.equal(canAttemptExercise(0, { ...orderingExercise, retryPolicy: "single-attempt" }), true);
 assert.equal(canAttemptExercise(1, { ...orderingExercise, retryPolicy: "single-attempt" }), false);
 console.log("Ordering engine checks passed: exact match scoring, incorrect/incomplete answers, and retry limits.");
+
+const choiceExercise = spec.steps.check.exercise;
+assert.ok(choiceExercise, "The reviewed Check step must bind a concrete choice exercise contract.");
+assert.equal(isExerciseDefinition(choiceExercise), true);
+assert.equal(choiceExercise.kind, "choice");
+assert.equal(choiceExercise.correctOptionId, "right-order");
+assert.equal(choiceExercise.maxAttempts, 3);
+assert.deepEqual(scoreChoiceAttempt("right-order", choiceExercise), { correct: true, points: 1 });
+assert.deepEqual(scoreChoiceAttempt("any-order", choiceExercise), { correct: false, points: 0 });
+assert.equal(isExerciseDefinition({ ...choiceExercise, correctOptionId: "missing-option" }), false);
+console.log("Multiple-choice checks passed: reviewed choice contract, correct/incorrect scoring, and invalid answer rejection.");
