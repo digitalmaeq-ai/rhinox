@@ -7,6 +7,8 @@ on:
       - "app/coding-robotics/code-studio/learn/**"
       - "app/components/code-studio-v2/**"
       - "lib/code-studio-v2/**"
+      - "scripts/import-code-studio-curriculum.mjs"
+      - "scripts/test-code-studio-curriculum-import.mjs"
       - ".github/workflows/code-studio-v2-checks.yml"
       - "package.json"
       - "package-lock.json"
