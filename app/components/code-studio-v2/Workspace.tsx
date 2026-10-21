@@ -59,7 +59,7 @@ export default function Workspace() {
   function loadExample() {
     setBlocks(EXAMPLE_PROGRAM.map((command, index) => ({ id: index + 1, command })));
     setNextId(EXAMPLE_PROGRAM.length + 1);
-    setTextCode(EXAMPLE_PROGRAM.map((command, index) => `// ${index + 1}. ${LABELS[command].title}\\nrobot.${LABELS[command].code}`).join("\\n"));
+    setTextCode(EXAMPLE_PROGRAM.map((command, index) => `// ${index + 1}. ${LABELS[command].title}\nrobot.${LABELS[command].code}`).join("\n"));
     setEditorMode("blocks");
     setParseError(null);
     setResult(null);
