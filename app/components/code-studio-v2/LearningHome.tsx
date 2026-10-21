@@ -4,6 +4,7 @@ import { useState } from "react";
 import Link from "next/link";
 
 import type { CurriculumActivity } from "@/lib/code-studio-v2/curriculum";
+import { isBuildRequired, isReviewedInteractiveLesson } from "@/lib/code-studio-v2/lesson-gates";
 import styles from "./LearningHome.module.css";
 
 type Stage = "home" | "lesson";
@@ -19,10 +20,6 @@ const STEPS = [
 
 type StepKey = (typeof STEPS)[number]["key"];
 
-// Only lessons with a reviewed, activity-specific interactive experience may launch.
-// Curriculum records alone are not evidence that an exercise has been built or validated.
-const REVIEWED_INTERACTIVE_LESSON_IDS = new Set(["tmc-v3-15-nursery-1-t1-w1"]);
-
 function activityText(activity: CurriculumActivity, key: StepKey): string {
   switch (key) {
     case "think": return activity.think;
@@ -35,7 +32,7 @@ function activityText(activity: CurriculumActivity, key: StepKey): string {
 }
 
 export default function LearningHome({ activities }: { activities: readonly CurriculumActivity[] }) {
-  const [selectedActivityId, setSelectedActivityId] = useState(activities.find((item) => REVIEWED_INTERACTIVE_LESSON_IDS.has(item.id))?.id ?? activities[0]?.id ?? "");
+  const [selectedActivityId, setSelectedActivityId] = useState(activities.find((item) => isReviewedInteractiveLesson(item.id))?.id ?? activities[0]?.id ?? "");
   const activity = activities.find((item) => item.id === selectedActivityId) ?? activities[0];
   const [stage, setStage] = useState<Stage>("home");
   const [stepIndex, setStepIndex] = useState(0);
@@ -46,7 +43,7 @@ export default function LearningHome({ activities }: { activities: readonly Curr
     const requestedActivity = activityId
       ? activities.find((item) => item.id === activityId)
       : activity;
-    if (!requestedActivity || !REVIEWED_INTERACTIVE_LESSON_IDS.has(requestedActivity.id)) return;
+    if (!requestedActivity || !isReviewedInteractiveLesson(requestedActivity.id)) return;
     if (activityId) setSelectedActivityId(activityId);
     setStepIndex(0);
     setDone(false);
@@ -132,7 +129,7 @@ export default function LearningHome({ activities }: { activities: readonly Curr
                       <p>{item.focus}</p>
                       <div className={styles.lessonFooter}><span>✓ Curriculum linked</span><span>✓ RhinoBot guided</span><span>✓ Mastery target included</span></div>
                     </div>
-                    <button className={styles.cardButton} onClick={() => startLesson(item.id)} disabled={!REVIEWED_INTERACTIVE_LESSON_IDS.has(item.id)}>{REVIEWED_INTERACTIVE_LESSON_IDS.has(item.id) ? (selectedActivityId === item.id ? "Continue" : "Start") : "In review"} <span aria-hidden="true">{REVIEWED_INTERACTIVE_LESSON_IDS.has(item.id) ? "→" : "•"}</span></button>
+                    <button className={styles.cardButton} onClick={() => startLesson(item.id)} disabled={!isReviewedInteractiveLesson(item.id)}>{REVIEWED_INTERACTIVE_LESSON_IDS.has(item.id) ? (selectedActivityId === item.id ? "Continue" : "Start") : "In review"} <span aria-hidden="true">{REVIEWED_INTERACTIVE_LESSON_IDS.has(item.id) ? "→" : "•"}</span></button>
                   </article>
                 ))}
               </div>
@@ -194,7 +191,7 @@ function LessonView({
   ];
   const chosen = new Set(selectedOrder);
   const orderCorrect = selectedOrder.join(",") === "wake,teeth,eat";
-  const buildRequired = /(^|[+,]\s*)build(\s|$|[+,])/i.test(activity.coreParts);
+  const buildRequired = isBuildRequired(activity.coreParts);
   const canContinue = stepKey === "move" ? movePracticed : stepKey === "code" ? orderCorrect : stepKey === "build" ? (!buildRequired || Boolean(buildChoice)) : stepKey === "create" ? creationCompleted : stepKey === "check" ? reflection === "Do them in the right order" : true;
 
   return (
