@@ -1,7 +1,7 @@
 /**
  * Verified curriculum records for Rhinox Code Studio V2.
  *
- * This first vertical slice contains one record copied from the v3.15 Master
+ * This slice contains records copied from the v3.15 Master
  * Matrix. Add more records only through the validated workbook import process.
  * Do not infer official alignment from an exercise title or free-text lesson tag.
  */
@@ -58,6 +58,32 @@ export const CURRICULUM_ACTIVITIES: readonly CurriculumActivity[] = [
     coreParts: "Move + Code",
     stretch: "Follow 4 steps",
     fallback: "Fully unplugged: needs no power, device or kit (cards, tape, boxes).",
+  },
+  {
+    id: "tmc-v3-15-year-1-t1-w3",
+    curriculumVersion: "3.15",
+    level: "Year 1",
+    term: 1,
+    week: 3,
+    weekType: "Themed learning",
+    theme: "Arrow Cards on the Grid",
+    focus: "Write precise arrow-card algorithms (6–8 cards) from START to FINISH on a 5×5 grid; say what each card does",
+    strand: "CT",
+    think: "Ilana is at START. The bread seller is at FINISH, far across the market. Which squares must she pass? Which way is she facing? An algorithm must be precise: each arrow card means exactly one move, so Ilana can follow it without guessing.",
+    move: "Grid robots: one square forward per ↑, one step back per ↓ (still facing the same way), and a turn on the spot for ↶ (turn left) and ↷ (turn right). Teams practise with a token on their desk grid; two teams at a time walk it on the shared floor grid (a sticker on the left hand helps).",
+    code: "Core: write a 6–8 card algorithm from START to FINISH on a 5×5 grid with at least two turns, and say what each card does before running it. Support track (children new to Think • Move • Code!): 3–4 cards on a 4×4 grid.",
+    build: "Optional: make START and FINISH flags from card and a straw.",
+    create: "Draw the grid path and the arrow cards that made it.",
+    practicalActivity: "Teams of 3–4: planner, card-layer, robot (+ checker). The planner traces the route, the card-layer writes it in arrow cards, the robot runs it with the token on the desk grid, then on the floor grid at the team’s turn; rotate roles. Grid set-up (big class): one walk-on floor grid (tape or chalk) is shared by 8–10 learners — two teams take turns, one runs the route while the other predicts and checks; all other teams work on an A3 paper or chalk desk grid with a bottle-cap Ilana token, so nobody waits.",
+    weeklyCheck: "Observation: writes a 6–8 card algorithm that reaches FINISH (support track: 3–4 cards) and says what each card does. Picture task (1–2 items): draw arrows for a path with two turns on a printed 5×5 grid.",
+    masteryTarget: "Secure: I can write a precise 6–8 card arrow algorithm from START to FINISH.",
+    priorLearning: "Year 1 W1–2 algorithms and exact order; Nursery 2 Term 1 W2–5 forward, back, turns, arrow cards and 3–5 card plans. New in Year 1: longer 6–8 card algorithms on a 5×5 grid, the word ‘algorithm’ and saying exactly what each card does (children new to the programme use the 3–4 card support track).",
+    futureBridge: "Prepares for predicting a robot program (W4), debugging arrow paths (W6) and repeat cards in Term 3.",
+    assessmentEvidence: "Observation (writes a working arrow algorithm) + picture task + photo of the card line",
+    platform: "Arrow cards ↑ ↓ ↶ ↷ (↓ = one step back, still facing the same way); A3 paper or chalk desk grids 5×5 (4×4 for the support track), 1 per team, with a bottle-cap or paper Ilana token; one walk-on floor grid (tape or chalk, about 30 cm squares) per 8–10 learners, shared in rotation; routine picture cards; cardboard Ilana robot from boxes and bottle caps (1 per team, adult pre-cut from one template; base no wider than 5 cm so she fits one desk-grid square); ScratchJr on a shared tablet (Android 7-inch+, iPad or Chromebook; phones not supported) (optional, not assessed) (almost no cost).",
+    coreParts: "Code + Move",
+    stretch: "Reach FINISH using the fewest cards; write one algorithm that visits two stalls.",
+    fallback: "Fully unplugged: needs no power, device or kit (cards, tape, boxes). No floor space? Every team uses an A3 paper or chalk desk grid with a bottle-cap token.",
   },
 ] as const;
 
