@@ -1,7 +1,7 @@
 import type { CurriculumActivity } from "./curriculum";
 import { isExerciseDefinition, type ExerciseDefinition } from "./exercise-types.ts";
 import { isBuildRequired } from "./lesson-gates.ts";
-type StepKey = "think" | "move" | "code" | "build" | "create" | "check";
+export type StepKey = "think" | "move" | "code" | "build" | "create" | "check";
 
 /**
  * Exercise specification for an individually reviewed lesson.
@@ -16,9 +16,12 @@ export type LessonStepSpec = {
   exercise?: ExerciseDefinition;
 };
 
+export type LessonSpecStatus = "draft" | "reviewed";
+
 export type InteractiveLessonSpec = {
   activityId: string;
-  status: "reviewed";
+  /** Only "reviewed" specs are served. A draft is written by a developer and needs a curriculum reviewer. */
+  status: LessonSpecStatus;
   objective: string;
   successCriteria: readonly string[];
   estimatedMinutes: number;
