@@ -43,7 +43,7 @@ async function core(browser, label, viewport, opts) {
   const { ctx, page, errors } = await open(browser, path("arrow-cards-core"), viewport, opts);
   check("draft banner is visible", await page.getByText("Draft preview.").isVisible());
   check("5x5 grid", (await page.locator('[role="img"] > div').count()) === 25);
-  check("only the four lesson cards are offered", (await page.locator("button", { hasText: /^(⬆️|⬇️|↶|↷|🔔)/ }).count()) === 4 && (await page.getByRole("button", { name: /^🔔/ }).count()) === 0);
+  check("only the four lesson cards are offered", (await page.locator("button", { hasText: /^(↑|↓|↶|↷|🔔)/ }).count()) === 4 && (await page.getByRole("button", { name: /^🔔/ }).count()) === 0);
   check("no text editor or repeat/if controls", (await page.locator("textarea").count()) === 0 && (await page.getByText(/repeat|if \(/i).count()) === 0);
   check("Run is disabled with no cards", await page.getByRole("button", { name: /Run/ }).isDisabled());
   // too few cards

@@ -11,8 +11,8 @@ import type { RobotCommand } from "@/lib/code-studio-v2/robot-simulator";
 type Card = { id: number; command: RobotCommand };
 
 const LABELS: Record<RobotCommand, { title: string; icon: string }> = {
-  forward: { title: "Move forward", icon: "⬆️" },
-  back: { title: "Move back", icon: "⬇️" },
+  forward: { title: "Move forward", icon: "↑" },
+  back: { title: "Move back", icon: "↓" },
   left: { title: "Turn left", icon: "↶" },
   right: { title: "Turn right", icon: "↷" },
   beep: { title: "Beep", icon: "🔔" },
