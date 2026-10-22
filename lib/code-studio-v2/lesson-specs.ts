@@ -38,7 +38,7 @@ const NURSERY_1_T1_W1: InteractiveLessonSpec = {
   successCriteria: [
     "Follow a three-step movement instruction.",
     "Arrange wake up, brush teeth, and eat breakfast in order.",
-    "Explain that instructions need to be in the right order.",
+    "Follow three steps in order on their own, as observed by a teacher or caregiver.",
   ],
   estimatedMinutes: 10,
   accessibility: {
@@ -104,11 +104,11 @@ const NURSERY_1_T1_W1: InteractiveLessonSpec = {
       fallback: "Arrange three objects or point to three drawn symbols instead of drawing.",
     },
     check: {
-      instruction: "Why does the order of instructions matter when we tell a robot what to do?",
-      task: "Choose the answer that explains why instructions should be in the right order.",
-      evidence: "Learner selects: Do them in the right order.",
-      hint: "Think about what might happen if you tried to eat breakfast before waking up.",
-      fallback: "Read the answer choices aloud and let the learner point to a choice.",
+      instruction: "Show a teacher or caregiver that you can follow three steps in order.",
+      task: "Follow a 3-step instruction on your own while a teacher or caregiver watches.",
+      evidence: "A teacher or caregiver observes whether the child follows a 3-step instruction in the right order on their own; this is adult-recorded evidence, not automatic verification. The picture-card question below is optional extra practice and is not the official check.",
+      hint: "Start with 2 steps, then add the third. Do the steps together first, then let the child try alone.",
+      fallback: "If no adult can watch right now, choose “I will check later” so the teacher can complete the observation.",
       exercise: {
         id: "why-sequence-order-matters",
         kind: "choice",

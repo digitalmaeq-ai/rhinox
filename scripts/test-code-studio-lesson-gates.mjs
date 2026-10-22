@@ -60,7 +60,8 @@ assert.equal(canAdvanceLessonStep("build", { buildRequired: true, buildChoiceSel
 assert.equal(canAdvanceLessonStep("create", { creationCompleted: false }), false);
 assert.equal(canAdvanceLessonStep("create", { creationCompleted: true }), true);
 assert.equal(canAdvanceLessonStep("check", { choicePassed: false }), false);
-assert.equal(canAdvanceLessonStep("check", { choicePassed: true }), true);
+assert.equal(canAdvanceLessonStep("check", { choicePassed: true }), false, "Extra practice is not the official check.");
+assert.equal(canAdvanceLessonStep("check", { teacherObservation: "confirmed" }), true);
 console.log("Lesson progression checks passed: each stage requires its defined evidence, while optional build never blocks progression.");
 
 

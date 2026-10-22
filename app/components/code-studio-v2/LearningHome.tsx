@@ -6,7 +6,7 @@ import ChoiceExercise from "./ChoiceExercise";
 
 import type { CurriculumActivity } from "@/lib/code-studio-v2/curriculum";
 import { isBuildRequired } from "@/lib/code-studio-v2/lesson-gates";
-import { canAdvanceLessonStep } from "@/lib/code-studio-v2/lesson-progress";
+import { canAdvanceLessonStep, describeLessonOutcome, type TeacherObservation } from "@/lib/code-studio-v2/lesson-progress";
 import { canAttemptExercise, scoreOrderingAttempt } from "@/lib/code-studio-v2/exercise-types";
 import { getLessonSpec, isReviewedInteractiveLesson } from "@/lib/code-studio-v2/lesson-specs";
 import styles from "./LearningHome.module.css";
@@ -19,7 +19,7 @@ const STEPS = [
   { key: "code", label: "Code", icon: "🧩", title: "Put the picture steps in order" },
   { key: "build", label: "Build", icon: "🛠️", title: "Build it and try it" },
   { key: "create", label: "Create", icon: "🎨", title: "Create your own sequence" },
-  { key: "check", label: "Show what you know", icon: "⭐", title: "Show what you know" },
+  { key: "check", label: "Show what you know", icon: "⭐", title: "Show a grown-up what you can do" },
 ] as const;
 
 type StepKey = (typeof STEPS)[number]["key"];
@@ -189,6 +189,8 @@ function LessonView({
   const [orderingResult, setOrderingResult] = useState<"correct" | "incorrect" | null>(null);
   const [showHint, setShowHint] = useState(false);
   const [choicePassed, setChoicePassed] = useState(false);
+  const [orderingAssisted, setOrderingAssisted] = useState(false);
+  const [teacherObservation, setTeacherObservation] = useState<TeacherObservation | undefined>(undefined);
   const [orderingPoints, setOrderingPoints] = useState(0);
   const [choicePoints, setChoicePoints] = useState(0);
   const [buildChoice, setBuildChoice] = useState("");
@@ -205,7 +207,6 @@ function LessonView({
     : undefined;
   const orderingPointsAvailable = orderingExercise?.pointsAvailable ?? 0;
   const choicePointsAvailable = choiceExercise?.pointsAvailable ?? 0;
-  const totalPointsAvailable = orderingPointsAvailable + choicePointsAvailable;
   const pictures = orderingExercise?.items.map((item) => ({
     ...item,
     icon: item.id === "wake-up" ? "☀️" : item.id === "brush-teeth" ? "🪥" : item.id === "eat-breakfast" ? "🥣" : "🧩",
@@ -228,11 +229,34 @@ function LessonView({
   const canContinue = canAdvanceLessonStep(stepKey, {
     movePracticed,
     orderingCorrect: orderingResult === "correct",
+    orderingAssisted,
+    teacherObservation,
     buildRequired,
     buildChoiceSelected: Boolean(buildChoice) && (!buildRequired || buildCompleted),
     creationCompleted,
     choicePassed,
   });
+  const outcome = describeLessonOutcome({
+    movePracticed,
+    orderingCorrect: orderingResult === "correct",
+    orderingAssisted,
+    creationCompleted,
+    choicePassed,
+    teacherObservation,
+  });
+  const correctOrderPictures = orderingExercise
+    ? orderingExercise.expectedOrder.map((id) => pictures.find((picture) => picture.id === id)).filter((picture) => picture !== undefined)
+    : [];
+  const finishedHeading = outcome.overall === "passed"
+    ? "Great work. You completed the activity!"
+    : outcome.overall === "completed-with-assistance"
+      ? "You finished the activity with help."
+      : "Nearly there. A teacher check is still to do.";
+  const finishedText = outcome.overall === "passed"
+    ? "You practised following instructions, building a sequence and showing a grown-up what you can do. These are foundations of computational thinking."
+    : outcome.overall === "completed-with-assistance"
+      ? "You went through every step with a grown-up’s help. Try the picture cards again another day to practise on your own."
+      : "You went through every step. A teacher or caregiver still needs to watch you follow three steps on your own.";
 
   return (
     <section className={styles.lessonView}>
@@ -245,13 +269,19 @@ function LessonView({
       </div>
       {done ? (
         <div className={styles.completion}>
-          <div className={styles.completionIcon}>🏆</div>
-          <span className={styles.eyebrow}>ACTIVITY COMPLETE</span>
-          <h1>Great work. You completed the activity!</h1>
-          <p>You practised following instructions, building a sequence and checking your work. These are foundations of computational thinking.</p>
-          <p className={styles.coreNote}>Assessment: your picture sequence and final answer were checked automatically. Movement and drawing were marked by your own confirmation, not by a camera or teacher. Progress and points are kept only for this session.</p>
-          <div className={styles.mastery}><strong>Assessment score</strong><span>{orderingPoints + choicePoints} of {totalPointsAvailable} points earned</span><span>Sequence exercise: {orderingPoints} of {orderingPointsAvailable} points</span><span>Knowledge check: {choicePoints} of {choicePointsAvailable} points</span></div>
-          <div className={styles.mastery}><strong>What you practised</strong><span>✓ Following steps in order</span><span>✓ Giving clear instructions</span><span>✓ Creating a sequence</span></div>
+          <div className={styles.completionIcon}>{outcome.overall === "passed" ? "🏆" : "🌟"}</div>
+          <span className={styles.eyebrow}>{outcome.overall === "passed" ? "ACTIVITY COMPLETE" : outcome.overall === "completed-with-assistance" ? "COMPLETED WITH HELP" : "WAITING FOR TEACHER CHECK"}</span>
+          <h1>{finishedHeading}</h1>
+          <p>{finishedText}</p>
+          <div className={styles.mastery} role="group" aria-label="What this activity recorded">
+            <strong>What was recorded</strong>
+            <span>Picture sequence: {outcome.sequence === "passed" ? `passed on your own (${orderingPoints} of ${orderingPointsAvailable} point)` : outcome.sequence === "completed-with-assistance" ? "completed with help, not counted as a pass (0 points)" : "not completed"}</span>
+            <span>Movement and drawing: you confirmed these yourself. The app cannot check them.</span>
+            <span>Teacher check: {outcome.check === "adult-confirmed" ? "a teacher or caregiver said they watched you follow 3 steps in order. The app cannot verify who confirmed it." : outcome.check === "awaiting-teacher-confirmation" ? "still waiting. Ask a teacher or caregiver to watch you follow 3 steps." : "not done"}</span>
+            <span>Extra practice question: {outcome.extraPractice === "passed" ? `answered correctly (${choicePoints} of ${choicePointsAvailable} point). This is practice only.` : "not passed or not tried. This is practice only."}</span>
+          </div>
+          <p className={styles.coreNote}>Progress is kept only in this browser session. It is not saved to an account and will be lost if you close or refresh this page.</p>
+          <div className={styles.mastery}><strong>What this activity practises</strong><span>Following steps in order</span><span>Giving clear instructions</span><span>Creating a sequence</span></div>
           <p className={styles.masteryTarget}>{lessonSpec?.successCriteria.join(" ") ?? activity.masteryTarget}</p>
           <div className={styles.buildPanel}>
             <label htmlFor="lesson-reflection"><strong>RhinoBot asks: What did you learn?</strong></label>
@@ -309,12 +339,36 @@ function LessonView({
                   <p>{orderingResult === "correct" ? `You earned ${orderingExercise.scoring.correctPoints} point. You put the morning steps in the right order.` : attemptsExhausted ? orderingExercise.fallback : orderingExercise.hint}</p>
                   {attemptsExhausted && <p>Ask a teacher or caregiver to help you arrange the picture cards.</p>}
                 </div>}
-                {attemptsExhausted && <p className={styles.coreNote}>You have used all your tries. You can still review the correct order with a teacher or caregiver.</p>}
+                {attemptsExhausted && (
+                  <div className={styles.buildPanel} role="group" aria-label="Learn the correct order with a grown-up">
+                    <strong>Here is the correct order</strong>
+                    <p>You have used all {orderingExercise.maxAttempts} tries. Look at the right order together with a teacher or caregiver.</p>
+                    <ol>{correctOrderPictures.map((picture) => <li key={picture.id}><span aria-hidden="true">{picture.icon}</span> {picture.label}</li>)}</ol>
+                    {!orderingAssisted
+                      ? <><p>When you have done this with a grown-up, you can go on. It will be recorded as <strong>completed with help</strong>, not as a pass.</p>
+                        <button className={styles.secondaryButton} type="button" onClick={() => { setOrderingAssisted(true); setSelectedOrder(orderingExercise.expectedOrder.slice()); }}>A grown-up helped me finish</button></>
+                      : <p className={styles.feedbackSuccess}>Recorded as completed with help. You can go to the next step.</p>}
+                  </div>
+                )}
               </div>
             )}
 
+            {stepKey === "check" && (
+              <div className={styles.buildPanel} role="group" aria-labelledby="teacher-check-title">
+                <strong id="teacher-check-title">Teacher or caregiver check</strong>
+                <p>Can the child follow a 3-step instruction in the right order on their own?</p>
+                <div className={styles.buildChoices}>
+                  <button type="button" className={teacherObservation === "confirmed" ? styles.buildChoiceSelected : ""} aria-pressed={teacherObservation === "confirmed"} onClick={() => setTeacherObservation("confirmed")}>Yes, I watched them do it</button>
+                  <button type="button" className={teacherObservation === "deferred" ? styles.buildChoiceSelected : ""} aria-pressed={teacherObservation === "deferred"} onClick={() => setTeacherObservation("deferred")}>I will check later</button>
+                </div>
+                <small>This is an adult’s own record. The app cannot see or verify it, and nothing is sent anywhere.</small>
+              </div>
+            )}
             {stepKey === "check" && choiceExercise && (
-              <ChoiceExercise exercise={choiceExercise} onCorrect={(points) => { setChoicePassed(true); setChoicePoints(points); }} />
+              <>
+                <p className={styles.coreNote}><strong>Extra practice (optional, not part of the official check)</strong></p>
+                <ChoiceExercise exercise={choiceExercise} onCorrect={(points) => { setChoicePassed(true); setChoicePoints(points); }} />
+              </>
             )}
 
             {stepKey === "think" && <div className={styles.exampleStrip}><span>☀️</span><span>Wake up</span><b>→</b><span>🪥</span><span>Brush teeth</span><b>→</b><span>🥣</span><span>Eat breakfast</span></div>}
