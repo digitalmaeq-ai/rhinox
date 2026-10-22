@@ -1,5 +1,6 @@
 import { getCurriculumActivity } from "./curriculum.ts";
 import { getLessonSpec, isLessonSpecConsistent } from "./lesson-specs.ts";
+import { isGuidedMissionDefinition, type GuidedMissionDefinition } from "./guided-mission.ts";
 import type { RobotCommand } from "./robot-simulator.ts";
 
 /** A reviewed, public-preview coding task; never derive this from a raw curriculum row or URL. */
@@ -8,6 +9,12 @@ export type GuidedRobotLaunch = {
   reviewedTaskId: string;
   adapter: "robot-blocks" | "robot-text";
   starterProgram: readonly RobotCommand[];
+  /** Grid, start square, finish square and card rules the reviewed lesson sets. */
+  mission: GuidedMissionDefinition;
+  /** Name shown for the robot in this lesson. */
+  characterName: string;
+  /** The only instructions the learner is offered in this lesson. */
+  availableCommands: readonly RobotCommand[];
   successCriteria: readonly string[];
   returnPath: "/coding-robotics/code-studio/learn";
 };
@@ -24,6 +31,11 @@ export function isGuidedRobotLaunch(value: unknown): value is GuidedRobotLaunch 
     typeof item.reviewedTaskId === "string" && item.reviewedTaskId.trim().length > 0 &&
     (item.adapter === "robot-blocks" || item.adapter === "robot-text") &&
     item.returnPath === RETURN_PATH &&
+    isGuidedMissionDefinition(item.mission) &&
+    typeof item.characterName === "string" && item.characterName.trim().length > 0 && item.characterName.length <= 30 &&
+    Array.isArray(item.availableCommands) && item.availableCommands.length > 0 && item.availableCommands.length <= 5 &&
+    item.availableCommands.every((command: unknown) => VALID_COMMANDS.has(command as RobotCommand)) &&
+    new Set(item.availableCommands).size === item.availableCommands.length &&
     Array.isArray(item.starterProgram) && item.starterProgram.length <= 100 &&
     item.starterProgram.every((command: unknown) => VALID_COMMANDS.has(command as RobotCommand)) &&
     Array.isArray(item.successCriteria) && item.successCriteria.length > 0 &&

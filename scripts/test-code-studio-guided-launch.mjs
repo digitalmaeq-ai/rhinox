@@ -8,6 +8,8 @@ const validShape = {
   adapter: "robot-blocks", starterProgram: ["forward", "right"],
   successCriteria: ["Observe the robot's actual position."],
   returnPath: "/coding-robotics/code-studio/learn",
+  mission: { mission: { gridSize: 5, goal: { x: 3, y: 2 } }, start: { x: 0, y: 0, direction: 0 }, rules: { minCards: 6, maxCards: 8, minTurns: 2 } },
+  characterName: "Ilana", availableCommands: ["forward", "back", "left", "right"],
 };
 assert.equal(isGuidedRobotLaunch(validShape), true);
 assert.equal(isGuidedRobotLaunch({ ...validShape, starterProgram: ["forward", "back"] }), true, "The back instruction is a valid command.");
@@ -17,6 +19,12 @@ assert.equal(isGuidedRobotLaunch({ ...validShape, starterProgram: ["eval"] }), f
 assert.equal(isGuidedRobotLaunch({ ...validShape, starterProgram: Array(101).fill("forward") }), false);
 assert.equal(isGuidedRobotLaunch({ ...validShape, successCriteria: [] }), false);
 assert.equal(isGuidedRobotLaunch({ ...validShape, successCriteria: ["  "] }), false);
+assert.equal(isGuidedRobotLaunch({ ...validShape, mission: undefined }), false, "A launch needs a mission definition.");
+assert.equal(isGuidedRobotLaunch({ ...validShape, mission: { ...validShape.mission, start: { x: 9, y: 0, direction: 0 } } }), false);
+assert.equal(isGuidedRobotLaunch({ ...validShape, characterName: " " }), false);
+assert.equal(isGuidedRobotLaunch({ ...validShape, availableCommands: [] }), false);
+assert.equal(isGuidedRobotLaunch({ ...validShape, availableCommands: ["forward", "forward"] }), false);
+assert.equal(isGuidedRobotLaunch({ ...validShape, availableCommands: ["eval"] }), false);
 assert.equal(isGuidedRobotLaunch(null), false);
 assert.equal(resolveGuidedRobotLaunch(nursery, "morning-routine-order"), null,
   "An unplugged ordering exercise must not silently launch the robot simulator.");
