@@ -64,3 +64,86 @@ export const DRAFT_YEAR1_T1_W3: InteractiveLessonSpec = {
     },
   },
 };
+
+/**
+ * DRAFT: Nursery 1, Term 1, Week 2 "My Day Has Order". Wording follows the v3.15 row, the Teacher
+ * Guide (p. 9–10) and Activity Book (p. 8–11). The Activity Book captions use "Emeka" while the
+ * lesson and video use "Ayo", and its card captions differ from the Teacher Guide cards; both are
+ * listed in the review sheet. The picture names below use the Teacher Guide card names.
+ */
+export const DRAFT_NURSERY_1_T1_W2: InteractiveLessonSpec = {
+  activityId: "tmc-v3-15-nursery-1-t1-w2",
+  status: "draft",
+  objective: "Put three morning pictures in order (wake up, get dressed, walk to school) and act them out.",
+  successCriteria: [
+    "Say what must come first in the morning.",
+    "Put the three morning pictures in order.",
+    "Put the morning in order and act it out, as observed by a teacher or caregiver.",
+  ],
+  estimatedMinutes: 15,
+  accessibility: { keyboardOperable: true, touchOperable: true, reducedMotionSafe: true, textInstructionsAvailable: true },
+  steps: {
+    think: {
+      instruction: "Ayo's morning is mixed up! He walked to school before he got dressed. What must come first?",
+      task: "Say what you do in the morning before school.",
+      evidence: "Learner or adult confirms the child talked about their morning; this is self-reported.",
+      hint: "Think about what you do when you first wake up.",
+      fallback: "A teacher or caregiver reads the story aloud; no device is needed.",
+    },
+    move: {
+      instruction: "Act out the morning: wake up (stretch), get dressed (pull on your shirt), walk to school (march on the spot).",
+      task: "Do the three actions in order. Do it three times.",
+      evidence: "Learner or supervising adult confirms the actions were acted out; this is self-reported, not verified.",
+      hint: "Say each step out loud as you do it.",
+      fallback: "Use seated gestures or point to the cards if moving is difficult.",
+    },
+    code: {
+      instruction: "Program Ayo's morning. Put the three picture cards in a row: wake up, get dressed, walk to school.",
+      task: "Choose the cards in order, first, next, last.",
+      evidence: "The on-screen row is exactly wake up, get dressed, walk to school. This checks the order on the screen only.",
+      hint: "What must Ayo do before he walks to school?",
+      fallback: "Use three printed or drawn cards in a row by the floor grid and let a friend act them out.",
+      exercise: {
+        id: "morning-routine-order-w2",
+        kind: "ordering",
+        prompt: "Put Ayo's morning in order.",
+        instructions: "Choose the cards in order: first, next, and last.",
+        hint: "Ayo gets dressed before he walks to school.",
+        fallback: "Lay printed or drawn cards in a row with a teacher or caregiver.",
+        evidenceMode: "automatic",
+        maxAttempts: 3,
+        retryPolicy: "allow-until-limit",
+        pointsAvailable: 1,
+        accessibility: { keyboardOperable: true, touchOperable: true, textAlternative: true },
+        items: [
+          { id: "wake-up", label: "Wake up" },
+          { id: "get-dressed", label: "Get dressed" },
+          { id: "walk-to-school", label: "Walk to school" },
+        ],
+        expectedOrder: ["wake-up", "get-dressed", "walk-to-school"],
+        scoring: { correctPoints: 1, incorrectPoints: 0, partialCredit: false },
+      },
+    },
+    build: {
+      instruction: "Optional this week: stand cardboard Ayo on a box beside the card row.",
+      task: "Optional: make or place a cardboard Ayo beside the cards.",
+      evidence: "Optional this week; no evidence is required.",
+      hint: "A teacher can make Ayo from cardboard beforehand.",
+      fallback: "Skip it; the lesson needs no kit.",
+    },
+    create: {
+      instruction: "Draw your morning in 3 boxes: first, next, last.",
+      task: "Draw three things you do in your morning, in order.",
+      evidence: "Learner or supervising adult confirms the drawing is done; this is self-reported, not image-checked.",
+      hint: "Start with the first thing you do when you wake up.",
+      fallback: "Arrange three objects or point to three pictures instead of drawing.",
+    },
+    check: {
+      instruction: "A teacher or caregiver watches you put three morning pictures in order and act them out.",
+      task: "Put your morning in order and act it out.",
+      evidence: "Teacher or caregiver observation: puts 3 daily-routine pictures in order and acts them out. Adult-recorded; the app cannot record this itself. The Activity Book page (number the 3 pictures) is not marked.",
+      hint: "Say first, next, last as you act.",
+      fallback: "If no adult can watch now, choose “I will check later” so the teacher can complete the observation.",
+    },
+  },
+};
