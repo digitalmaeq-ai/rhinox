@@ -19,6 +19,7 @@ on:
       - "scripts/test-code-studio-lesson-progress.mjs"
       - "scripts/test-code-studio-workspace-state.mjs"
       - "scripts/test-code-studio-guided-launch.mjs"
+      - "scripts/test-code-studio-guided-mission.mjs"
       - "scripts/test-code-studio-robot-mission-feedback.mjs"
       - ".github/workflows/code-studio-v2-checks.yml"
       - ".gitignore"
@@ -95,6 +96,8 @@ jobs:
         run: node --experimental-strip-types scripts/test-code-studio-workspace-state.mjs
       - name: Test reviewed guided launch boundary
         run: node --experimental-strip-types scripts/test-code-studio-guided-launch.mjs
+      - name: Test guided robot mission rules
+        run: node --experimental-strip-types scripts/test-code-studio-guided-mission.mjs
       - name: Test robot mission feedback
         run: node --experimental-strip-types scripts/test-code-studio-robot-mission-feedback.mjs
       - name: Lint
