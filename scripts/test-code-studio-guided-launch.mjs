@@ -10,6 +10,7 @@ const validShape = {
   returnPath: "/coding-robotics/code-studio/learn",
 };
 assert.equal(isGuidedRobotLaunch(validShape), true);
+assert.equal(isGuidedRobotLaunch({ ...validShape, starterProgram: ["forward", "back"] }), true, "The back instruction is a valid command.");
 assert.equal(isGuidedRobotLaunch({ ...validShape, adapter: "python" }), false);
 assert.equal(isGuidedRobotLaunch({ ...validShape, returnPath: "https://example.com" }), false);
 assert.equal(isGuidedRobotLaunch({ ...validShape, starterProgram: ["eval"] }), false);

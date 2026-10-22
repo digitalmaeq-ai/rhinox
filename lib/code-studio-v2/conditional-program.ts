@@ -60,7 +60,7 @@ export function runConditionalRobotProgram(instructions: readonly RobotInstructi
       executedCommands += 1;
       position = { ...one.position };
       if (instruction.command === "beep") beeps += 1;
-      if (instruction.command === "forward" && !step?.blocked) visited.push(`${position.x},${position.y}`);
+      if ((instruction.command === "forward" || instruction.command === "back") && !step?.blocked) visited.push(`${position.x},${position.y}`);
       if (step?.blocked) blocked = true;
     }
   }

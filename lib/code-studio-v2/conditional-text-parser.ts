@@ -1,7 +1,7 @@
 import type { RobotCommand } from "./robot-simulator.ts";
 import type { RobotCondition, RobotInstruction } from "./conditional-program.ts";
 export type ConditionalTextParseResult = { ok: true; instructions: RobotInstruction[] } | { ok: false; line: number; message: string };
-const COMMANDS: Record<string, RobotCommand> = { "robot.moveForward()": "forward", "robot.turnLeft()": "left", "robot.turnRight()": "right", "robot.beep()": "beep" };
+const COMMANDS: Record<string, RobotCommand> = { "robot.moveForward()": "forward", "robot.moveBack()": "back", "robot.turnLeft()": "left", "robot.turnRight()": "right", "robot.beep()": "beep" };
 const CONDITIONS: Record<string, RobotCondition> = { "robot.atGoal()": "atGoal", "robot.facingNorth()": "facingNorth", "robot.facingEast()": "facingEast", "robot.facingSouth()": "facingSouth", "robot.facingWest()": "facingWest" };
 const MAX_SOURCE_CHARS = 20_000, MAX_SOURCE_LINES = 500, MAX_NESTING_DEPTH = 10, MAX_INSTRUCTIONS = 500;
 /** Parse a small if/else language without evaluating JavaScript or executing source text. */

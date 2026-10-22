@@ -15,10 +15,13 @@ type Block = { id: number; command: Command };
 
 const LABELS: Record<Command, { title: string; icon: string; code: string; hint: string }> = {
   forward: { title: "Move forward", icon: "⬆️", code: "moveForward()", hint: "Move one square in the direction the robot faces." },
+  back: { title: "Move back", icon: "⬇️", code: "moveBack()", hint: "Move one square backwards without turning." },
   left: { title: "Turn left", icon: "↶", code: "turnLeft()", hint: "Turn 90 degrees to the left without moving." },
   right: { title: "Turn right", icon: "↷", code: "turnRight()", hint: "Turn 90 degrees to the right without moving." },
   beep: { title: "Beep", icon: "🔔", code: "beep()", hint: "Make the robot signal that it reached a checkpoint." },
 };
+/** Free play keeps its original four instructions; "back" is only for guided lessons that need it. */
+const FREE_PLAY_COMMANDS: readonly Command[] = ["forward", "left", "right", "beep"];
 const EXAMPLE_PROGRAM: Command[] = ["forward", "forward", "right", "forward", "forward"];
 const MAX_BLOCKS = 30;
 
@@ -184,7 +187,7 @@ export default function Workspace() {
             <div className={styles.panelHeader}><div><span className={styles.panelKicker}>01 / BUILD</span><h2>Your instructions</h2></div><span className={styles.count}>{blocks.length}/{MAX_BLOCKS} blocks</span></div>
             <p className={styles.helper}>Add an instruction from the toolbox. Use the arrows to change its order. You can use up to {MAX_BLOCKS} instructions in one mission.</p>
             <div className={styles.toolbox}>
-              {(Object.keys(LABELS) as Command[]).map((command) => (
+              {FREE_PLAY_COMMANDS.map((command) => (
                 <button key={command} className={styles.tool} onClick={() => addBlock(command)} disabled={blocks.length >= MAX_BLOCKS} title={blocks.length >= MAX_BLOCKS ? `Maximum ${MAX_BLOCKS} instructions reached` : LABELS[command].hint}>
                   <span>{LABELS[command].icon}</span><span>{LABELS[command].title}</span><b>+</b>
                 </button>

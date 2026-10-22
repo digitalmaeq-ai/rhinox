@@ -18,6 +18,15 @@ test("parses supported commands in order", () => {
   }
 });
 
+test("parses the back instruction and still rejects look-alikes", () => {
+  const ok = parseRobotTextProgram("robot.moveBack()\nrobot.moveBack();");
+  assert.equal(ok.ok, true);
+  if (ok.ok) assert.deepEqual(ok.commands, ["back", "back"]);
+  for (const bad of ["robot.moveBackward()", "robot.back()", "robot.moveBack(2)", "moveBack()", "robot.moveBack().x"]) {
+    assert.equal(parseRobotTextProgram(bad).ok, false, `${bad} must be rejected`);
+  }
+});
+
 test("ignores blank lines and comments", () => {
   const result = parseRobotTextProgram("\n// comment\n robot.turnLeft(); // turn\n");
   assert.equal(result.ok, true);

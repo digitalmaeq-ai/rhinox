@@ -12,7 +12,7 @@ export type GuidedRobotLaunch = {
   returnPath: "/coding-robotics/code-studio/learn";
 };
 
-const VALID_COMMANDS = new Set<RobotCommand>(["forward", "left", "right", "beep"]);
+const VALID_COMMANDS = new Set<RobotCommand>(["forward", "back", "left", "right", "beep"]);
 const RETURN_PATH = "/coding-robotics/code-studio/learn" as const;
 const REVIEWED_LAUNCHES: Readonly<Record<string, GuidedRobotLaunch>> = Object.freeze(Object.create(null));
 

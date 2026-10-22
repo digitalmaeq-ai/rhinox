@@ -69,6 +69,23 @@ test("beep commands produce feedback without moving the robot", () => {
   assert.equal(result.trace.length, 2);
 });
 
+test("back moves one square opposite to the facing direction without turning", () => {
+  const start = { x: 2, y: 2, direction: 0 };            // facing north
+  const result = runRobotProgram(["back"], undefined, undefined, start);
+  assert.deepEqual(result.position, { x: 2, y: 3, direction: 0 }, "Moved south, still facing north.");
+  assert.match(result.trace[0].description, /Moved back/);
+  const east = runRobotProgram(["back"], undefined, undefined, { x: 2, y: 2, direction: 1 });
+  assert.deepEqual(east.position, { x: 1, y: 2, direction: 1 });
+  assert.deepEqual(runRobotProgram(["forward", "back"], undefined, undefined, start).position, start, "Forward then back returns to the start.");
+});
+
+test("back is blocked at the edge of the grid instead of leaving it", () => {
+  const result = runRobotProgram(["back"], undefined, undefined, { x: 0, y: 4, direction: 0 });
+  assert.equal(result.trace.at(-1).blocked, true);
+  assert.equal(result.success, false);
+  assert.deepEqual(result.position, { x: 0, y: 4, direction: 0 });
+});
+
 test("an empty program safely leaves the robot at the start", () => {
   const result = runRobotProgram([]);
   assert.equal(result.success, false);

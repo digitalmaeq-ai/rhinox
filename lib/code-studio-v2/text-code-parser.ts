@@ -6,6 +6,7 @@ export type TextProgramParseResult =
 
 const COMMANDS: Record<string, RobotCommand> = {
   "robot.moveForward()": "forward",
+  "robot.moveBack()": "back",
   "robot.turnLeft()": "left",
   "robot.turnRight()": "right",
   "robot.beep()": "beep",

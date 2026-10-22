@@ -1,4 +1,4 @@
-export type RobotCommand = "forward" | "left" | "right" | "beep";
+export type RobotCommand = "forward" | "back" | "left" | "right" | "beep";
 export type RobotPosition = { x: number; y: number; direction: 0 | 1 | 2 | 3 };
 export type RobotTraceStep = {
   step: number;
@@ -40,9 +40,11 @@ export function runRobotProgram(commands: readonly RobotCommand[], sourceLines?:
       beeps += 1;
       description = "RhinoBot beeped without changing position.";
     } else {
+      // "back" moves one square opposite to the facing direction and does not turn.
+      const sign = command === "back" ? -1 : 1;
       const next = {
-        x: position.x + DIRECTIONS[position.direction].x,
-        y: position.y + DIRECTIONS[position.direction].y,
+        x: position.x + sign * DIRECTIONS[position.direction].x,
+        y: position.y + sign * DIRECTIONS[position.direction].y,
       };
       if (next.x < 0 || next.x > 4 || next.y < 0 || next.y > 4) {
         trace.push({
@@ -64,7 +66,7 @@ export function runRobotProgram(commands: readonly RobotCommand[], sourceLines?:
       }
       position = { ...position, ...next };
       visited.push(`${position.x},${position.y}`);
-      description = `Moved to column ${position.x + 1}, row ${position.y + 1}.`;
+      description = `${command === "back" ? "Moved back" : "Moved"} to column ${position.x + 1}, row ${position.y + 1}.`;
     }
     trace.push({
       step: index + 1,
