@@ -28,6 +28,9 @@ export const menuTaxonomy: Record<string, MenuTaxonomyTarget> = {
   // would make "which page matches this branch" ambiguous.
   "/coding-robotics": { category: "interactive", path: ["experiences", "games", "coding-games"] },
 
+  // Code Studio has its own branch in the explore taxonomy (Technology > Rhinox Code Studio).
+  "/coding-robotics/code-studio": { category: "educational", path: ["technology", "rhinox-code-studio"] },
+
   "/shop/books": { category: "commerce", path: ["books"] },
   "/shop/kits": { category: "commerce", path: ["kits"] },
   "/shop/laboratory-equipment": { category: "commerce", path: ["laboratory-equipment"] },
@@ -257,6 +260,12 @@ export const navigation: NavigationItem[] = [
         {
           title: "RHINOCODE STUDIOS",
           items: [
+            {
+              label: "Rhinox Code Studio",
+              href: "/coding-robotics/code-studio",
+              description:
+                "Write and run real Python in your browser, work through guided exercises and save your programs.",
+            },
             {
               label: "RhinoBot: Robot Programming Lab",
               href: "/coding-robotics/robot-lab",
