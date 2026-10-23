@@ -1,0 +1,95 @@
+#!/usr/bin/env node
+import assert from "node:assert/strict";
+import { test } from "node:test";
+import { ROBOT_START, runRobotProgram } from "../lib/code-studio-v2/robot-simulator.ts";
+import { parseRobotTextProgram } from "../lib/code-studio-v2/text-code-parser.ts";
+
+test("the starter program reaches the goal and records every instruction", () => {
+  const result = runRobotProgram(["forward", "forward", "right", "forward", "forward"]);
+  assert.equal(result.success, true);
+  assert.deepEqual(result.position, { x: 3, y: 1, direction: 1 });
+  assert.equal(result.visited.length, 5);
+  assert.equal(result.trace.length, 5);
+  assert.match(result.trace[2].description, /Turned right/);
+  assert.match(result.message, /Mission complete/);
+});
+
+test("text source lines stay attached to their execution trace steps", () => {
+  const result = runRobotProgram(["forward", "right"], [4, 9]);
+  assert.deepEqual(result.trace.map((step) => step.sourceLine), [4, 9]);
+});
+
+test("repeat iteration context remains attached to execution trace steps", () => {
+  const result = runRobotProgram(["forward", "right", "forward", "right"], [2, 3, 2, 3], [[1], [1], [2], [2]]);
+  assert.deepEqual(result.trace.map((step) => step.repeatPath), [[1], [1], [2], [2]]);
+});
+
+test("nested text repeats retain their iteration path in the visible execution trace", () => {
+  const parsed = parseRobotTextProgram([
+    "repeat(2) {",
+    "  repeat(2) {",
+    "    robot.beep()",
+    "  }",
+    "}",
+  ].join("\n"));
+  assert.equal(parsed.ok, true);
+  if (!parsed.ok) return;
+  const result = runRobotProgram(parsed.commands, parsed.sourceLines, parsed.repeatPaths);
+  assert.deepEqual(result.trace.map((step) => step.repeatPath), [[1, 1], [1, 2], [2, 1], [2, 2]]);
+  assert.deepEqual(result.trace.map((step) => step.sourceLine), [3, 3, 3, 3]);
+  assert.match(result.message, /beeped 4 times/);
+});
+
+test("turning changes direction without changing position", () => {
+  const result = runRobotProgram(["right"]);
+  assert.deepEqual(result.position, { ...ROBOT_START, direction: 1 });
+  assert.equal(result.visited.length, 1);
+  assert.equal(result.trace[0].position.x, ROBOT_START.x);
+});
+
+test("programs that leave the grid stop safely and identify the blocked step", () => {
+  const result = runRobotProgram(["left", "left", "forward", "forward"]);
+  assert.equal(result.success, false);
+  assert.match(result.message, /leave the grid/);
+  assert.deepEqual(result.position, { x: 1, y: 4, direction: 2 });
+  assert.equal(result.trace.at(-1).blocked, true);
+  assert.match(result.trace.at(-1).description, /outside the grid/);
+});
+
+test("a valid but incorrect route explains that the goal was not reached", () => {
+  const result = runRobotProgram(["forward"]);
+  assert.equal(result.success, false);
+  assert.match(result.message, /star is still waiting/);
+});
+
+test("beep commands produce feedback without moving the robot", () => {
+  const result = runRobotProgram(["beep", "beep"]);
+  assert.deepEqual(result.position, ROBOT_START);
+  assert.match(result.message, /beeped 2 times/);
+  assert.equal(result.trace.length, 2);
+});
+
+test("back moves one square opposite to the facing direction without turning", () => {
+  const start = { x: 2, y: 2, direction: 0 };            // facing north
+  const result = runRobotProgram(["back"], undefined, undefined, start);
+  assert.deepEqual(result.position, { x: 2, y: 3, direction: 0 }, "Moved south, still facing north.");
+  assert.match(result.trace[0].description, /Moved back/);
+  const east = runRobotProgram(["back"], undefined, undefined, { x: 2, y: 2, direction: 1 });
+  assert.deepEqual(east.position, { x: 1, y: 2, direction: 1 });
+  assert.deepEqual(runRobotProgram(["forward", "back"], undefined, undefined, start).position, start, "Forward then back returns to the start.");
+});
+
+test("back is blocked at the edge of the grid instead of leaving it", () => {
+  const result = runRobotProgram(["back"], undefined, undefined, { x: 0, y: 4, direction: 0 });
+  assert.equal(result.trace.at(-1).blocked, true);
+  assert.equal(result.success, false);
+  assert.deepEqual(result.position, { x: 0, y: 4, direction: 0 });
+});
+
+test("an empty program safely leaves the robot at the start", () => {
+  const result = runRobotProgram([]);
+  assert.equal(result.success, false);
+  assert.deepEqual(result.position, ROBOT_START);
+  assert.equal(result.trace.length, 0);
+  assert.match(result.message, /star is still waiting/);
+});

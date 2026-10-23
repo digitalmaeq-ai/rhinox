@@ -1,0 +1,118 @@
+name: Code Studio V2 validation
+
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - "app/coding-robotics/code-studio/learn/**"
+      - "app/coding-robotics/code-studio/workspace/**"
+      - "app/components/code-studio-v2/**"
+      - "lib/code-studio-v2/**"
+      - "scripts/test-code-studio-conditional-text-parser.mjs"
+      - "scripts/import-code-studio-curriculum.mjs"
+      - "scripts/test-code-studio-curriculum-import.mjs"
+      - "scripts/test-private-curriculum-loader.mjs"
+      - "scripts/test-code-studio-robot-simulator.mjs"
+      - "scripts/test-code-studio-conditional-program.mjs"
+      - "scripts/test-code-studio-text-parser.mjs"
+      - "scripts/test-code-studio-lesson-gates.mjs"
+      - "scripts/test-code-studio-lesson-progress.mjs"
+      - "scripts/test-code-studio-workspace-state.mjs"
+      - "scripts/test-code-studio-guided-launch.mjs"
+      - "scripts/test-code-studio-guided-mission.mjs"
+      - "scripts/test-code-studio-guided-draft-preview.mjs"
+      - "scripts/test-code-studio-draft-lesson-spec.mjs"
+      - "scripts/test-site-navigation.mjs"
+      - "lib/site-navigation.ts"
+      - "scripts/test-code-studio-robot-mission-feedback.mjs"
+      - ".github/workflows/code-studio-v2-checks.yml"
+      - ".gitignore"
+      - "package.json"
+      - "package-lock.json"
+      - "tsconfig.json"
+      - "docs/product/rhinox-code-studio-v2-*.md"
+permissions:
+  contents: read
+
+concurrency:
+  group: code-studio-v2-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  validate:
+    name: Lint and production build
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: Check out source
+        uses: actions/checkout@v4
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+      - name: Install dependencies
+        run: npm ci
+      - name: Report dependency security advisories
+        shell: bash
+        run: |
+          npm audit --json > "$RUNNER_TEMP/npm-audit.json" || true
+          node --input-type=commonjs -e '
+            const fs = require("node:fs");
+            const report = JSON.parse(fs.readFileSync(process.env.RUNNER_TEMP + "/npm-audit.json", "utf8"));
+            console.log("Dependency audit summary:", JSON.stringify(report.metadata?.vulnerabilities ?? {}));
+            for (const [name, item] of Object.entries(report.vulnerabilities ?? {})) {
+              console.log(JSON.stringify({
+                name,
+                severity: item.severity,
+                direct: item.isDirect,
+                range: item.range,
+                fixAvailable: item.fixAvailable,
+                advisories: (item.via ?? []).filter(v => typeof v === "object").map(v => ({
+                  title: v.title,
+                  url: v.url,
+                  range: v.range
+                }))
+              }));
+            }
+          '
+      - name: Block critical dependency advisories
+        run: npm audit --audit-level=critical
+      - name: Block high or critical production dependency advisories
+        run: npm audit --omit=dev --audit-level=high
+      - name: Validate curriculum importer
+        run: node scripts/test-code-studio-curriculum-import.mjs
+      - name: Test private curriculum access boundary
+        run: node --experimental-strip-types scripts/test-private-curriculum-loader.mjs
+      - name: Test robot simulator
+        run: node --experimental-strip-types scripts/test-code-studio-robot-simulator.mjs
+      - name: Test runtime conditional execution
+        run: node --experimental-strip-types scripts/test-code-studio-conditional-program.mjs
+      - name: Test conditional text parser
+        run: node --experimental-strip-types scripts/test-code-studio-conditional-text-parser.mjs
+      - name: Test safe text-code parser
+        run: node --experimental-strip-types scripts/test-code-studio-text-parser.mjs
+      - name: Test lesson eligibility and core part gates
+        run: node --experimental-strip-types scripts/test-code-studio-lesson-gates.mjs
+      - name: Test lesson progression evidence gates
+        run: node --experimental-strip-types scripts/test-code-studio-lesson-progress.mjs
+      - name: Test workspace clear/reset state
+        run: node --experimental-strip-types scripts/test-code-studio-workspace-state.mjs
+      - name: Test reviewed guided launch boundary
+        run: node --experimental-strip-types scripts/test-code-studio-guided-launch.mjs
+      - name: Test guided robot mission rules
+        run: node --experimental-strip-types scripts/test-code-studio-guided-mission.mjs
+      - name: Test guided draft previews stay out of the reviewed registry
+        run: node --experimental-strip-types scripts/test-code-studio-guided-draft-preview.mjs
+      - name: Test draft lesson spec stays unlaunchable
+        run: node --experimental-strip-types scripts/test-code-studio-draft-lesson-spec.mjs
+      - name: Test header and Explore navigation agree
+        run: node --experimental-strip-types scripts/test-site-navigation.mjs
+      - name: Test robot mission feedback
+        run: node --experimental-strip-types scripts/test-code-studio-robot-mission-feedback.mjs
+      - name: Lint
+        run: npm run lint
+      - name: TypeScript check
+        run: npm run typecheck
+      - name: Build
+        run: npm run build
