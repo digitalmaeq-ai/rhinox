@@ -249,6 +249,7 @@ export default async function WeekPage({ params }: WeekPageProps) {
               </li>
             ))}
           </ul>
+          <p className={styles.note}>Term {item.term} bonus lesson video: coming soon to this page.</p>
         </section>
 
         <nav className={styles.pager} aria-label="Other weeks">

@@ -1,5 +1,5 @@
-// Generated from the Think • Move • Code! Nursery 1 weekly packs (Master Curriculum v3.16,
-// revised Activity Book and Teacher Guide, Oct 2026). Edit the packs, then regenerate.
+// Generated from the Think • Move • Code! Nursery 1 weekly packs and the revised Activity Book (the master copy
+// for titles, "I can" lines and word lists), Oct 2026. Edit the sources, then regenerate.
 
 import type { TmcTerm, TmcWeek } from "./types";
 
@@ -147,6 +147,7 @@ export const NURSERY_1_WEEKS: TmcWeek[] = [
       "Point to a machine at home (washing machine, fan, TV) and ask: “Who tells it what to do?” Remind them: buttons only with a grown-up."
     ],
     "keyWords": [
+      "instruction",
       "command",
       "listen",
       "robot",
@@ -212,7 +213,8 @@ export const NURSERY_1_WEEKS: TmcWeek[] = [
       "first",
       "next",
       "last",
-      "order"
+      "order",
+      "door"
     ],
     "signs": [
       {
@@ -319,6 +321,7 @@ export const NURSERY_1_WEEKS: TmcWeek[] = [
       "again",
       "repeat",
       "times",
+      "dance",
       "same"
     ],
     "signs": [
@@ -411,7 +414,6 @@ export const NURSERY_1_WEEKS: TmcWeek[] = [
       "end",
       "retell",
       "first",
-      "next",
       "last"
     ],
     "signs": [
@@ -506,7 +508,7 @@ export const NURSERY_1_WEEKS: TmcWeek[] = [
   {
     "term": 1,
     "week": 10,
-    "title": "Revision & reinforcement",
+    "title": "Revision & Reinforcement",
     "kind": "Revision (Smart Review)",
     "goal": "I can put steps in order and fix a mistake.",
     "learned": "This week we reviewed everything from Term 1: putting steps in order, first–next–last, giving clear commands, fixing mistakes, “do it again” and planning a straight path.",
@@ -533,14 +535,20 @@ export const NURSERY_1_WEEKS: TmcWeek[] = [
     "week": 11,
     "title": "Mini-project: Robot Says with Ayo",
     "kind": "Mini-project (term build)",
-    "goal": "I can program cardboard Ayo with three picture cards and fix a wrong one.",
+    "goal": "I can program Ayo with 3 picture cards and fix a wrong one.",
     "learned": "This week your child’s team built a program for a cardboard Ayo: three picture cards that move him to the school gate or the market. They tested it and fixed it when cards were swapped.",
     "tryHeading": "Try this at home",
     "tryAtHome": [
       "Ask your child: “What was your Ayo program?” Let them say “first…, next…, last…”",
       "Make a “path” with paper on the floor. Your child programs you with 3 steps to reach a toy."
     ],
-    "keyWords": [],
+    "keyWords": [
+      "program",
+      "first",
+      "next",
+      "last",
+      "fix"
+    ],
     "signs": [],
     "tip": "Keep Station 1 calm and playful: “Let’s play a quick Ayo game.” Children show more when it feels like a game, not a test.",
     "invite": null,
@@ -555,7 +563,7 @@ export const NURSERY_1_WEEKS: TmcWeek[] = [
   {
     "term": 1,
     "week": 12,
-    "title": "Assessment (observation + practical)",
+    "title": "Assessment",
     "kind": "Assessment (observation + practical)",
     "goal": "",
     "learned": "This week we played our Ayo games while the teacher watched what each child can do: put steps in order, say first–next–last, “do it again”, and fix a mistake. There was no written test.",
@@ -579,7 +587,7 @@ export const NURSERY_1_WEEKS: TmcWeek[] = [
   {
     "term": 1,
     "week": 13,
-    "title": "Showcase, results & badge awards",
+    "title": "Showcase & Badges",
     "kind": "Showcase",
     "goal": "",
     "learned": "Things must happen in order. Your child can put steps in order, say first–next–last, give clear commands, “do it again” with a ↻ card, plan a straight path, and find and fix mistakes. These are the first steps of coding!",
@@ -990,7 +998,7 @@ export const NURSERY_1_WEEKS: TmcWeek[] = [
   {
     "term": 2,
     "week": 8,
-    "title": "Practice & Play: Make Your Own Pattern",
+    "title": "Practice & Play: Make Your Own",
     "kind": "Practice & Play",
     "goal": "I can make my own AB pattern.",
     "learned": "This week your child made their own pattern. First we copied a dance, then we changed one move, then each child made their own AB dance for Ayo.",
@@ -1098,9 +1106,9 @@ export const NURSERY_1_WEEKS: TmcWeek[] = [
   {
     "term": 2,
     "week": 10,
-    "title": "Revision & reinforcement",
+    "title": "Revision & Reinforcement",
     "kind": "Revision",
-    "goal": "I can copy, continue and predict a pattern, and sort by one rule.",
+    "goal": "I can copy, continue, predict a pattern and sort by a rule.",
     "learned": "This week we reviewed everything from Term 2: copying and continuing patterns, saying what comes next, sorting by a rule and making our own patterns.",
     "tryHeading": "Try this at home",
     "tryAtHome": [
@@ -1125,7 +1133,7 @@ export const NURSERY_1_WEEKS: TmcWeek[] = [
     "week": 11,
     "title": "Mini-project: Ayo’s Robot Dance",
     "kind": "Mini-project (term build)",
-    "goal": "I can make Ayo dance a repeating AB pattern and say what comes next.",
+    "goal": "I can make Ayo dance an AB pattern and say what’s next.",
     "learned": "This week your child’s team made a robot dance for cardboard Ayo: two moves laid out three times (A B A B A B), and a pattern belt for the show.",
     "tryHeading": "Try this at home",
     "tryAtHome": [
@@ -1133,7 +1141,12 @@ export const NURSERY_1_WEEKS: TmcWeek[] = [
       "Stop after the third time and ask: “What comes next?”",
       "Make a pattern belt or necklace with big, safe things: paper shapes, leaves or fabric strips."
     ],
-    "keyWords": [],
+    "keyWords": [
+      "pattern",
+      "repeat",
+      "next",
+      "my own"
+    ],
     "signs": [],
     "tip": "Keep Station 1 calm and playful: “Let’s play a quick pattern game.” Children show more when it feels like a game, not a test.",
     "invite": null,
@@ -1148,7 +1161,7 @@ export const NURSERY_1_WEEKS: TmcWeek[] = [
   {
     "term": 2,
     "week": 12,
-    "title": "Assessment (observation + practical)",
+    "title": "Assessment: Station Check",
     "kind": "Assessment (observation + practical)",
     "goal": "",
     "learned": "This week we played our pattern games while the teacher watched what each child can do: continue a pattern, say what comes next, sort by a rule and make their own pattern. There was no written test.",
@@ -1172,7 +1185,7 @@ export const NURSERY_1_WEEKS: TmcWeek[] = [
   {
     "term": 2,
     "week": 13,
-    "title": "Showcase, results & badge awards",
+    "title": "Showcase & Badges",
     "kind": "Showcase",
     "goal": "",
     "learned": "Smart thinkers notice repetition. Your child can copy and continue patterns of colours, moves, sounds and shapes, say what comes next, sort things by one rule, find patterns around them, and make their own pattern. Spotting patterns is a big part of coding!",
@@ -1430,7 +1443,6 @@ export const NURSERY_1_WEEKS: TmcWeek[] = [
       "Talk about push and pull: pushing a door, pulling a drawer."
     ],
     "keyWords": [
-      "build",
       "bridge",
       "ramp",
       "tower",
@@ -1573,7 +1585,7 @@ export const NURSERY_1_WEEKS: TmcWeek[] = [
   {
     "term": 3,
     "week": 8,
-    "title": "Practice & Play: Solve a Big Challenge",
+    "title": "Practice & Play: Big Challenge",
     "kind": "Practice & Play",
     "goal": "I can plan and solve a challenge with my team.",
     "learned": "This week your child’s team solved a big challenge: they planned 3 small steps to get Ayo’s bread through an obstacle course, tested the plan, and changed it when the way was blocked.",
@@ -1635,9 +1647,9 @@ export const NURSERY_1_WEEKS: TmcWeek[] = [
   {
     "term": 3,
     "week": 10,
-    "title": "Revision & reinforcement",
+    "title": "Revision & Reinforcement",
     "kind": "Revision",
-    "goal": "I can say the problem, break a job into small steps and try another way.",
+    "goal": "I can say the problem, break it small, try another way.",
     "learned": "This week we reviewed everything from Term 3: saying the problem, breaking a job into small steps, choosing the safe way, trying another way, building and testing, and if–then rules.",
     "tryHeading": "Try this at home",
     "tryAtHome": [
@@ -1662,7 +1674,7 @@ export const NURSERY_1_WEEKS: TmcWeek[] = [
     "week": 11,
     "title": "Mini-project: Ayo’s Ramp and Route",
     "kind": "Mini-project (term build)",
-    "goal": "I can plan our build in 3 steps and guide Ayo with 3 cards, fixing a wrong card.",
+    "goal": "I can plan in 3 steps, guide Ayo with 3 cards and fix it.",
     "learned": "This week your child’s team built a ramp for Ayo’s bread car, tested it, fixed it, and guided Ayo to it with 3 picture cards.",
     "tryHeading": "Try this at home",
     "tryAtHome": [
@@ -1670,7 +1682,13 @@ export const NURSERY_1_WEEKS: TmcWeek[] = [
       "Make a ramp with a book and roll a toy car or bottle. If it falls off, what will you change?",
       "Make 3 paper squares to the ramp: “Forward, forward, stop!”"
     ],
-    "keyWords": [],
+    "keyWords": [
+      "problem",
+      "plan",
+      "build",
+      "test",
+      "fix"
+    ],
     "signs": [],
     "tip": "Keep Station 1 calm and playful: “Let’s play a quick Ayo game.” Children show more when it feels like a game, not a test.",
     "invite": null,
@@ -1685,7 +1703,7 @@ export const NURSERY_1_WEEKS: TmcWeek[] = [
   {
     "term": 3,
     "week": 12,
-    "title": "Assessment (observation + practical)",
+    "title": "Assessment: practical check",
     "kind": "Assessment (observation + practical)",
     "goal": "",
     "learned": "This week we played our Ayo thinking games while the teacher watched what each child can do: say the problem and its small steps, try another way, fix a build after a test, and put 3 steps in order and fix a wrong card. There was no written test.",
@@ -1709,7 +1727,7 @@ export const NURSERY_1_WEEKS: TmcWeek[] = [
   {
     "term": 3,
     "week": 13,
-    "title": "Showcase, results & badge awards",
+    "title": "Showcase & Badges",
     "kind": "Showcase",
     "goal": "",
     "learned": "Term 1: things happen in order (steps, first–next–last, commands, fixing mistakes). Term 2: smart thinkers notice repetition (patterns, predicting, sorting). Term 3: I can solve small problems (say the problem, small steps, the safe way, another way, building and testing, if–then). Most of all, your child can put 3 steps in order and fix a simple mistake: the first big step of coding!",
