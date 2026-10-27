@@ -4,6 +4,7 @@ import { STUDIO_ROUTES } from "@/lib/experience-sequence";
 import { getAllInteractiveExperiences } from "@/lib/interactive-experiences";
 import { contentSections, getSectionItems } from "@/lib/content-sections";
 import { siteUrl } from "@/lib/site-url";
+import { N1_BASE, NURSERY_1_WEEKS, weekPath } from "@/lib/tmc/nursery-1";
 
 // Fixed pages that have their own route folder.
 const STATIC_PATHS = [
@@ -44,6 +45,9 @@ export default function sitemap(): MetadataRoute.Sitemap {
       if (item.contentType !== "experience") paths.add(`${section.path}/${item.slug}`);
     }
   }
+  // Think • Move • Code! week pages (the book QR codes open these).
+  paths.add(N1_BASE);
+  for (const week of NURSERY_1_WEEKS) paths.add(weekPath(week));
   for (const experience of getAllInteractiveExperiences()) {
     if (experience.status !== "active") continue;
     // Studio experiences are listed at their studio address.

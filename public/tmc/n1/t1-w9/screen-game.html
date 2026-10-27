@@ -1,0 +1,139 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Ayo's Path</title>
+<style>
+:root{--blue:#168fe5;--navy:#16324F;--orange:#F7931E;--green:#3BB273;--yellow:#FFC93C;--bg:#F4F9FF;--card:#fff;--ink:#16324F}
+*{box-sizing:border-box}
+body{margin:0;font-family:"Nunito","Trebuchet MS",Arial,sans-serif;background:var(--bg);color:var(--ink);-webkit-tap-highlight-color:transparent}
+.wrap{max-width:860px;margin:0 auto;padding:16px}
+.top{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap}
+.brand{font-weight:800;color:var(--navy);font-size:15px}
+.tag{font-size:12px;background:#fff;border:2px dashed var(--blue);color:var(--navy);border-radius:999px;padding:4px 12px}
+.bubble{margin:16px 0 8px;background:#fff;border-radius:22px;padding:16px 18px;display:flex;gap:14px;align-items:center;box-shadow:0 4px 0 #d8e8f8}
+.bot{flex:0 0 auto;width:54px;height:54px;border-radius:16px;background:var(--blue);color:#fff;display:grid;place-items:center;font-weight:900;font-size:13px;text-align:center;line-height:1.05}
+.say{font-size:clamp(20px,4.2vw,28px);font-weight:800;margin:0}
+.speak{margin-left:auto;border:0;background:var(--yellow);color:var(--navy);font-size:28px;width:60px;height:60px;border-radius:50%;cursor:pointer;box-shadow:0 4px 0 #d9a91e}
+.round{font-weight:800;color:var(--orange);font-size:14px;letter-spacing:.06em;text-transform:uppercase}
+.slots{display:grid;grid-template-columns:repeat(3,1fr);gap:clamp(8px,2vw,18px);margin:18px 0}
+.slot{aspect-ratio:1/1.1;border:4px dashed #9cc9f0;border-radius:24px;background:#fff;position:relative;display:grid;place-items:center;cursor:pointer}
+.slot .num{position:absolute;top:8px;left:12px;font-size:clamp(22px,5vw,34px);font-weight:900;color:var(--blue)}
+.slot .lbl{position:absolute;bottom:6px;width:100%;text-align:center;font-weight:800;font-size:clamp(13px,2.6vw,18px);color:#5b7a98}
+.slot.filled{border-style:solid;border-color:var(--blue)}
+.slot svg,.card svg{width:78%;height:auto}
+.arrows{display:flex;justify-content:space-around;margin-top:-10px;color:var(--blue);font-size:28px;font-weight:900}
+.tray{display:grid;grid-template-columns:repeat(3,1fr);gap:clamp(8px,2vw,18px);min-height:120px;margin-top:6px}
+.card{border:0;padding:6px;background:var(--card);border-radius:22px;box-shadow:0 6px 0 #c9dcef;cursor:pointer;display:grid;place-items:center;transition:transform .15s}
+.card:active{transform:translateY(3px);box-shadow:0 3px 0 #c9dcef}
+.card.gone{visibility:hidden}
+.model{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;max-width:420px;margin:6px auto 0;opacity:.95}
+.model div{background:#fff;border-radius:16px;padding:4px;border:3px solid var(--orange);position:relative}
+.model div b{position:absolute;top:2px;left:8px;color:var(--orange);font-weight:900}
+.model svg{width:100%;height:auto;display:block}
+.bar{display:flex;gap:12px;justify-content:center;margin:18px 0;flex-wrap:wrap}
+.btn{border:0;border-radius:999px;padding:16px 28px;font-size:20px;font-weight:900;cursor:pointer;color:#fff;background:var(--green);box-shadow:0 5px 0 #2a8a57}
+.btn.alt{background:#fff;color:var(--navy);box-shadow:0 5px 0 #c9dcef}
+.btn[disabled]{opacity:.45;cursor:default}
+.shake{animation:sh .5s}
+@keyframes sh{20%,60%{transform:translateX(-8px)}40%,80%{transform:translateX(8px)}}
+.win{display:none;text-align:center;padding:10px}
+.win.show{display:block}
+.stars{font-size:54px;letter-spacing:6px}
+.stars span{display:inline-block;animation:pop .6s backwards}
+.stars span:nth-child(2){animation-delay:.15s}.stars span:nth-child(3){animation-delay:.3s}
+@keyframes pop{from{transform:scale(0)}to{transform:scale(1)}}
+.note{font-size:12px;color:#5b7a98;text-align:center;margin-top:18px}
+
+.road{display:grid;gap:8px;margin:14px 0 4px}
+.cell{aspect-ratio:1;border-radius:16px;background:#fff;border:4px solid #c9dcef;display:grid;place-items:center;position:relative;font-weight:900;color:#9cc9f0;font-size:20px}
+.cell.gate{border-color:var(--green);background:#EAF8EF}
+.cell svg{width:86%;height:auto}
+.token{position:absolute;inset:6%;transition:transform .5s}
+.token svg{width:100%;height:100%}
+.feet{color:#9cc9f0}
+.run{background:var(--blue);box-shadow:0 5px 0 #0f6db0}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="top">
+    <div class="brand">Think • Move • Code! · Nursery 1 · Week 9</div>
+    <div class="tag">Optional · just for fun · not a test</div>
+  </div>
+  <div class="bubble">
+    <div class="bot">Rhino<br>Bot</div>
+    <div><div class="round" id="round"></div><p class="say" id="say"></p></div>
+    <button class="speak" id="speak" aria-label="Read aloud">🔊</button>
+  </div>
+  <div class="road" id="road"></div>
+  <p style="text-align:center;font-weight:800;color:#5b7a98;margin:6px 0">1 · Plan your cards &nbsp; 2 · Run! &nbsp; 3 · Fix if needed</p>
+  <div class="slots" id="slots"></div>
+  <div class="tray" id="tray"></div>
+  <div class="bar">
+    <button class="btn alt" id="undo">↩ Undo</button>
+    <button class="btn run" id="go" disabled>▶ Run</button>
+  </div>
+  <div class="win" id="win">
+    <div class="stars"><span>⭐</span><span>⭐</span><span>⭐</span></div>
+    <p class="say" id="winsay"></p>
+    <div class="bar"><button class="btn" id="next">Next ▶</button></div>
+  </div>
+  <p class="note">Works offline once loaded.</p>
+</div>
+<script>
+const ICONS = {"forward": "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 200 200\"><rect x=\"4\" y=\"4\" width=\"192\" height=\"192\" rx=\"28\" fill=\"#E6F7EE\"/><path d=\"M100 30 L160 96 L124 96 L124 170 L76 170 L76 96 L40 96 Z\" fill=\"#3BB273\" stroke=\"#16324F\" stroke-width=\"5\" stroke-linejoin=\"round\"/></svg>", "stop": "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 200 200\"><rect x=\"4\" y=\"4\" width=\"192\" height=\"192\" rx=\"28\" fill=\"#FDECEC\"/><polygon points=\"70,30 130,30 172,72 172,128 130,170 70,170 28,128 28,72\" fill=\"#D9534F\" stroke=\"#ffffff\" stroke-width=\"6\"/><rect x=\"86\" y=\"66\" width=\"12\" height=\"44\" rx=\"6\" fill=\"#fff\"/><rect x=\"100\" y=\"58\" width=\"12\" height=\"52\" rx=\"6\" fill=\"#fff\"/><rect x=\"114\" y=\"62\" width=\"12\" height=\"48\" rx=\"6\" fill=\"#fff\"/><rect x=\"128\" y=\"74\" width=\"11\" height=\"38\" rx=\"5.5\" fill=\"#fff\"/><path d=\"M84 98 L74 88 Q66 82 72 96 L86 124 Q94 140 112 140 L122 140 Q138 140 139 120 L139 100 L84 100 Z\" fill=\"#fff\"/></svg>", "wave": "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 200 200\"><rect x=\"4\" y=\"4\" width=\"192\" height=\"192\" rx=\"28\" fill=\"#F1E9FF\"/><rect x=\"116\" y=\"30\" width=\"62\" height=\"146\" rx=\"4\" fill=\"#B5651D\" stroke=\"#16324F\" stroke-width=\"4\"/><circle cx=\"166\" cy=\"108\" r=\"5\" fill=\"#FFC93C\"/><rect x=\"124\" y=\"40\" width=\"46\" height=\"40\" rx=\"3\" fill=\"#cfe9fb\"/><circle cx=\"70\" cy=\"62\" r=\"20\" fill=\"#8D5524\"/><path d=\"M52 56 Q70 28 88 56 Q70 44 52 56Z\" fill=\"#1d1d1d\"/><circle cx=\"61\" cy=\"64\" r=\"3.4\" fill=\"#1d1d1d\"/><circle cx=\"79\" cy=\"64\" r=\"3.4\" fill=\"#1d1d1d\"/><path d=\"M61 74 Q70 82 79 74\" stroke=\"#1d1d1d\" stroke-width=\"3\" fill=\"none\" stroke-linecap=\"round\"/><rect x=\"54\" y=\"82\" width=\"32\" height=\"46\" rx=\"12\" fill=\"#F7931E\"/><path d=\"M62 126 L58 168\" stroke=\"#16324F\" stroke-width=\"11\" stroke-linecap=\"round\"/><path d=\"M78 126 L82 168\" stroke=\"#16324F\" stroke-width=\"11\" stroke-linecap=\"round\"/><path d=\"M84 90 L104 56\" stroke=\"#8D5524\" stroke-width=\"9\" stroke-linecap=\"round\"/><circle cx=\"106\" cy=\"50\" r=\"9\" fill=\"#8D5524\"/><path d=\"M92 38 Q86 44 92 50 M120 38 Q126 44 120 50\" stroke=\"#8E5BD9\" stroke-width=\"4\" fill=\"none\" stroke-linecap=\"round\"/><path d=\"M58 92 L50 120\" stroke=\"#8D5524\" stroke-width=\"9\" stroke-linecap=\"round\"/></svg>", "again": "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 200 200\"><rect x=\"4\" y=\"4\" width=\"192\" height=\"192\" rx=\"28\" fill=\"#FFF4D6\"/><path d=\"M140 70 A50 50 0 1 0 150 112\" stroke=\"#F7931E\" stroke-width=\"18\" fill=\"none\" stroke-linecap=\"round\"/><polygon points=\"118,58 160,46 156,90\" fill=\"#F7931E\"/><text x=\"100\" y=\"190\" text-anchor=\"middle\" font-family=\"Inter, Arial\" font-weight=\"800\" font-size=\"24\" fill=\"#16324F\">again</text></svg>", "schoolgate": "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 200 200\"><rect x=\"4\" y=\"4\" width=\"192\" height=\"192\" rx=\"28\" fill=\"#FFF4D6\"/><rect x=\"20\" y=\"160\" width=\"20\" height=\"30\" fill=\"#ffffff\"/><rect x=\"40\" y=\"160\" width=\"20\" height=\"30\" fill=\"#16324F\"/><rect x=\"60\" y=\"160\" width=\"20\" height=\"30\" fill=\"#ffffff\"/><rect x=\"80\" y=\"160\" width=\"20\" height=\"30\" fill=\"#16324F\"/><rect x=\"100\" y=\"160\" width=\"20\" height=\"30\" fill=\"#ffffff\"/><rect x=\"120\" y=\"160\" width=\"20\" height=\"30\" fill=\"#16324F\"/><rect x=\"140\" y=\"160\" width=\"20\" height=\"30\" fill=\"#ffffff\"/><rect x=\"160\" y=\"160\" width=\"20\" height=\"30\" fill=\"#16324F\"/><rect x=\"26\" y=\"30\" width=\"18\" height=\"128\" rx=\"3\" fill=\"#16324F\"/><rect x=\"156\" y=\"30\" width=\"18\" height=\"128\" rx=\"3\" fill=\"#16324F\"/><rect x=\"52\" y=\"60\" width=\"7\" height=\"92\" rx=\"3\" fill=\"#3BB273\"/><rect x=\"66\" y=\"60\" width=\"7\" height=\"92\" rx=\"3\" fill=\"#3BB273\"/><rect x=\"80\" y=\"60\" width=\"7\" height=\"92\" rx=\"3\" fill=\"#3BB273\"/><rect x=\"94\" y=\"60\" width=\"7\" height=\"92\" rx=\"3\" fill=\"#3BB273\"/><rect x=\"108\" y=\"60\" width=\"7\" height=\"92\" rx=\"3\" fill=\"#3BB273\"/><rect x=\"122\" y=\"60\" width=\"7\" height=\"92\" rx=\"3\" fill=\"#3BB273\"/><rect x=\"136\" y=\"60\" width=\"7\" height=\"92\" rx=\"3\" fill=\"#3BB273\"/><rect x=\"44\" y=\"70\" width=\"112\" height=\"7\" fill=\"#3BB273\"/><rect x=\"44\" y=\"136\" width=\"112\" height=\"7\" fill=\"#3BB273\"/><rect x=\"56\" y=\"20\" width=\"88\" height=\"30\" rx=\"6\" fill=\"#F7931E\"/><text x=\"100\" y=\"42\" text-anchor=\"middle\" font-family=\"Inter, Arial\" font-weight=\"800\" font-size=\"18\" fill=\"#fff\">SCHOOL</text></svg>", "ayotoken": "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 200 200\"><circle cx=\"100\" cy=\"100\" r=\"92\" fill=\"#F7931E\" stroke=\"#fff\" stroke-width=\"8\"/><circle cx=\"100\" cy=\"96\" r=\"48\" fill=\"#8D5524\"/><path d=\"M54 90 Q100 34 146 90 Q100 50 54 90Z\" fill=\"#1d1d1d\"/><circle cx=\"91\" cy=\"98\" r=\"3.4\" fill=\"#1d1d1d\"/><circle cx=\"109\" cy=\"98\" r=\"3.4\" fill=\"#1d1d1d\"/><path d=\"M91 108 Q100 116 109 108\" stroke=\"#1d1d1d\" stroke-width=\"5\" fill=\"none\" stroke-linecap=\"round\"/></svg>", "walk": "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 200 200\"><rect x=\"4\" y=\"4\" width=\"192\" height=\"192\" rx=\"28\" fill=\"#E6F7EE\"/><circle cx=\"96\" cy=\"48\" r=\"20\" fill=\"#8D5524\"/><path d=\"M78 42 Q96 14 114 42 Q96 30 78 42Z\" fill=\"#1d1d1d\"/><circle cx=\"87\" cy=\"50\" r=\"3.4\" fill=\"#1d1d1d\"/><circle cx=\"105\" cy=\"50\" r=\"3.4\" fill=\"#1d1d1d\"/><path d=\"M87 60 Q96 68 105 60\" stroke=\"#1d1d1d\" stroke-width=\"3\" fill=\"none\" stroke-linecap=\"round\"/><rect x=\"80\" y=\"68\" width=\"32\" height=\"44\" rx=\"12\" fill=\"#F7931E\"/><path d=\"M86 108 L70 150\" stroke=\"#16324F\" stroke-width=\"11\" stroke-linecap=\"round\"/><path d=\"M104 108 L122 148\" stroke=\"#16324F\" stroke-width=\"11\" stroke-linecap=\"round\"/><path d=\"M82 76 L62 100\" stroke=\"#8D5524\" stroke-width=\"9\" stroke-linecap=\"round\"/><path d=\"M110 76 L130 96\" stroke=\"#8D5524\" stroke-width=\"9\" stroke-linecap=\"round\"/><ellipse cx=\"146\" cy=\"172\" rx=\"7\" ry=\"11\" fill=\"#3BB273\" opacity=\".7\" transform=\"rotate(90 146 172)\"/><ellipse cx=\"172\" cy=\"160\" rx=\"7\" ry=\"11\" fill=\"#3BB273\" opacity=\".7\" transform=\"rotate(90 172 160)\"/><path d=\"M140 120 L176 120 M164 108 L178 120 L164 132\" stroke=\"#3BB273\" stroke-width=\"7\" fill=\"none\" stroke-linecap=\"round\" stroke-linejoin=\"round\"/></svg>"};
+const ROUNDS = [{"say": "The school gate is 2 steps away. Plan 3 cards, then press Run!", "gate": 2, "slots": 3, "tray": ["forward", "forward", "stop", "wave"], "order": ["forward", "forward", "stop"], "labels": {"forward": "forward", "stop": "stop", "wave": "wave"}, "win": "Forward, forward, stop. Ayo is at the school gate!"}, {"say": "Now the gate is 1 step away. Ayo walks, then waves, then stops. Plan it!", "gate": 1, "slots": 3, "tray": ["forward", "wave", "stop", "forward"], "order": ["forward", "wave", "stop"], "labels": {"forward": "forward", "stop": "stop", "wave": "wave"}, "win": "Forward, wave, stop. Hello, school gate!"}, {"say": "Stretch! The gate is 4 steps away. Use forward and do it again!", "stretch": true, "gate": 4, "slots": 5, "tray": ["forward", "again", "again", "again", "stop"], "order": ["forward", "again", "again", "again", "stop"], "labels": {"forward": "forward", "again": "do it again", "stop": "stop"}, "win": "Forward, again, again, again, stop. Four steps!"}];
+let r=0, placed=[], running=false;
+const $=id=>document.getElementById(id);
+function speak(t){ try{ if(!('speechSynthesis' in window)) return; speechSynthesis.cancel(); const u=new SpeechSynthesisUtterance(t); u.rate=.85; u.pitch=1.1; speechSynthesis.speak(u);}catch(e){} }
+function road(pos){
+  const R=ROUNDS[r], n=R.gate+1;
+  $('road').style.gridTemplateColumns=`repeat(${n},1fr)`;
+  $('road').innerHTML=Array.from({length:n},(_,i)=>`<div class="cell ${i===R.gate?'gate':''}">${i===R.gate?ICONS.schoolgate:(i===0?'start':'<span class=feet>👣</span>')}${i===pos?`<div class="token">${ICONS.ayotoken}</div>`:''}</div>`).join('');
+}
+function shuffle(a){ a=a.slice(); for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]];} return a; }
+function build(){
+  const R=ROUNDS[r]; placed=[]; running=false;
+  $('round').textContent=`Round ${r+1} of ${ROUNDS.length}`+(R.stretch?' · Stretch':'');
+  $('say').textContent=R.say; $('win').classList.remove('show'); road(0);
+  $('slots').style.gridTemplateColumns=`repeat(${R.slots},1fr)`;
+  $('slots').innerHTML=Array.from({length:R.slots},(_,i)=>`<div class="slot" data-i="${i}"><span class="num">${i+1}</span></div>`).join('');
+  $('tray').style.gridTemplateColumns=`repeat(${R.tray.length},1fr)`;
+  $('tray').innerHTML=shuffle(R.tray).map(k=>`<button class="card" data-k="${k}" aria-label="${R.labels[k]}">${ICONS[k]}</button>`).join('');
+  document.querySelectorAll('.card').forEach(c=>c.onclick=()=>{ if(running||placed.length>=R.slots) return; placed.push(c.dataset.k); c.classList.add('gone'); speak(R.labels[c.dataset.k]); sync(); });
+  sync(); speak(R.say);
+}
+function sync(){
+  document.querySelectorAll('.slot').forEach((s,i)=>{ const k=placed[i]; s.classList.toggle('filled',!!k); s.querySelectorAll('svg').forEach(x=>x.remove()); if(k) s.insertAdjacentHTML('beforeend',ICONS[k]); });
+  $('go').disabled = placed.length<ROUNDS[r].slots || running;
+}
+$('undo').onclick=()=>{ if(running) return; const k=placed.pop(); if(!k) return; document.querySelector(`.card.gone[data-k="${k}"]`).classList.remove('gone'); road(0); sync(); };
+const wait=ms=>new Promise(res=>setTimeout(res,ms));
+$('go').onclick=async()=>{
+  const R=ROUNDS[r]; running=true; sync(); let pos=0, last=null, stopped=false;
+  road(0); await wait(300);
+  for(let i=0;i<placed.length;i++){
+    const k=placed[i]; const slot=document.querySelector(`.slot[data-i="${i}"]`); slot.classList.add('pick');
+    let act = k==='again' ? last : k; speak(R.labels[k]);
+    if(act==='forward'){ pos=Math.min(pos+1,R.gate+1); road(Math.min(pos,R.gate)); }
+    if(k!=='again') last=k;
+    if(k==='stop'){ stopped=true; await wait(700); slot.classList.remove('pick'); break; }
+    await wait(800); slot.classList.remove('pick');
+  }
+  running=false; sync();
+  if(stopped && pos===R.gate){
+    $('say').textContent='You did it!'; $('winsay').textContent=R.win; $('win').classList.add('show'); speak('You did it! '+R.win);
+    $('next').textContent = r<ROUNDS.length-1?'Next ▶':'Play again ↻';
+  } else {
+    const t = pos>R.gate ? 'Oh no, Ayo walked past the gate! Fix a card.' : !stopped ? 'Ayo did not stop! Add a stop card.' : 'Ayo stopped too soon. Fix a card and run again.';
+    $('say').textContent=t; speak(t); $('road').classList.add('shake'); setTimeout(()=>$('road').classList.remove('shake'),500);
+  }
+};
+$('next').onclick=()=>{ r=(r+1)%ROUNDS.length; build(); window.scrollTo({top:0,behavior:'smooth'}); };
+$('speak').onclick=()=>speak($('say').textContent);
+build();
+</script>
+</body>
+</html>

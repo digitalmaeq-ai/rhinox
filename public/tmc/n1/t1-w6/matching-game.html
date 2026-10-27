@@ -1,0 +1,113 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Find the Pairs</title>
+<style>
+:root{--blue:#168fe5;--navy:#16324F;--orange:#F7931E;--green:#3BB273;--yellow:#FFC93C;--purple:#8E5BD9;--bg:#F7F3FF}
+*{box-sizing:border-box}
+body{margin:0;font-family:"Nunito","Trebuchet MS",Arial,sans-serif;background:var(--bg);color:var(--navy);-webkit-tap-highlight-color:transparent}
+.wrap{max-width:760px;margin:0 auto;padding:16px}
+.top{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap}
+.brand{font-weight:800;font-size:15px}
+.tag{font-size:12px;background:#fff;border:2px dashed var(--purple);border-radius:999px;padding:4px 12px}
+.bubble{margin:16px 0;background:#fff;border-radius:22px;padding:16px 18px;display:flex;gap:14px;align-items:center;box-shadow:0 4px 0 #e2d8f6}
+.bot{flex:0 0 auto;width:54px;height:54px;border-radius:16px;background:var(--blue);color:#fff;display:grid;place-items:center;font-weight:900;font-size:13px;text-align:center;line-height:1.05}
+.say{font-size:clamp(20px,4.2vw,28px);font-weight:800;margin:0}
+.speak{margin-left:auto;border:0;background:var(--yellow);font-size:28px;width:60px;height:60px;border-radius:50%;cursor:pointer;box-shadow:0 4px 0 #d9a91e}
+.grid{display:grid;grid-template-columns:repeat(3,1fr);gap:clamp(8px,2.4vw,18px)}
+.tile{aspect-ratio:1;border:0;padding:0;background:transparent;perspective:800px;cursor:pointer}
+.inner{position:relative;width:100%;height:100%;transition:transform .45s;transform-style:preserve-3d}
+.tile.open .inner,.tile.done .inner{transform:rotateY(180deg)}
+.face{position:absolute;inset:0;border-radius:22px;backface-visibility:hidden;display:grid;place-items:center;box-shadow:0 6px 0 rgba(22,50,79,.15)}
+.back{background:var(--purple);color:#fff;font-size:clamp(40px,10vw,64px);font-weight:900}
+.back::after{content:"?"}
+.front{background:#fff;transform:rotateY(180deg)}
+.front svg{width:86%;height:auto}
+.tile.done .front{outline:5px solid var(--green)}
+.tile.pick .front{outline:5px solid var(--orange)}
+.final{display:none;text-align:center;margin-top:18px}
+.final.show{display:block}
+.choices{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;max-width:520px;margin:12px auto}
+.choice{border:0;background:#fff;border-radius:22px;padding:6px;box-shadow:0 6px 0 #d8cdef;cursor:pointer}
+.choice svg{width:100%;height:auto;display:block}
+.stars{font-size:54px;letter-spacing:6px}
+.btn{border:0;border-radius:999px;padding:16px 28px;font-size:20px;font-weight:900;cursor:pointer;color:#fff;background:var(--green);box-shadow:0 5px 0 #2a8a57;margin-top:10px}
+.shake{animation:sh .5s}
+@keyframes sh{20%,60%{transform:translateX(-8px)}40%,80%{transform:translateX(8px)}}
+.note{font-size:12px;color:#6f6290;text-align:center;margin-top:18px}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="top">
+    <div class="brand">Think • Move • Code! · Nursery 1 · Week 6</div>
+    <div class="tag">Optional · just for fun · not a test</div>
+  </div>
+  <div class="bubble">
+    <div class="bot">Rhino<br>Bot</div>
+    <p class="say" id="say">Find the pairs! Tap two cards.</p>
+    <button class="speak" id="speak" aria-label="Read aloud">🔊</button>
+  </div>
+
+  <div class="grid" id="grid"></div>
+
+  <div class="final" id="final">
+    <p class="say" id="q">You found them all! Now tap the card that means do it again.</p>
+    <div class="choices" id="choices"></div>
+    <div id="done" hidden>
+      <div class="stars">⭐⭐⭐</div>
+      <p class="say">Yes! This card means do that card again!</p>
+      <button class="btn" id="again">Play again ↻</button>
+    </div>
+  </div>
+  <p class="note">Works offline once loaded.</p>
+</div>
+<script>
+const ICONS = {"clap": "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 200 200\"><rect x=\"4\" y=\"4\" width=\"192\" height=\"192\" rx=\"28\" fill=\"#F1E9FF\"/><g transform=\"rotate(-18 92 104)\"><rect x=\"66\" y=\"56\" width=\"40\" height=\"80\" rx=\"20\" fill=\"#8D5524\"/></g><g transform=\"rotate(18 108 104)\"><rect x=\"96\" y=\"56\" width=\"40\" height=\"80\" rx=\"20\" fill=\"#6B3F1A\"/></g><path d=\"M60 40 L48 26\" stroke=\"#8E5BD9\" stroke-width=\"6\" stroke-linecap=\"round\" fill=\"none\"/><path d=\"M100 30 L100 12\" stroke=\"#8E5BD9\" stroke-width=\"6\" stroke-linecap=\"round\" fill=\"none\"/><path d=\"M140 40 L152 26\" stroke=\"#8E5BD9\" stroke-width=\"6\" stroke-linecap=\"round\" fill=\"none\"/><path d=\"M44 80 L28 76\" stroke=\"#8E5BD9\" stroke-width=\"6\" stroke-linecap=\"round\" fill=\"none\"/><path d=\"M156 80 L172 76\" stroke=\"#8E5BD9\" stroke-width=\"6\" stroke-linecap=\"round\" fill=\"none\"/><rect x=\"70\" y=\"140\" width=\"60\" height=\"30\" rx=\"12\" fill=\"#F7931E\"/></svg>", "stamp": "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 200 200\"><rect x=\"4\" y=\"4\" width=\"192\" height=\"192\" rx=\"28\" fill=\"#E6F7EE\"/><rect x=\"84\" y=\"30\" width=\"30\" height=\"96\" rx=\"14\" fill=\"#16324F\"/><path d=\"M70 120 Q72 104 90 104 L118 104 Q150 108 152 132 L152 146 L66 146 Z\" fill=\"#F7931E\"/><rect x=\"62\" y=\"142\" width=\"96\" height=\"10\" rx=\"5\" fill=\"#1d1d1d\"/><path d=\"M40 168 L160 168\" stroke=\"#3BB273\" stroke-width=\"6\" stroke-linecap=\"round\" fill=\"none\"/><path d=\"M48 150 L30 140\" stroke=\"#3BB273\" stroke-width=\"6\" stroke-linecap=\"round\" fill=\"none\"/><path d=\"M164 150 L180 140\" stroke=\"#3BB273\" stroke-width=\"6\" stroke-linecap=\"round\" fill=\"none\"/><path d=\"M44 128 L24 124\" stroke=\"#3BB273\" stroke-width=\"6\" stroke-linecap=\"round\" fill=\"none\"/><path d=\"M168 128 L186 124\" stroke=\"#3BB273\" stroke-width=\"6\" stroke-linecap=\"round\" fill=\"none\"/></svg>", "jump": "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 200 200\"><rect x=\"4\" y=\"4\" width=\"192\" height=\"192\" rx=\"28\" fill=\"#E6F7EE\"/><circle cx=\"100\" cy=\"50\" r=\"20\" fill=\"#8D5524\"/><path d=\"M82 44 Q100 16 118 44 Q100 32 82 44Z\" fill=\"#1d1d1d\"/><circle cx=\"91\" cy=\"52\" r=\"3.4\" fill=\"#1d1d1d\"/><circle cx=\"109\" cy=\"52\" r=\"3.4\" fill=\"#1d1d1d\"/><path d=\"M91 62 Q100 70 109 62\" stroke=\"#1d1d1d\" stroke-width=\"3\" fill=\"none\" stroke-linecap=\"round\"/><rect x=\"84\" y=\"70\" width=\"32\" height=\"40\" rx=\"12\" fill=\"#F7931E\"/><path d=\"M90 108 L80 134\" stroke=\"#16324F\" stroke-width=\"11\" stroke-linecap=\"round\"/><path d=\"M110 108 L120 134\" stroke=\"#16324F\" stroke-width=\"11\" stroke-linecap=\"round\"/><path d=\"M86 78 L62 52\" stroke=\"#8D5524\" stroke-width=\"9\" stroke-linecap=\"round\"/><path d=\"M114 78 L138 52\" stroke=\"#8D5524\" stroke-width=\"9\" stroke-linecap=\"round\"/><rect x=\"30\" y=\"170\" width=\"140\" height=\"8\" rx=\"4\" fill=\"#3BB273\"/><path d=\"M70 150 L70 162 M100 146 L100 162 M130 150 L130 162\" stroke=\"#3BB273\" stroke-width=\"5\" stroke-linecap=\"round\"/></svg>", "again": "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 200 200\"><rect x=\"4\" y=\"4\" width=\"192\" height=\"192\" rx=\"28\" fill=\"#FFF4D6\"/><path d=\"M140 70 A50 50 0 1 0 150 112\" stroke=\"#F7931E\" stroke-width=\"18\" fill=\"none\" stroke-linecap=\"round\"/><polygon points=\"118,58 160,46 156,90\" fill=\"#F7931E\"/><text x=\"100\" y=\"190\" text-anchor=\"middle\" font-family=\"Inter, Arial\" font-weight=\"800\" font-size=\"24\" fill=\"#16324F\">again</text></svg>", "walk": "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 200 200\"><rect x=\"4\" y=\"4\" width=\"192\" height=\"192\" rx=\"28\" fill=\"#E6F7EE\"/><circle cx=\"96\" cy=\"48\" r=\"20\" fill=\"#8D5524\"/><path d=\"M78 42 Q96 14 114 42 Q96 30 78 42Z\" fill=\"#1d1d1d\"/><circle cx=\"87\" cy=\"50\" r=\"3.4\" fill=\"#1d1d1d\"/><circle cx=\"105\" cy=\"50\" r=\"3.4\" fill=\"#1d1d1d\"/><path d=\"M87 60 Q96 68 105 60\" stroke=\"#1d1d1d\" stroke-width=\"3\" fill=\"none\" stroke-linecap=\"round\"/><rect x=\"80\" y=\"68\" width=\"32\" height=\"44\" rx=\"12\" fill=\"#F7931E\"/><path d=\"M86 108 L70 150\" stroke=\"#16324F\" stroke-width=\"11\" stroke-linecap=\"round\"/><path d=\"M104 108 L122 148\" stroke=\"#16324F\" stroke-width=\"11\" stroke-linecap=\"round\"/><path d=\"M82 76 L62 100\" stroke=\"#8D5524\" stroke-width=\"9\" stroke-linecap=\"round\"/><path d=\"M110 76 L130 96\" stroke=\"#8D5524\" stroke-width=\"9\" stroke-linecap=\"round\"/><ellipse cx=\"146\" cy=\"172\" rx=\"7\" ry=\"11\" fill=\"#3BB273\" opacity=\".7\" transform=\"rotate(90 146 172)\"/><ellipse cx=\"172\" cy=\"160\" rx=\"7\" ry=\"11\" fill=\"#3BB273\" opacity=\".7\" transform=\"rotate(90 172 160)\"/><path d=\"M140 120 L176 120 M164 108 L178 120 L164 132\" stroke=\"#3BB273\" stroke-width=\"7\" fill=\"none\" stroke-linecap=\"round\" stroke-linejoin=\"round\"/></svg>"};
+const CFG = {"names": {"clap": "clap", "stamp": "stamp", "jump": "jump", "again": "do it again"}, "answer": "again", "choices": ["clap", "again", "jump"], "ask": "You found them all! Now tap the card that means do it again.", "yes": "Yes! This card means do that card again!", "no": "That is a move card. Which card means do it again?"}; const NAMES = CFG.names;
+const $ = id => document.getElementById(id);
+let open = [], lock = false, found = 0;
+function speak(t){ try{ if(!('speechSynthesis' in window)) return; speechSynthesis.cancel(); const u=new SpeechSynthesisUtterance(t); u.rate=.85; u.pitch=1.1; speechSynthesis.speak(u);}catch(e){} }
+function shuffle(a){ a=a.slice(); for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]];} return a; }
+function start(){
+  open=[]; lock=false; found=0;
+  $('final').classList.remove('show'); $('done').hidden=true; $('grid').hidden=false;
+  $('say').textContent='Find the pairs! Tap two cards.';
+  const deck = shuffle(Object.keys(NAMES).flatMap(k=>[k,k]));
+  $('grid').innerHTML = deck.map((k,i)=>`<button class="tile" data-k="${k}" aria-label="card ${i+1}"><div class="inner"><div class="face back"></div><div class="face front">${ICONS[k]}</div></div></button>`).join('');
+  document.querySelectorAll('.tile').forEach(t=>t.onclick=()=>flip(t));
+  speak('Find the pairs! Tap two cards.');
+}
+function flip(t){
+  if(lock || t.classList.contains('open') || t.classList.contains('done')) return;
+  t.classList.add('open'); speak(NAMES[t.dataset.k]); open.push(t);
+  if(open.length<2) return;
+  lock = true;
+  const [a,b] = open;
+  if(a.dataset.k===b.dataset.k){
+    setTimeout(()=>{ a.classList.replace('open','done'); b.classList.replace('open','done'); open=[]; lock=false; found++;
+      speak('A pair! '+NAMES[a.dataset.k]);
+      if(found===Object.keys(NAMES).length) setTimeout(finale, 900);
+    }, 500);
+  } else {
+    setTimeout(()=>{ a.classList.remove('open'); b.classList.remove('open'); open=[]; lock=false; }, 1100);
+  }
+}
+function finale(){
+  $('grid').hidden = true; $('final').classList.add('show');
+  $('say').textContent = 'Great matching!';
+  $('choices').innerHTML = shuffle(CFG.choices || Object.keys(NAMES)).map(k=>`<button class="choice" data-k="${k}" aria-label="${NAMES[k]||k}">${ICONS[k]}</button>`).join('');
+  document.querySelectorAll('.choice').forEach(c=>c.onclick=()=>{
+    if(c.dataset.k===CFG.answer){ $('done').hidden=false; speak(CFG.yes); }
+    else { c.classList.add('shake'); setTimeout(()=>c.classList.remove('shake'),500); speak(CFG.no); }
+  });
+  speak(CFG.ask);
+}
+$('again').onclick = start;
+$('speak').onclick = ()=>speak($('final').classList.contains('show') ? $('q').textContent : $('say').textContent);
+start();
+</script>
+</body>
+</html>

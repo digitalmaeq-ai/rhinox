@@ -1,0 +1,141 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Ayo’s Bread Delivery</title>
+<style>
+:root{--blue:#168fe5;--navy:#16324F;--orange:#F7931E;--green:#3BB273;--yellow:#FFC93C;--bg:#F4F9FF;--card:#fff;--ink:#16324F}
+*{box-sizing:border-box}
+body{margin:0;font-family:"Nunito","Trebuchet MS",Arial,sans-serif;background:var(--bg);color:var(--ink);-webkit-tap-highlight-color:transparent}
+.wrap{max-width:860px;margin:0 auto;padding:16px}
+.top{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap}
+.brand{font-weight:800;color:var(--navy);font-size:15px}
+.tag{font-size:12px;background:#fff;border:2px dashed var(--blue);color:var(--navy);border-radius:999px;padding:4px 12px}
+.bubble{margin:16px 0 8px;background:#fff;border-radius:22px;padding:16px 18px;display:flex;gap:14px;align-items:center;box-shadow:0 4px 0 #d8e8f8}
+.bot{flex:0 0 auto;width:54px;height:54px;border-radius:16px;background:var(--blue);color:#fff;display:grid;place-items:center;font-weight:900;font-size:13px;text-align:center;line-height:1.05}
+.say{font-size:clamp(20px,4.2vw,28px);font-weight:800;margin:0}
+.speak{margin-left:auto;border:0;background:var(--yellow);color:var(--navy);font-size:28px;width:60px;height:60px;border-radius:50%;cursor:pointer;box-shadow:0 4px 0 #d9a91e}
+.round{font-weight:800;color:var(--orange);font-size:14px;letter-spacing:.06em;text-transform:uppercase}
+.slots{display:grid;grid-template-columns:repeat(3,1fr);gap:clamp(8px,2vw,18px);margin:18px 0}
+.slot{aspect-ratio:1/1.1;border:4px dashed #9cc9f0;border-radius:24px;background:#fff;position:relative;display:grid;place-items:center;cursor:pointer}
+.slot .num{position:absolute;top:8px;left:12px;font-size:clamp(22px,5vw,34px);font-weight:900;color:var(--blue)}
+.slot .lbl{position:absolute;bottom:6px;width:100%;text-align:center;font-weight:800;font-size:clamp(13px,2.6vw,18px);color:#5b7a98}
+.slot.filled{border-style:solid;border-color:var(--blue)}
+.slot svg,.card svg{width:78%;height:auto}
+.arrows{display:flex;justify-content:space-around;margin-top:-10px;color:var(--blue);font-size:28px;font-weight:900}
+.tray{display:grid;grid-template-columns:repeat(3,1fr);gap:clamp(8px,2vw,18px);min-height:120px;margin-top:6px}
+.card{border:0;padding:6px;background:var(--card);border-radius:22px;box-shadow:0 6px 0 #c9dcef;cursor:pointer;display:grid;place-items:center;transition:transform .15s}
+.card:active{transform:translateY(3px);box-shadow:0 3px 0 #c9dcef}
+.card.gone{visibility:hidden}
+.model{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;max-width:420px;margin:6px auto 0;opacity:.95}
+.model div{background:#fff;border-radius:16px;padding:4px;border:3px solid var(--orange);position:relative}
+.model div b{position:absolute;top:2px;left:8px;color:var(--orange);font-weight:900}
+.model svg{width:100%;height:auto;display:block}
+.bar{display:flex;gap:12px;justify-content:center;margin:18px 0;flex-wrap:wrap}
+.btn{border:0;border-radius:999px;padding:16px 28px;font-size:20px;font-weight:900;cursor:pointer;color:#fff;background:var(--green);box-shadow:0 5px 0 #2a8a57}
+.btn.alt{background:#fff;color:var(--navy);box-shadow:0 5px 0 #c9dcef}
+.btn[disabled]{opacity:.45;cursor:default}
+.shake{animation:sh .5s}
+@keyframes sh{20%,60%{transform:translateX(-8px)}40%,80%{transform:translateX(8px)}}
+.win{display:none;text-align:center;padding:10px}
+.win.show{display:block}
+.stars{font-size:54px;letter-spacing:6px}
+.stars span{display:inline-block;animation:pop .6s backwards}
+.stars span:nth-child(2){animation-delay:.15s}.stars span:nth-child(3){animation-delay:.3s}
+@keyframes pop{from{transform:scale(0)}to{transform:scale(1)}}
+.note{font-size:12px;color:#5b7a98;text-align:center;margin-top:18px}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="top">
+    <div class="brand">Think • Move • Code! · Nursery 1 · Term 3 · Week 9</div>
+    <div class="tag">Optional · just for fun · not a test</div>
+  </div>
+
+  <div class="bubble">
+    <div class="bot">Rhino<br>Bot</div>
+    <div><div class="round" id="round">Round 1 of 2</div><p class="say" id="say">Plan Ayo’s bread delivery in 3 small steps.</p></div>
+    <button class="speak" id="speak" aria-label="Read aloud">🔊</button>
+  </div>
+
+  <div id="model" class="model" hidden></div>
+
+  <div class="slots" id="slots"></div>
+  
+  <div class="tray" id="tray"></div>
+
+  <div class="bar">
+    <button class="btn alt" id="undo">↩ Undo</button>
+    <button class="btn" id="check" disabled>✔ Check</button>
+  </div>
+
+  <div class="win" id="win">
+    <div class="stars"><span>⭐</span><span>⭐</span><span>⭐</span></div>
+    <p class="say" id="winsay"></p>
+    <div class="bar"><button class="btn" id="next">Next ▶</button></div>
+  </div>
+
+  <p class="note">Works offline once loaded.</p>
+</div>
+
+<script>
+const ICONS = {"fixed": "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 200 200\"><rect x=\"4\" y=\"4\" width=\"192\" height=\"192\" rx=\"28\" fill=\"#E6F7EE\"/><circle cx=\"100\" cy=\"100\" r=\"70\" fill=\"#3BB273\"/><path d=\"M66 102 L90 126 L138 76\" stroke=\"#fff\" stroke-width=\"16\" fill=\"none\" stroke-linecap=\"round\" stroke-linejoin=\"round\"/></svg>", "walksafe": "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 200 200\"><rect x=\"4\" y=\"4\" width=\"192\" height=\"192\" rx=\"28\" fill=\"#E6F1FC\"/><rect x=\"10\" y=\"120\" width=\"180\" height=\"40\" fill=\"#5b6b7a\"/><rect x=\"76\" y=\"122\" width=\"8\" height=\"36\" fill=\"#fff\"/><rect x=\"90\" y=\"122\" width=\"8\" height=\"36\" fill=\"#fff\"/><rect x=\"104\" y=\"122\" width=\"8\" height=\"36\" fill=\"#fff\"/><rect x=\"118\" y=\"122\" width=\"8\" height=\"36\" fill=\"#fff\"/><g transform=\"translate(98,90) scale(1)\"><circle r=\"24\" fill=\"#F7931E\" stroke=\"#fff\" stroke-width=\"3\"/><circle cy=\"-1\" r=\"14\" fill=\"#8D5524\"/><path d=\"M-14 -3 Q0 -20 14 -3 Q0 -14 -14 -3Z\" fill=\"#1d1d1d\"/><circle cx=\"-4\" cy=\"0\" r=\"1.6\" fill=\"#1d1d1d\"/><circle cx=\"4\" cy=\"0\" r=\"1.6\" fill=\"#1d1d1d\"/><path d=\"M-4 5 Q0 9 4 5\" stroke=\"#1d1d1d\" stroke-width=\"2\" fill=\"none\" stroke-linecap=\"round\"/></g><g transform=\"translate(124,104) scale(0.6)\"><path d=\"M-26 8 Q-24 -14 0 -16 Q24 -14 26 8 Q24 22 0 22 Q-24 22 -26 8Z\" fill=\"#D9A15C\" stroke=\"#16324F\" stroke-width=\"3\"/><path d=\"M-12 -4 L-8 4 M0 -8 L4 0 M12 -4 L16 4\" stroke=\"#8a5a2b\" stroke-width=\"3\" stroke-linecap=\"round\"/></g><path d=\"M60 70 L140 70\" stroke=\"#168fe5\" stroke-width=\"7\" stroke-linecap=\"round\"/><path d=\"M128 60 L142 70 L128 80\" fill=\"none\" stroke=\"#168fe5\" stroke-width=\"7\" stroke-linecap=\"round\" stroke-linejoin=\"round\"/></svg>", "star_outline": "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 200 200\"><polygon points=\"100.0,28.0 78.8,78.9 23.9,83.3 65.8,119.1 53.0,172.7 100.0,144.0 147.0,172.7 134.2,119.1 176.1,83.3 121.2,78.9\" fill=\"#FFFFFF\" stroke=\"#16324F\" stroke-width=\"7\" stroke-linejoin=\"round\"/></svg>", "walk": "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 200 200\"><rect x=\"4\" y=\"4\" width=\"192\" height=\"192\" rx=\"28\" fill=\"#E6F7EE\"/><circle cx=\"96\" cy=\"48\" r=\"20\" fill=\"#8D5524\"/><path d=\"M78 42 Q96 14 114 42 Q96 30 78 42Z\" fill=\"#1d1d1d\"/><circle cx=\"87\" cy=\"50\" r=\"3.4\" fill=\"#1d1d1d\"/><circle cx=\"105\" cy=\"50\" r=\"3.4\" fill=\"#1d1d1d\"/><path d=\"M87 60 Q96 68 105 60\" stroke=\"#1d1d1d\" stroke-width=\"3\" fill=\"none\" stroke-linecap=\"round\"/><rect x=\"80\" y=\"68\" width=\"32\" height=\"44\" rx=\"12\" fill=\"#F7931E\"/><path d=\"M86 108 L70 150\" stroke=\"#16324F\" stroke-width=\"11\" stroke-linecap=\"round\"/><path d=\"M104 108 L122 148\" stroke=\"#16324F\" stroke-width=\"11\" stroke-linecap=\"round\"/><path d=\"M82 76 L62 100\" stroke=\"#8D5524\" stroke-width=\"9\" stroke-linecap=\"round\"/><path d=\"M110 76 L130 96\" stroke=\"#8D5524\" stroke-width=\"9\" stroke-linecap=\"round\"/><ellipse cx=\"146\" cy=\"172\" rx=\"7\" ry=\"11\" fill=\"#3BB273\" opacity=\".7\" transform=\"rotate(90 146 172)\"/><ellipse cx=\"172\" cy=\"160\" rx=\"7\" ry=\"11\" fill=\"#3BB273\" opacity=\".7\" transform=\"rotate(90 172 160)\"/><path d=\"M140 120 L176 120 M164 108 L178 120 L164 132\" stroke=\"#3BB273\" stroke-width=\"7\" fill=\"none\" stroke-linecap=\"round\" stroke-linejoin=\"round\"/></svg>", "roadclosed": "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 200 200\"><rect x=\"4\" y=\"4\" width=\"192\" height=\"192\" rx=\"28\" fill=\"#FDECEC\"/><rect x=\"14\" y=\"140\" width=\"172\" height=\"12\" rx=\"4\" fill=\"#c9dcef\"/><rect x=\"90\" y=\"96\" width=\"50\" height=\"44\" rx=\"4\" fill=\"#C8955C\" stroke=\"#16324F\" stroke-width=\"4\"/><path d=\"M90 110.66666666666667 L140 110.66666666666667 M115.0 96 L115.0 140\" stroke=\"#8a5a2b\" stroke-width=\"3\"/><rect x=\"96\" y=\"36\" width=\"8\" height=\"62\" fill=\"#5b6b7a\"/><rect x=\"62\" y=\"30\" width=\"76\" height=\"34\" rx=\"6\" fill=\"#E5484D\" stroke=\"#16324F\" stroke-width=\"4\"/><text x=\"100\" y=\"53\" font-family=\"Arial\" font-weight=\"900\" font-size=\"13\" text-anchor=\"middle\" fill=\"#fff\">CLOSED</text><g transform=\"translate(44,116)\"><circle r=\"24\" fill=\"#F7931E\" stroke=\"#fff\" stroke-width=\"3\"/><circle cy=\"-1\" r=\"14\" fill=\"#8D5524\"/><path d=\"M-14 -3 Q0 -20 14 -3 Q0 -14 -14 -3Z\" fill=\"#1d1d1d\"/><circle cx=\"-4\" cy=\"0\" r=\"1.6\" fill=\"#1d1d1d\"/><circle cx=\"4\" cy=\"0\" r=\"1.6\" fill=\"#1d1d1d\"/><path d=\"M-4 7 Q0 4 4 7\" stroke=\"#1d1d1d\" stroke-width=\"2\" fill=\"none\" stroke-linecap=\"round\"/></g></svg>", "ayotoken": "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 200 200\"><circle cx=\"100\" cy=\"100\" r=\"92\" fill=\"#F7931E\" stroke=\"#fff\" stroke-width=\"8\"/><circle cx=\"100\" cy=\"96\" r=\"48\" fill=\"#8D5524\"/><path d=\"M54 90 Q100 34 146 90 Q100 50 54 90Z\" fill=\"#1d1d1d\"/><circle cx=\"91\" cy=\"98\" r=\"3.4\" fill=\"#1d1d1d\"/><circle cx=\"109\" cy=\"98\" r=\"3.4\" fill=\"#1d1d1d\"/><path d=\"M91 108 Q100 116 109 108\" stroke=\"#1d1d1d\" stroke-width=\"5\" fill=\"none\" stroke-linecap=\"round\"/></svg>", "oops": "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 200 200\"><rect x=\"4\" y=\"4\" width=\"192\" height=\"192\" rx=\"28\" fill=\"#FDECEC\"/><circle cx=\"100\" cy=\"100\" r=\"70\" fill=\"#D9534F\"/><path d=\"M72 72 L128 128 M128 72 L72 128\" stroke=\"#fff\" stroke-width=\"16\" stroke-linecap=\"round\"/></svg>", "btn_green": "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 200 200\"><rect x=\"4\" y=\"4\" width=\"192\" height=\"192\" rx=\"28\" fill=\"#E6F1FC\"/><ellipse cx=\"100\" cy=\"128\" rx=\"62\" ry=\"22\" fill=\"#9aa9b8\" stroke=\"#16324F\" stroke-width=\"4\"/><path d=\"M52 100 Q52 78 100 78 Q148 78 148 100 L148 118 Q148 136 100 136 Q52 136 52 118Z\" fill=\"#3BB273\" stroke=\"#16324F\" stroke-width=\"4\"/><ellipse cx=\"100\" cy=\"98\" rx=\"48\" ry=\"18\" fill=\"#7fd99f\"/></svg>", "givebread": "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 200 200\"><rect x=\"4\" y=\"4\" width=\"192\" height=\"192\" rx=\"28\" fill=\"#E6F7EE\"/><g transform=\"translate(60,110) scale(1)\"><circle r=\"24\" fill=\"#F7931E\" stroke=\"#fff\" stroke-width=\"3\"/><circle cy=\"-1\" r=\"14\" fill=\"#8D5524\"/><path d=\"M-14 -3 Q0 -20 14 -3 Q0 -14 -14 -3Z\" fill=\"#1d1d1d\"/><circle cx=\"-4\" cy=\"0\" r=\"1.6\" fill=\"#1d1d1d\"/><circle cx=\"4\" cy=\"0\" r=\"1.6\" fill=\"#1d1d1d\"/><path d=\"M-4 5 Q0 9 4 5\" stroke=\"#1d1d1d\" stroke-width=\"2\" fill=\"none\" stroke-linecap=\"round\"/></g><g transform=\"translate(100,112) scale(0.7)\"><path d=\"M-26 8 Q-24 -14 0 -16 Q24 -14 26 8 Q24 22 0 22 Q-24 22 -26 8Z\" fill=\"#D9A15C\" stroke=\"#16324F\" stroke-width=\"3\"/><path d=\"M-12 -4 L-8 4 M0 -8 L4 0 M12 -4 L16 4\" stroke=\"#8a5a2b\" stroke-width=\"3\" stroke-linecap=\"round\"/></g><g transform=\"translate(150,110)\"><circle cy=\"-30\" r=\"16\" fill=\"#6B3F1A\"/><path d=\"M-16 -36 Q0 -54 16 -36Z\" fill=\"#8E5BD9\"/><rect x=\"-18\" y=\"-14\" width=\"36\" height=\"58\" rx=\"10\" fill=\"#8E5BD9\"/></g><path d=\"M120 108 L132 108\" stroke=\"#6B3F1A\" stroke-width=\"6\" stroke-linecap=\"round\"/><path d=\"M100 54 C 92 42, 76 52, 100 68 C 124 52, 108 42, 100 54Z\" fill=\"#E5484D\"/></svg>", "courseplan": "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 200 200\"><rect x=\"4\" y=\"4\" width=\"192\" height=\"192\" rx=\"28\" fill=\"#fff\"/><rect x=\"20\" y=\"30\" width=\"160\" height=\"140\" rx=\"6\" fill=\"#FFFDF5\" stroke=\"#16324F\" stroke-width=\"4\"/><text x=\"34\" y=\"60\" font-family=\"Arial\" font-weight=\"900\" font-size=\"14\" fill=\"#16324F\">START</text><rect x=\"60\" y=\"74\" width=\"46\" height=\"8\" fill=\"#8a5a2b\"/><rect x=\"120\" y=\"100\" width=\"22\" height=\"22\" fill=\"#C8955C\"/><path d=\"M40 140 L160 140\" stroke=\"#FFC93C\" stroke-width=\"6\"/><path d=\"M40 70 Q80 64 84 92 Q100 120 150 112 Q170 120 160 140\" stroke=\"#168fe5\" stroke-width=\"4\" fill=\"none\" stroke-dasharray=\"7 6\"/><text x=\"128\" y=\"162\" font-family=\"Arial\" font-weight=\"900\" font-size=\"14\" fill=\"#16324F\">BREAD</text></svg>", "goround": "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 200 200\"><rect x=\"4\" y=\"4\" width=\"192\" height=\"192\" rx=\"28\" fill=\"#E6F1FC\"/><g transform=\"translate(40,140)\"><circle r=\"24\" fill=\"#F7931E\" stroke=\"#fff\" stroke-width=\"3\"/><circle cy=\"-1\" r=\"14\" fill=\"#8D5524\"/><path d=\"M-14 -3 Q0 -20 14 -3 Q0 -14 -14 -3Z\" fill=\"#1d1d1d\"/><circle cx=\"-4\" cy=\"0\" r=\"1.6\" fill=\"#1d1d1d\"/><circle cx=\"4\" cy=\"0\" r=\"1.6\" fill=\"#1d1d1d\"/><path d=\"M-4 5 Q0 9 4 5\" stroke=\"#1d1d1d\" stroke-width=\"2\" fill=\"none\" stroke-linecap=\"round\"/></g><rect x=\"84\" y=\"118\" width=\"40\" height=\"40\" rx=\"4\" fill=\"#C8955C\" stroke=\"#16324F\" stroke-width=\"4\"/><path d=\"M84 131.33333333333334 L124 131.33333333333334 M104.0 118 L104.0 158\" stroke=\"#8a5a2b\" stroke-width=\"3\"/><path d=\"M64 132 Q72 70 104 72 Q140 72 150 122\" stroke=\"#168fe5\" stroke-width=\"10\" fill=\"none\" stroke-linecap=\"round\"/><path d=\"M136 116 L152 132 L164 112\" fill=\"none\" stroke=\"#168fe5\" stroke-width=\"10\" stroke-linecap=\"round\" stroke-linejoin=\"round\"/></svg>", "stop": "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 200 200\"><rect x=\"4\" y=\"4\" width=\"192\" height=\"192\" rx=\"28\" fill=\"#FDECEC\"/><polygon points=\"70,30 130,30 172,72 172,128 130,170 70,170 28,128 28,72\" fill=\"#D9534F\" stroke=\"#ffffff\" stroke-width=\"6\"/><rect x=\"86\" y=\"66\" width=\"12\" height=\"44\" rx=\"6\" fill=\"#fff\"/><rect x=\"100\" y=\"58\" width=\"12\" height=\"52\" rx=\"6\" fill=\"#fff\"/><rect x=\"114\" y=\"62\" width=\"12\" height=\"48\" rx=\"6\" fill=\"#fff\"/><rect x=\"128\" y=\"74\" width=\"11\" height=\"38\" rx=\"5.5\" fill=\"#fff\"/><path d=\"M84 98 L74 88 Q66 82 72 96 L86 124 Q94 140 112 140 L122 140 Q138 140 139 120 L139 100 L84 100 Z\" fill=\"#fff\"/></svg>", "ayobread": "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 200 200\"><rect x=\"4\" y=\"4\" width=\"192\" height=\"192\" rx=\"28\" fill=\"#FFF4D6\"/><circle cx=\"80\" cy=\"96\" r=\"44\" fill=\"#F7931E\" stroke=\"#fff\" stroke-width=\"5\"/><circle cx=\"80\" cy=\"98\" r=\"27\" fill=\"#8D5524\"/><circle cx=\"72\" cy=\"98\" r=\"3\" fill=\"#1d1d1d\"/><circle cx=\"88\" cy=\"98\" r=\"3\" fill=\"#1d1d1d\"/><path d=\"M72 108 Q80 115 88 108\" stroke=\"#1d1d1d\" stroke-width=\"3\" fill=\"none\" stroke-linecap=\"round\"/><path d=\"M110 130 Q112 104 140 102 Q170 104 172 130 Q170 150 140 150 Q112 150 110 130Z\" fill=\"#D9A15C\" stroke=\"#16324F\" stroke-width=\"4\"/><path d=\"M126 116 L132 124 M140 112 L146 120 M154 116 L160 124\" stroke=\"#8a5a2b\" stroke-width=\"4\" stroke-linecap=\"round\"/></svg>", "btn_red": "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 200 200\"><rect x=\"4\" y=\"4\" width=\"192\" height=\"192\" rx=\"28\" fill=\"#E6F1FC\"/><ellipse cx=\"100\" cy=\"128\" rx=\"62\" ry=\"22\" fill=\"#9aa9b8\" stroke=\"#16324F\" stroke-width=\"4\"/><path d=\"M52 100 Q52 78 100 78 Q148 78 148 100 L148 118 Q148 136 100 136 Q52 136 52 118Z\" fill=\"#E5484D\" stroke=\"#16324F\" stroke-width=\"4\"/><ellipse cx=\"100\" cy=\"98\" rx=\"48\" ry=\"18\" fill=\"#ff7a7e\"/></svg>", "qmark": "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 200 200\"><rect x=\"4\" y=\"4\" width=\"192\" height=\"192\" rx=\"28\" fill=\"#FFF4D6\"/><circle cx=\"100\" cy=\"100\" r=\"66\" fill=\"#ffffff\" stroke=\"#F7931E\" stroke-width=\"6\" stroke-dasharray=\"10 8\"/><text x=\"100\" y=\"128\" text-anchor=\"middle\" font-family=\"Inter, Arial\" font-weight=\"800\" font-size=\"84\" fill=\"#F7931E\">?</text></svg>", "pickbread": "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 200 200\"><rect x=\"4\" y=\"4\" width=\"192\" height=\"192\" rx=\"28\" fill=\"#FFF4D6\"/><rect x=\"20\" y=\"70\" width=\"70\" height=\"80\" fill=\"#fff\" stroke=\"#16324F\" stroke-width=\"4\"/><path d=\"M14 72 L96 72 L88 50 L22 50Z\" fill=\"#E5484D\" stroke=\"#16324F\" stroke-width=\"4\"/><text x=\"55\" y=\"66\" font-family=\"Arial\" font-weight=\"900\" font-size=\"11\" text-anchor=\"middle\" fill=\"#fff\">BREAD</text><rect x=\"30\" y=\"100\" width=\"50\" height=\"10\" fill=\"#C8955C\"/><g transform=\"translate(55,92) scale(0.6)\"><path d=\"M-26 8 Q-24 -14 0 -16 Q24 -14 26 8 Q24 22 0 22 Q-24 22 -26 8Z\" fill=\"#D9A15C\" stroke=\"#16324F\" stroke-width=\"3\"/><path d=\"M-12 -4 L-8 4 M0 -8 L4 0 M12 -4 L16 4\" stroke=\"#8a5a2b\" stroke-width=\"3\" stroke-linecap=\"round\"/></g><g transform=\"translate(136,118) scale(1)\"><circle r=\"24\" fill=\"#F7931E\" stroke=\"#fff\" stroke-width=\"3\"/><circle cy=\"-1\" r=\"14\" fill=\"#8D5524\"/><path d=\"M-14 -3 Q0 -20 14 -3 Q0 -14 -14 -3Z\" fill=\"#1d1d1d\"/><circle cx=\"-4\" cy=\"0\" r=\"1.6\" fill=\"#1d1d1d\"/><circle cx=\"4\" cy=\"0\" r=\"1.6\" fill=\"#1d1d1d\"/><path d=\"M-4 5 Q0 9 4 5\" stroke=\"#1d1d1d\" stroke-width=\"2\" fill=\"none\" stroke-linecap=\"round\"/></g><g transform=\"translate(150,154) scale(0.8)\"><path d=\"M-26 8 Q-24 -14 0 -16 Q24 -14 26 8 Q24 22 0 22 Q-24 22 -26 8Z\" fill=\"#D9A15C\" stroke=\"#16324F\" stroke-width=\"3\"/><path d=\"M-12 -4 L-8 4 M0 -8 L4 0 M12 -4 L16 4\" stroke=\"#8a5a2b\" stroke-width=\"3\" stroke-linecap=\"round\"/></g><path d=\"M96 112 L112 112\" stroke=\"#3BB273\" stroke-width=\"5\"/><path d=\"M104 104 L112 112 L104 120\" fill=\"none\" stroke=\"#3BB273\" stroke-width=\"5\"/></svg>", "tl_green": "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 200 200\"><rect x=\"4\" y=\"4\" width=\"192\" height=\"192\" rx=\"28\" fill=\"#E6F1FC\"/><rect x=\"72\" y=\"26\" width=\"56\" height=\"130\" rx=\"14\" fill=\"#16324F\"/><rect x=\"94\" y=\"156\" width=\"12\" height=\"30\" fill=\"#16324F\"/><circle cx=\"100\" cy=\"56\" r=\"17\" fill=\"#4a3030\"/><circle cx=\"100\" cy=\"92\" r=\"17\" fill=\"#4a4a30\"/><circle cx=\"100\" cy=\"128\" r=\"17\" fill=\"#3BB273\"/></svg>", "tl_red": "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 200 200\"><rect x=\"4\" y=\"4\" width=\"192\" height=\"192\" rx=\"28\" fill=\"#E6F1FC\"/><rect x=\"72\" y=\"26\" width=\"56\" height=\"130\" rx=\"14\" fill=\"#16324F\"/><rect x=\"94\" y=\"156\" width=\"12\" height=\"30\" fill=\"#16324F\"/><circle cx=\"100\" cy=\"56\" r=\"17\" fill=\"#E5484D\"/><circle cx=\"100\" cy=\"92\" r=\"17\" fill=\"#4a4a30\"/><circle cx=\"100\" cy=\"128\" r=\"17\" fill=\"#30483a\"/></svg>"};
+const ROUNDS = [{"say": "Plan Ayo\u2019s bread delivery in 3 small steps.", "order": ["pickbread", "walksafe", "givebread"], "labels": {"pickbread": "pick up bread", "walksafe": "walk the safe way", "givebread": "give bread"}, "oops": "Think: what must Ayo do first?", "win": "Pick up bread, walk the safe way, give bread. Thank you, Ayo!"}, {"say": "The road is closed! Change the plan: take out walk the safe way, put in go round.", "order": ["pickbread", "goround", "givebread"], "extra": ["walksafe"], "labels": {"pickbread": "pick up bread", "goround": "go round", "givebread": "give bread", "walksafe": "walk the safe way"}, "oops": "The road is closed. Which card goes round?", "win": "You swapped one card. The bread got there!"}, {"say": "The light is red on the way! If red, then stop. Plan it: pick up bread, stop on red, walk the safe way, give bread.", "order": ["pickbread", "stop", "walksafe", "givebread"], "labels": {"pickbread": "pick up bread", "stop": "stop on red", "walksafe": "walk the safe way", "givebread": "give bread"}, "oops": "If red, then\u2026? When does Ayo stop?", "win": "Stop on red, then walk the safe way. Smart thinker!"}, {"say": "Stretch! Two roads are closed. Pick up bread, go round, go round, give bread.", "stretch": true, "order": ["pickbread", "goround", "goround", "givebread"], "extra": ["walksafe"], "labels": {"pickbread": "pick up bread", "goround": "go round", "givebread": "give bread", "walksafe": "walk the safe way"}, "oops": "Two roads are closed. How many go-round cards?", "win": "Go round, go round. Two closed roads, and the bread still got there!"}];
+const WORDS = n => n===3 ? ["first","next","last"] : ["first", ...Array(n-2).fill("next"), "last"];
+let r = 0, placed = [];
+const $ = id => document.getElementById(id);
+
+function speak(t){
+  try{ if(!('speechSynthesis' in window)) return; speechSynthesis.cancel();
+    const u = new SpeechSynthesisUtterance(t); u.rate = .85; u.pitch = 1.1; speechSynthesis.speak(u);}catch(e){}
+}
+function shuffle(a){ a = a.slice(); do{ for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]];} }while(a.join()===ROUNDS[r].order.join()); return a; }
+
+function build(){
+  const R = ROUNDS[r]; placed = [];
+  $('round').textContent = `Round ${r+1} of ${ROUNDS.length}` + (R.stretch ? ' · Stretch' : '');
+  $('say').textContent = R.say;
+  $('win').classList.remove('show');
+  const m = $('model'); m.hidden = !R.model; m.innerHTML = R.model ? R.order.map((k,i)=>`<div><b>${i+1}</b>${ICONS[k]}</div>`).join('') : '';
+  $('slots').style.gridTemplateColumns = `repeat(${R.order.length},1fr)`; $('tray').style.gridTemplateColumns = `repeat(${R.order.length+(R.extra||[]).length},1fr)`;
+  $('slots').innerHTML = WORDS(R.order.length).map((w,i)=>`<div class="slot" data-i="${i}"><span class="num">${i+1}</span><span class="lbl">${w}</span></div>`).join('');
+  $('tray').innerHTML = shuffle(R.order.concat(R.extra||[])).map(k=>`<button class="card" data-k="${k}" aria-label="${R.labels[k]}">${ICONS[k]}</button>`).join('');
+  document.querySelectorAll('.card').forEach(c=>c.onclick=()=>place(c));
+  sync(); speak(R.say);
+}
+function place(c){
+  if(placed.length>=ROUNDS[r].order.length) return;
+  placed.push(c.dataset.k); c.classList.add('gone'); speak(ROUNDS[r].labels[c.dataset.k]); sync();
+}
+function sync(){
+  const R = ROUNDS[r];
+  document.querySelectorAll('.slot').forEach((s,i)=>{
+    const k = placed[i];
+    s.classList.toggle('filled', !!k);
+    s.querySelectorAll('svg').forEach(x=>x.remove());
+    if(k) s.insertAdjacentHTML('beforeend', ICONS[k]);
+  });
+  $('check').disabled = placed.length<R.order.length;
+}
+$('undo').onclick = ()=>{ const k = placed.pop(); if(!k) return; const c=document.querySelector(`.card.gone[data-k="${k}"]`); c.classList.remove('gone'); sync(); };
+$('check').onclick = ()=>{
+  const R = ROUNDS[r];
+  if(placed.join()===R.order.join()){
+    $('say').textContent = 'You did it!'; $('winsay').textContent = R.win; $('win').classList.add('show'); speak("Well done! "+R.win);
+    $('next').textContent = r < ROUNDS.length-1 ? 'Next ▶' : 'Play again ↻';
+    $('win').scrollIntoView({behavior:'smooth',block:'center'});
+  } else {
+    $('slots').classList.add('shake'); setTimeout(()=>$('slots').classList.remove('shake'),500);
+    const t = R.oops || (R.model ? "Oops! Look at RhinoBot's cards and try again." : "Oops! What does Ayo do first? Try again.");
+    $('say').textContent = t; speak(t);
+    setTimeout(()=>{ placed=[]; document.querySelectorAll('.card').forEach(c=>c.classList.remove('gone')); sync(); }, 900);
+  }
+};
+$('next').onclick = ()=>{ r = (r+1) % ROUNDS.length; build(); window.scrollTo({top:0,behavior:'smooth'}); };
+$('speak').onclick = ()=>speak($('say').textContent);
+build();
+</script>
+</body>
+</html>

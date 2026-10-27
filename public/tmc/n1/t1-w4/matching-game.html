@@ -1,0 +1,113 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Find the Pairs</title>
+<style>
+:root{--blue:#168fe5;--navy:#16324F;--orange:#F7931E;--green:#3BB273;--yellow:#FFC93C;--purple:#8E5BD9;--bg:#F7F3FF}
+*{box-sizing:border-box}
+body{margin:0;font-family:"Nunito","Trebuchet MS",Arial,sans-serif;background:var(--bg);color:var(--navy);-webkit-tap-highlight-color:transparent}
+.wrap{max-width:760px;margin:0 auto;padding:16px}
+.top{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap}
+.brand{font-weight:800;font-size:15px}
+.tag{font-size:12px;background:#fff;border:2px dashed var(--purple);border-radius:999px;padding:4px 12px}
+.bubble{margin:16px 0;background:#fff;border-radius:22px;padding:16px 18px;display:flex;gap:14px;align-items:center;box-shadow:0 4px 0 #e2d8f6}
+.bot{flex:0 0 auto;width:54px;height:54px;border-radius:16px;background:var(--blue);color:#fff;display:grid;place-items:center;font-weight:900;font-size:13px;text-align:center;line-height:1.05}
+.say{font-size:clamp(20px,4.2vw,28px);font-weight:800;margin:0}
+.speak{margin-left:auto;border:0;background:var(--yellow);font-size:28px;width:60px;height:60px;border-radius:50%;cursor:pointer;box-shadow:0 4px 0 #d9a91e}
+.grid{display:grid;grid-template-columns:repeat(3,1fr);gap:clamp(8px,2.4vw,18px)}
+.tile{aspect-ratio:1;border:0;padding:0;background:transparent;perspective:800px;cursor:pointer}
+.inner{position:relative;width:100%;height:100%;transition:transform .45s;transform-style:preserve-3d}
+.tile.open .inner,.tile.done .inner{transform:rotateY(180deg)}
+.face{position:absolute;inset:0;border-radius:22px;backface-visibility:hidden;display:grid;place-items:center;box-shadow:0 6px 0 rgba(22,50,79,.15)}
+.back{background:var(--purple);color:#fff;font-size:clamp(40px,10vw,64px);font-weight:900}
+.back::after{content:"?"}
+.front{background:#fff;transform:rotateY(180deg)}
+.front svg{width:86%;height:auto}
+.tile.done .front{outline:5px solid var(--green)}
+.tile.pick .front{outline:5px solid var(--orange)}
+.final{display:none;text-align:center;margin-top:18px}
+.final.show{display:block}
+.choices{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;max-width:520px;margin:12px auto}
+.choice{border:0;background:#fff;border-radius:22px;padding:6px;box-shadow:0 6px 0 #d8cdef;cursor:pointer}
+.choice svg{width:100%;height:auto;display:block}
+.stars{font-size:54px;letter-spacing:6px}
+.btn{border:0;border-radius:999px;padding:16px 28px;font-size:20px;font-weight:900;cursor:pointer;color:#fff;background:var(--green);box-shadow:0 5px 0 #2a8a57;margin-top:10px}
+.shake{animation:sh .5s}
+@keyframes sh{20%,60%{transform:translateX(-8px)}40%,80%{transform:translateX(8px)}}
+.note{font-size:12px;color:#6f6290;text-align:center;margin-top:18px}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="top">
+    <div class="brand">Think • Move • Code! · Nursery 1 · Week 4</div>
+    <div class="tag">Optional · just for fun · not a test</div>
+  </div>
+  <div class="bubble">
+    <div class="bot">Rhino<br>Bot</div>
+    <p class="say" id="say">Find the pairs! Tap two cards.</p>
+    <button class="speak" id="speak" aria-label="Read aloud">🔊</button>
+  </div>
+
+  <div class="grid" id="grid"></div>
+
+  <div class="final" id="final">
+    <p class="say" id="q">You found them all! Now tap what Ayo does last.</p>
+    <div class="choices" id="choices"></div>
+    <div id="done" hidden>
+      <div class="stars">⭐⭐⭐</div>
+      <p class="say">Yes! Last, Ayo waves goodbye!</p>
+      <button class="btn" id="again">Play again ↻</button>
+    </div>
+  </div>
+  <p class="note">Works offline once loaded.</p>
+</div>
+<script>
+const ICONS = {"standup": "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 200 200\"><rect x=\"4\" y=\"4\" width=\"192\" height=\"192\" rx=\"28\" fill=\"#FFF4D6\"/><rect x=\"28\" y=\"110\" width=\"56\" height=\"12\" rx=\"4\" fill=\"#B5651D\"/><rect x=\"30\" y=\"122\" width=\"8\" height=\"48\" fill=\"#B5651D\"/><rect x=\"74\" y=\"122\" width=\"8\" height=\"48\" fill=\"#B5651D\"/><rect x=\"28\" y=\"62\" width=\"10\" height=\"56\" rx=\"4\" fill=\"#B5651D\"/><circle cx=\"122\" cy=\"46\" r=\"20\" fill=\"#8D5524\"/><path d=\"M104 40 Q122 12 140 40 Q122 28 104 40Z\" fill=\"#1d1d1d\"/><circle cx=\"113\" cy=\"48\" r=\"3.4\" fill=\"#1d1d1d\"/><circle cx=\"131\" cy=\"48\" r=\"3.4\" fill=\"#1d1d1d\"/><path d=\"M113 58 Q122 66 131 58\" stroke=\"#1d1d1d\" stroke-width=\"3\" fill=\"none\" stroke-linecap=\"round\"/><rect x=\"106\" y=\"66\" width=\"32\" height=\"48\" rx=\"12\" fill=\"#F7931E\"/><path d=\"M114 112 L112 166\" stroke=\"#16324F\" stroke-width=\"11\" stroke-linecap=\"round\"/><path d=\"M130 112 L134 166\" stroke=\"#16324F\" stroke-width=\"11\" stroke-linecap=\"round\"/><path d=\"M108 76 L96 104\" stroke=\"#8D5524\" stroke-width=\"9\" stroke-linecap=\"round\"/><path d=\"M136 76 L148 104\" stroke=\"#8D5524\" stroke-width=\"9\" stroke-linecap=\"round\"/><path d=\"M164 90 L164 56 M154 66 L164 54 L174 66\" stroke=\"#3BB273\" stroke-width=\"7\" fill=\"none\" stroke-linecap=\"round\" stroke-linejoin=\"round\"/></svg>", "walk": "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 200 200\"><rect x=\"4\" y=\"4\" width=\"192\" height=\"192\" rx=\"28\" fill=\"#E6F7EE\"/><circle cx=\"96\" cy=\"48\" r=\"20\" fill=\"#8D5524\"/><path d=\"M78 42 Q96 14 114 42 Q96 30 78 42Z\" fill=\"#1d1d1d\"/><circle cx=\"87\" cy=\"50\" r=\"3.4\" fill=\"#1d1d1d\"/><circle cx=\"105\" cy=\"50\" r=\"3.4\" fill=\"#1d1d1d\"/><path d=\"M87 60 Q96 68 105 60\" stroke=\"#1d1d1d\" stroke-width=\"3\" fill=\"none\" stroke-linecap=\"round\"/><rect x=\"80\" y=\"68\" width=\"32\" height=\"44\" rx=\"12\" fill=\"#F7931E\"/><path d=\"M86 108 L70 150\" stroke=\"#16324F\" stroke-width=\"11\" stroke-linecap=\"round\"/><path d=\"M104 108 L122 148\" stroke=\"#16324F\" stroke-width=\"11\" stroke-linecap=\"round\"/><path d=\"M82 76 L62 100\" stroke=\"#8D5524\" stroke-width=\"9\" stroke-linecap=\"round\"/><path d=\"M110 76 L130 96\" stroke=\"#8D5524\" stroke-width=\"9\" stroke-linecap=\"round\"/><ellipse cx=\"146\" cy=\"172\" rx=\"7\" ry=\"11\" fill=\"#3BB273\" opacity=\".7\" transform=\"rotate(90 146 172)\"/><ellipse cx=\"172\" cy=\"160\" rx=\"7\" ry=\"11\" fill=\"#3BB273\" opacity=\".7\" transform=\"rotate(90 172 160)\"/><path d=\"M140 120 L176 120 M164 108 L178 120 L164 132\" stroke=\"#3BB273\" stroke-width=\"7\" fill=\"none\" stroke-linecap=\"round\" stroke-linejoin=\"round\"/></svg>", "wave": "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 200 200\"><rect x=\"4\" y=\"4\" width=\"192\" height=\"192\" rx=\"28\" fill=\"#F1E9FF\"/><rect x=\"116\" y=\"30\" width=\"62\" height=\"146\" rx=\"4\" fill=\"#B5651D\" stroke=\"#16324F\" stroke-width=\"4\"/><circle cx=\"166\" cy=\"108\" r=\"5\" fill=\"#FFC93C\"/><rect x=\"124\" y=\"40\" width=\"46\" height=\"40\" rx=\"3\" fill=\"#cfe9fb\"/><circle cx=\"70\" cy=\"62\" r=\"20\" fill=\"#8D5524\"/><path d=\"M52 56 Q70 28 88 56 Q70 44 52 56Z\" fill=\"#1d1d1d\"/><circle cx=\"61\" cy=\"64\" r=\"3.4\" fill=\"#1d1d1d\"/><circle cx=\"79\" cy=\"64\" r=\"3.4\" fill=\"#1d1d1d\"/><path d=\"M61 74 Q70 82 79 74\" stroke=\"#1d1d1d\" stroke-width=\"3\" fill=\"none\" stroke-linecap=\"round\"/><rect x=\"54\" y=\"82\" width=\"32\" height=\"46\" rx=\"12\" fill=\"#F7931E\"/><path d=\"M62 126 L58 168\" stroke=\"#16324F\" stroke-width=\"11\" stroke-linecap=\"round\"/><path d=\"M78 126 L82 168\" stroke=\"#16324F\" stroke-width=\"11\" stroke-linecap=\"round\"/><path d=\"M84 90 L104 56\" stroke=\"#8D5524\" stroke-width=\"9\" stroke-linecap=\"round\"/><circle cx=\"106\" cy=\"50\" r=\"9\" fill=\"#8D5524\"/><path d=\"M92 38 Q86 44 92 50 M120 38 Q126 44 120 50\" stroke=\"#8E5BD9\" stroke-width=\"4\" fill=\"none\" stroke-linecap=\"round\"/><path d=\"M58 92 L50 120\" stroke=\"#8D5524\" stroke-width=\"9\" stroke-linecap=\"round\"/></svg>", "opendoor": "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 200 200\"><rect x=\"4\" y=\"4\" width=\"192\" height=\"192\" rx=\"28\" fill=\"#FFF4D6\"/><rect x=\"60\" y=\"28\" width=\"96\" height=\"148\" rx=\"4\" fill=\"#3b2a1a\"/><path d=\"M60 28 L118 44 L118 166 L60 176 Z\" fill=\"#B5651D\" stroke=\"#16324F\" stroke-width=\"4\" stroke-linejoin=\"round\"/><circle cx=\"108\" cy=\"104\" r=\"5\" fill=\"#FFC93C\"/><path d=\"M124 100 L160 100\" stroke=\"#3BB273\" stroke-width=\"7\" stroke-linecap=\"round\"/><path d=\"M148 88 L162 100 L148 112\" stroke=\"#3BB273\" stroke-width=\"7\" fill=\"none\" stroke-linecap=\"round\" stroke-linejoin=\"round\"/><path d=\"M30 116 L96 104\" stroke=\"#8D5524\" stroke-width=\"12\" stroke-linecap=\"round\"/><rect x=\"18\" y=\"104\" width=\"26\" height=\"40\" rx=\"10\" fill=\"#F7931E\"/></svg>"};
+const CFG = {"names": {"standup": "stand up", "walk": "walk", "wave": "wave goodbye"}, "answer": "wave", "ask": "You found them all! Now tap what Ayo does last.", "yes": "Yes! Last, Ayo waves goodbye!", "no": "Hmm, that comes earlier. What does Ayo do last?"}; const NAMES = CFG.names;
+const $ = id => document.getElementById(id);
+let open = [], lock = false, found = 0;
+function speak(t){ try{ if(!('speechSynthesis' in window)) return; speechSynthesis.cancel(); const u=new SpeechSynthesisUtterance(t); u.rate=.85; u.pitch=1.1; speechSynthesis.speak(u);}catch(e){} }
+function shuffle(a){ a=a.slice(); for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]];} return a; }
+function start(){
+  open=[]; lock=false; found=0;
+  $('final').classList.remove('show'); $('done').hidden=true; $('grid').hidden=false;
+  $('say').textContent='Find the pairs! Tap two cards.';
+  const deck = shuffle(Object.keys(NAMES).flatMap(k=>[k,k]));
+  $('grid').innerHTML = deck.map((k,i)=>`<button class="tile" data-k="${k}" aria-label="card ${i+1}"><div class="inner"><div class="face back"></div><div class="face front">${ICONS[k]}</div></div></button>`).join('');
+  document.querySelectorAll('.tile').forEach(t=>t.onclick=()=>flip(t));
+  speak('Find the pairs! Tap two cards.');
+}
+function flip(t){
+  if(lock || t.classList.contains('open') || t.classList.contains('done')) return;
+  t.classList.add('open'); speak(NAMES[t.dataset.k]); open.push(t);
+  if(open.length<2) return;
+  lock = true;
+  const [a,b] = open;
+  if(a.dataset.k===b.dataset.k){
+    setTimeout(()=>{ a.classList.replace('open','done'); b.classList.replace('open','done'); open=[]; lock=false; found++;
+      speak('A pair! '+NAMES[a.dataset.k]);
+      if(found===Object.keys(NAMES).length) setTimeout(finale, 900);
+    }, 500);
+  } else {
+    setTimeout(()=>{ a.classList.remove('open'); b.classList.remove('open'); open=[]; lock=false; }, 1100);
+  }
+}
+function finale(){
+  $('grid').hidden = true; $('final').classList.add('show');
+  $('say').textContent = 'Great matching!';
+  $('choices').innerHTML = shuffle(CFG.choices || Object.keys(NAMES)).map(k=>`<button class="choice" data-k="${k}" aria-label="${NAMES[k]||k}">${ICONS[k]}</button>`).join('');
+  document.querySelectorAll('.choice').forEach(c=>c.onclick=()=>{
+    if(c.dataset.k===CFG.answer){ $('done').hidden=false; speak(CFG.yes); }
+    else { c.classList.add('shake'); setTimeout(()=>c.classList.remove('shake'),500); speak(CFG.no); }
+  });
+  speak(CFG.ask);
+}
+$('again').onclick = start;
+$('speak').onclick = ()=>speak($('final').classList.contains('show') ? $('q').textContent : $('say').textContent);
+start();
+</script>
+</body>
+</html>

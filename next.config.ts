@@ -3,6 +3,8 @@ import { join } from "node:path";
 
 import type { NextConfig } from "next";
 
+import { SHORT_LINKS } from "./lib/tmc/short-links";
+
 // The Pyodide version is part of its URL (see scripts/copy-code-studio-assets.mjs),
 // so the page and the copied files always agree.
 function pyodideVersion(): string {
@@ -51,8 +53,12 @@ const workerCsp = [
 const nextConfig: NextConfig = {
   env: { NEXT_PUBLIC_PYODIDE_VERSION: pyodideVersion() },
   async redirects() {
-    // Arduino Studio first lived at its own path; keep old links working.
-    return [{ source: "/coding-robotics/arduino-studio", destination: "/coding-robotics/code-studio/arduino", permanent: false }];
+    return [
+      // Arduino Studio first lived at its own path; keep old links working.
+      { source: "/coding-robotics/arduino-studio", destination: "/coding-robotics/code-studio/arduino", permanent: false },
+      // Book QR codes (lib/tmc/short-links.ts). Temporary, so they can be re-pointed later.
+      ...SHORT_LINKS.map((link) => ({ ...link, permanent: false })),
+    ];
   },
   async headers() {
     return [

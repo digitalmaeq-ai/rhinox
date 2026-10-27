@@ -1,0 +1,113 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Find the Pairs</title>
+<style>
+:root{--blue:#168fe5;--navy:#16324F;--orange:#F7931E;--green:#3BB273;--yellow:#FFC93C;--purple:#8E5BD9;--bg:#F7F3FF}
+*{box-sizing:border-box}
+body{margin:0;font-family:"Nunito","Trebuchet MS",Arial,sans-serif;background:var(--bg);color:var(--navy);-webkit-tap-highlight-color:transparent}
+.wrap{max-width:760px;margin:0 auto;padding:16px}
+.top{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap}
+.brand{font-weight:800;font-size:15px}
+.tag{font-size:12px;background:#fff;border:2px dashed var(--purple);border-radius:999px;padding:4px 12px}
+.bubble{margin:16px 0;background:#fff;border-radius:22px;padding:16px 18px;display:flex;gap:14px;align-items:center;box-shadow:0 4px 0 #e2d8f6}
+.bot{flex:0 0 auto;width:54px;height:54px;border-radius:16px;background:var(--blue);color:#fff;display:grid;place-items:center;font-weight:900;font-size:13px;text-align:center;line-height:1.05}
+.say{font-size:clamp(20px,4.2vw,28px);font-weight:800;margin:0}
+.speak{margin-left:auto;border:0;background:var(--yellow);font-size:28px;width:60px;height:60px;border-radius:50%;cursor:pointer;box-shadow:0 4px 0 #d9a91e}
+.grid{display:grid;grid-template-columns:repeat(3,1fr);gap:clamp(8px,2.4vw,18px)}
+.tile{aspect-ratio:1;border:0;padding:0;background:transparent;perspective:800px;cursor:pointer}
+.inner{position:relative;width:100%;height:100%;transition:transform .45s;transform-style:preserve-3d}
+.tile.open .inner,.tile.done .inner{transform:rotateY(180deg)}
+.face{position:absolute;inset:0;border-radius:22px;backface-visibility:hidden;display:grid;place-items:center;box-shadow:0 6px 0 rgba(22,50,79,.15)}
+.back{background:var(--purple);color:#fff;font-size:clamp(40px,10vw,64px);font-weight:900}
+.back::after{content:"?"}
+.front{background:#fff;transform:rotateY(180deg)}
+.front svg{width:86%;height:auto}
+.tile.done .front{outline:5px solid var(--green)}
+.tile.pick .front{outline:5px solid var(--orange)}
+.final{display:none;text-align:center;margin-top:18px}
+.final.show{display:block}
+.choices{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;max-width:520px;margin:12px auto}
+.choice{border:0;background:#fff;border-radius:22px;padding:6px;box-shadow:0 6px 0 #d8cdef;cursor:pointer}
+.choice svg{width:100%;height:auto;display:block}
+.stars{font-size:54px;letter-spacing:6px}
+.btn{border:0;border-radius:999px;padding:16px 28px;font-size:20px;font-weight:900;cursor:pointer;color:#fff;background:var(--green);box-shadow:0 5px 0 #2a8a57;margin-top:10px}
+.shake{animation:sh .5s}
+@keyframes sh{20%,60%{transform:translateX(-8px)}40%,80%{transform:translateX(8px)}}
+.note{font-size:12px;color:#6f6290;text-align:center;margin-top:18px}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="top">
+    <div class="brand">Think • Move • Code! · Nursery 1 · Week 2</div>
+    <div class="tag">Optional · just for fun · not a test</div>
+  </div>
+  <div class="bubble">
+    <div class="bot">Rhino<br>Bot</div>
+    <p class="say" id="say">Find the pairs! Tap two cards.</p>
+    <button class="speak" id="speak" aria-label="Read aloud">🔊</button>
+  </div>
+
+  <div class="grid" id="grid"></div>
+
+  <div class="final" id="final">
+    <p class="say" id="q">You found them all! Now tap what Ayo does just before he walks to school.</p>
+    <div class="choices" id="choices"></div>
+    <div id="done" hidden>
+      <div class="stars">⭐⭐⭐</div>
+      <p class="say">Yes! Ayo gets dressed before he walks to school!</p>
+      <button class="btn" id="again">Play again ↻</button>
+    </div>
+  </div>
+  <p class="note">Works offline once loaded.</p>
+</div>
+<script>
+const ICONS = {"wake": "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 200 200\"><rect x=\"4\" y=\"4\" width=\"192\" height=\"192\" rx=\"28\" fill=\"#FFF4D6\"/><circle cx=\"160\" cy=\"44\" r=\"18\" fill=\"#FFC93C\"/><line x1=\"160\" y1=\"44\" x2=\"190\" y2=\"44\" stroke=\"#FFC93C\" stroke-width=\"5\" stroke-linecap=\"round\"/><line x1=\"160\" y1=\"44\" x2=\"130\" y2=\"44\" stroke=\"#FFC93C\" stroke-width=\"5\" stroke-linecap=\"round\"/><line x1=\"160\" y1=\"44\" x2=\"160\" y2=\"74\" stroke=\"#FFC93C\" stroke-width=\"5\" stroke-linecap=\"round\"/><line x1=\"160\" y1=\"44\" x2=\"160\" y2=\"14\" stroke=\"#FFC93C\" stroke-width=\"5\" stroke-linecap=\"round\"/><line x1=\"160\" y1=\"44\" x2=\"181.0\" y2=\"65.0\" stroke=\"#FFC93C\" stroke-width=\"5\" stroke-linecap=\"round\"/><line x1=\"160\" y1=\"44\" x2=\"139.0\" y2=\"65.0\" stroke=\"#FFC93C\" stroke-width=\"5\" stroke-linecap=\"round\"/><line x1=\"160\" y1=\"44\" x2=\"181.0\" y2=\"23.0\" stroke=\"#FFC93C\" stroke-width=\"5\" stroke-linecap=\"round\"/><line x1=\"160\" y1=\"44\" x2=\"139.0\" y2=\"23.0\" stroke=\"#FFC93C\" stroke-width=\"5\" stroke-linecap=\"round\"/><rect x=\"22\" y=\"120\" width=\"156\" height=\"34\" rx=\"8\" fill=\"#168fe5\"/><rect x=\"22\" y=\"96\" width=\"16\" height=\"78\" rx=\"6\" fill=\"#16324F\"/><rect x=\"162\" y=\"112\" width=\"16\" height=\"62\" rx=\"6\" fill=\"#16324F\"/><rect x=\"40\" y=\"104\" width=\"34\" height=\"18\" rx=\"8\" fill=\"#ffffff\"/><rect x=\"78\" y=\"96\" width=\"44\" height=\"40\" rx=\"14\" fill=\"#F7931E\"/><circle cx=\"100\" cy=\"78\" r=\"22\" fill=\"#8D5524\"/><path d=\"M80 72 Q100 42 120 72 Q100 58 80 72Z\" fill=\"#1d1d1d\"/><circle cx=\"91\" cy=\"80\" r=\"3.4\" fill=\"#1d1d1d\"/><circle cx=\"109\" cy=\"80\" r=\"3.4\" fill=\"#1d1d1d\"/><path d=\"M91 90 Q100 98 109 90\" stroke=\"#1d1d1d\" stroke-width=\"3\" fill=\"none\" stroke-linecap=\"round\"/><path d=\"M80 104 L58 70\" stroke=\"#F7931E\" stroke-width=\"11\" stroke-linecap=\"round\"/><path d=\"M120 104 L142 70\" stroke=\"#F7931E\" stroke-width=\"11\" stroke-linecap=\"round\"/><circle cx=\"57\" cy=\"66\" r=\"7\" fill=\"#8D5524\"/><circle cx=\"143\" cy=\"66\" r=\"7\" fill=\"#8D5524\"/><rect x=\"60\" y=\"118\" width=\"110\" height=\"20\" rx=\"8\" fill=\"#ffffff\" opacity=\".9\"/></svg>", "dressed": "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 200 200\"><rect x=\"4\" y=\"4\" width=\"192\" height=\"192\" rx=\"28\" fill=\"#E3F3FF\"/><circle cx=\"100\" cy=\"62\" r=\"24\" fill=\"#8D5524\"/><path d=\"M78 56 Q100 24 122 56 Q100 40 78 56Z\" fill=\"#1d1d1d\"/><circle cx=\"91\" cy=\"64\" r=\"3.4\" fill=\"#1d1d1d\"/><circle cx=\"109\" cy=\"64\" r=\"3.4\" fill=\"#1d1d1d\"/><path d=\"M91 74 Q100 82 109 74\" stroke=\"#1d1d1d\" stroke-width=\"3\" fill=\"none\" stroke-linecap=\"round\"/><rect x=\"80\" y=\"84\" width=\"40\" height=\"22\" rx=\"8\" fill=\"#8D5524\"/><path d=\"M58 100 L84 88 L116 88 L142 100 L154 128 L136 134 L132 120 L132 176 L68 176 L68 120 L64 134 L46 128 Z\" fill=\"#168fe5\" stroke=\"#16324F\" stroke-width=\"4\" stroke-linejoin=\"round\"/><path d=\"M88 88 L100 104 L112 88\" fill=\"#ffffff\" stroke=\"#16324F\" stroke-width=\"3\"/><circle cx=\"100\" cy=\"122\" r=\"3.5\" fill=\"#ffffff\"/><circle cx=\"100\" cy=\"140\" r=\"3.5\" fill=\"#ffffff\"/><circle cx=\"100\" cy=\"158\" r=\"3.5\" fill=\"#ffffff\"/><circle cx=\"50\" cy=\"128\" r=\"9\" fill=\"#8D5524\"/><circle cx=\"150\" cy=\"128\" r=\"9\" fill=\"#8D5524\"/></svg>", "school": "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 200 200\"><rect x=\"4\" y=\"4\" width=\"192\" height=\"192\" rx=\"28\" fill=\"#FFF4D6\"/><rect x=\"104\" y=\"70\" width=\"80\" height=\"70\" fill=\"#F3D9B1\" stroke=\"#16324F\" stroke-width=\"4\"/><path d=\"M98 72 L144 40 L190 72 Z\" fill=\"#D9534F\" stroke=\"#16324F\" stroke-width=\"4\" stroke-linejoin=\"round\"/><rect x=\"134\" y=\"106\" width=\"20\" height=\"34\" fill=\"#16324F\"/><rect x=\"112\" y=\"84\" width=\"16\" height=\"14\" fill=\"#168fe5\"/><rect x=\"160\" y=\"84\" width=\"16\" height=\"14\" fill=\"#168fe5\"/><line x1=\"144\" y1=\"40\" x2=\"144\" y2=\"18\" stroke=\"#16324F\" stroke-width=\"3\"/><path d=\"M144 18 L164 24 L144 30Z\" fill=\"#3BB273\"/><rect x=\"10\" y=\"150\" width=\"180\" height=\"12\" rx=\"6\" fill=\"#cfd8e3\"/><circle cx=\"56\" cy=\"76\" r=\"18\" fill=\"#8D5524\"/><path d=\"M40 70 Q56 44 72 70 Q56 60 40 70Z\" fill=\"#1d1d1d\"/><circle cx=\"47\" cy=\"78\" r=\"3.4\" fill=\"#1d1d1d\"/><circle cx=\"65\" cy=\"78\" r=\"3.4\" fill=\"#1d1d1d\"/><path d=\"M47 88 Q56 96 65 88\" stroke=\"#1d1d1d\" stroke-width=\"3\" fill=\"none\" stroke-linecap=\"round\"/><rect x=\"40\" y=\"94\" width=\"32\" height=\"34\" rx=\"10\" fill=\"#F7931E\"/><rect x=\"28\" y=\"96\" width=\"14\" height=\"26\" rx=\"5\" fill=\"#8E5BD9\"/><path d=\"M48 126 L40 150\" stroke=\"#16324F\" stroke-width=\"9\" stroke-linecap=\"round\"/><path d=\"M64 126 L74 150\" stroke=\"#16324F\" stroke-width=\"9\" stroke-linecap=\"round\"/><path d=\"M70 102 L84 116\" stroke=\"#8D5524\" stroke-width=\"8\" stroke-linecap=\"round\"/></svg>", "bath": "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 200 200\"><rect x=\"4\" y=\"4\" width=\"192\" height=\"192\" rx=\"28\" fill=\"#E3F3FF\"/><path d=\"M48 92 L152 92 L140 172 L60 172 Z\" fill=\"#168fe5\" stroke=\"#16324F\" stroke-width=\"4\" stroke-linejoin=\"round\"/><ellipse cx=\"100\" cy=\"92\" rx=\"52\" ry=\"10\" fill=\"#9fd4fb\" stroke=\"#16324F\" stroke-width=\"4\"/><path d=\"M52 92 Q100 30 148 92\" stroke=\"#16324F\" stroke-width=\"4\" fill=\"none\"/><circle cx=\"76\" cy=\"80\" r=\"10\" fill=\"#ffffff\" stroke=\"#168fe5\" stroke-width=\"2.5\"/><circle cx=\"96\" cy=\"70\" r=\"13\" fill=\"#ffffff\" stroke=\"#168fe5\" stroke-width=\"2.5\"/><circle cx=\"120\" cy=\"78\" r=\"9\" fill=\"#ffffff\" stroke=\"#168fe5\" stroke-width=\"2.5\"/><circle cx=\"110\" cy=\"56\" r=\"7\" fill=\"#ffffff\" stroke=\"#168fe5\" stroke-width=\"2.5\"/><circle cx=\"84\" cy=\"58\" r=\"6\" fill=\"#ffffff\" stroke=\"#168fe5\" stroke-width=\"2.5\"/><circle cx=\"132\" cy=\"64\" r=\"5\" fill=\"#ffffff\" stroke=\"#168fe5\" stroke-width=\"2.5\"/><rect x=\"150\" y=\"130\" width=\"34\" height=\"22\" rx=\"7\" fill=\"#FFC93C\" stroke=\"#F7931E\" stroke-width=\"3\"/></svg>"};
+const CFG = {"names": {"wake": "wake up", "dressed": "get dressed", "school": "walk to school"}, "answer": "dressed", "ask": "You found them all! Now tap what Ayo does just before he walks to school.", "yes": "Yes! Ayo gets dressed before he walks to school!", "no": "Hmm, look again. What comes just before walking to school?"}; const NAMES = CFG.names;
+const $ = id => document.getElementById(id);
+let open = [], lock = false, found = 0;
+function speak(t){ try{ if(!('speechSynthesis' in window)) return; speechSynthesis.cancel(); const u=new SpeechSynthesisUtterance(t); u.rate=.85; u.pitch=1.1; speechSynthesis.speak(u);}catch(e){} }
+function shuffle(a){ a=a.slice(); for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]];} return a; }
+function start(){
+  open=[]; lock=false; found=0;
+  $('final').classList.remove('show'); $('done').hidden=true; $('grid').hidden=false;
+  $('say').textContent='Find the pairs! Tap two cards.';
+  const deck = shuffle(Object.keys(NAMES).flatMap(k=>[k,k]));
+  $('grid').innerHTML = deck.map((k,i)=>`<button class="tile" data-k="${k}" aria-label="card ${i+1}"><div class="inner"><div class="face back"></div><div class="face front">${ICONS[k]}</div></div></button>`).join('');
+  document.querySelectorAll('.tile').forEach(t=>t.onclick=()=>flip(t));
+  speak('Find the pairs! Tap two cards.');
+}
+function flip(t){
+  if(lock || t.classList.contains('open') || t.classList.contains('done')) return;
+  t.classList.add('open'); speak(NAMES[t.dataset.k]); open.push(t);
+  if(open.length<2) return;
+  lock = true;
+  const [a,b] = open;
+  if(a.dataset.k===b.dataset.k){
+    setTimeout(()=>{ a.classList.replace('open','done'); b.classList.replace('open','done'); open=[]; lock=false; found++;
+      speak('A pair! '+NAMES[a.dataset.k]);
+      if(found===Object.keys(NAMES).length) setTimeout(finale, 900);
+    }, 500);
+  } else {
+    setTimeout(()=>{ a.classList.remove('open'); b.classList.remove('open'); open=[]; lock=false; }, 1100);
+  }
+}
+function finale(){
+  $('grid').hidden = true; $('final').classList.add('show');
+  $('say').textContent = 'Great matching!';
+  $('choices').innerHTML = shuffle(Object.keys(NAMES)).map(k=>`<button class="choice" data-k="${k}" aria-label="${NAMES[k]}">${ICONS[k]}</button>`).join('');
+  document.querySelectorAll('.choice').forEach(c=>c.onclick=()=>{
+    if(c.dataset.k===CFG.answer){ $('done').hidden=false; speak(CFG.yes); }
+    else { c.classList.add('shake'); setTimeout(()=>c.classList.remove('shake'),500); speak(CFG.no); }
+  });
+  speak(CFG.ask);
+}
+$('again').onclick = start;
+$('speak').onclick = ()=>speak($('final').classList.contains('show') ? $('q').textContent : $('say').textContent);
+start();
+</script>
+</body>
+</html>
