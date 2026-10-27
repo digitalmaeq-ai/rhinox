@@ -1,0 +1,141 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Small Steps</title>
+<style>
+:root{--blue:#168fe5;--navy:#16324F;--orange:#F7931E;--green:#3BB273;--yellow:#FFC93C;--bg:#F4F9FF;--card:#fff;--ink:#16324F}
+*{box-sizing:border-box}
+body{margin:0;font-family:"Nunito","Trebuchet MS",Arial,sans-serif;background:var(--bg);color:var(--ink);-webkit-tap-highlight-color:transparent}
+.wrap{max-width:860px;margin:0 auto;padding:16px}
+.top{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap}
+.brand{font-weight:800;color:var(--navy);font-size:15px}
+.tag{font-size:12px;background:#fff;border:2px dashed var(--blue);color:var(--navy);border-radius:999px;padding:4px 12px}
+.bubble{margin:16px 0 8px;background:#fff;border-radius:22px;padding:16px 18px;display:flex;gap:14px;align-items:center;box-shadow:0 4px 0 #d8e8f8}
+.bot{flex:0 0 auto;width:54px;height:54px;border-radius:16px;background:var(--blue);color:#fff;display:grid;place-items:center;font-weight:900;font-size:13px;text-align:center;line-height:1.05}
+.say{font-size:clamp(20px,4.2vw,28px);font-weight:800;margin:0}
+.speak{margin-left:auto;border:0;background:var(--yellow);color:var(--navy);font-size:28px;width:60px;height:60px;border-radius:50%;cursor:pointer;box-shadow:0 4px 0 #d9a91e}
+.round{font-weight:800;color:var(--orange);font-size:14px;letter-spacing:.06em;text-transform:uppercase}
+.slots{display:grid;grid-template-columns:repeat(3,1fr);gap:clamp(8px,2vw,18px);margin:18px 0}
+.slot{aspect-ratio:1/1.1;border:4px dashed #9cc9f0;border-radius:24px;background:#fff;position:relative;display:grid;place-items:center;cursor:pointer}
+.slot .num{position:absolute;top:8px;left:12px;font-size:clamp(22px,5vw,34px);font-weight:900;color:var(--blue)}
+.slot .lbl{position:absolute;bottom:6px;width:100%;text-align:center;font-weight:800;font-size:clamp(13px,2.6vw,18px);color:#5b7a98}
+.slot.filled{border-style:solid;border-color:var(--blue)}
+.slot svg,.card svg{width:78%;height:auto}
+.arrows{display:flex;justify-content:space-around;margin-top:-10px;color:var(--blue);font-size:28px;font-weight:900}
+.tray{display:grid;grid-template-columns:repeat(3,1fr);gap:clamp(8px,2vw,18px);min-height:120px;margin-top:6px}
+.card{border:0;padding:6px;background:var(--card);border-radius:22px;box-shadow:0 6px 0 #c9dcef;cursor:pointer;display:grid;place-items:center;transition:transform .15s}
+.card:active{transform:translateY(3px);box-shadow:0 3px 0 #c9dcef}
+.card.gone{visibility:hidden}
+.model{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;max-width:420px;margin:6px auto 0;opacity:.95}
+.model div{background:#fff;border-radius:16px;padding:4px;border:3px solid var(--orange);position:relative}
+.model div b{position:absolute;top:2px;left:8px;color:var(--orange);font-weight:900}
+.model svg{width:100%;height:auto;display:block}
+.bar{display:flex;gap:12px;justify-content:center;margin:18px 0;flex-wrap:wrap}
+.btn{border:0;border-radius:999px;padding:16px 28px;font-size:20px;font-weight:900;cursor:pointer;color:#fff;background:var(--green);box-shadow:0 5px 0 #2a8a57}
+.btn.alt{background:#fff;color:var(--navy);box-shadow:0 5px 0 #c9dcef}
+.btn[disabled]{opacity:.45;cursor:default}
+.shake{animation:sh .5s}
+@keyframes sh{20%,60%{transform:translateX(-8px)}40%,80%{transform:translateX(8px)}}
+.win{display:none;text-align:center;padding:10px}
+.win.show{display:block}
+.stars{font-size:54px;letter-spacing:6px}
+.stars span{display:inline-block;animation:pop .6s backwards}
+.stars span:nth-child(2){animation-delay:.15s}.stars span:nth-child(3){animation-delay:.3s}
+@keyframes pop{from{transform:scale(0)}to{transform:scale(1)}}
+.note{font-size:12px;color:#5b7a98;text-align:center;margin-top:18px}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="top">
+    <div class="brand">Think • Move • Code! · Nursery 1 · Term 3 · Week 2</div>
+    <div class="tag">Optional · just for fun · not a test</div>
+  </div>
+
+  <div class="bubble">
+    <div class="bot">Rhino<br>Bot</div>
+    <div><div class="round" id="round">Round 1 of 2</div><p class="say" id="say">Ayo goes to the shop! Put the small steps in order.</p></div>
+    <button class="speak" id="speak" aria-label="Read aloud">🔊</button>
+  </div>
+
+  <div id="model" class="model" hidden></div>
+
+  <div class="slots" id="slots"></div>
+  
+  <div class="tray" id="tray"></div>
+
+  <div class="bar">
+    <button class="btn alt" id="undo">↩ Undo</button>
+    <button class="btn" id="check" disabled>✔ Check</button>
+  </div>
+
+  <div class="win" id="win">
+    <div class="stars"><span>⭐</span><span>⭐</span><span>⭐</span></div>
+    <p class="say" id="winsay"></p>
+    <div class="bar"><button class="btn" id="next">Next ▶</button></div>
+  </div>
+
+  <p class="note">Works offline once loaded.</p>
+</div>
+
+<script>
+const ICONS = {"leavehome": "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 200 200\"><rect x=\"4\" y=\"4\" width=\"192\" height=\"192\" rx=\"28\" fill=\"#FFF4D6\"/><g transform=\"translate(20 60) scale(1)\"><rect x=\"0\" y=\"30\" width=\"70\" height=\"56\" fill=\"#F3D9B1\" stroke=\"#16324F\" stroke-width=\"4\"/><path d=\"M-6 32 L35 0 L76 32Z\" fill=\"#168fe5\" stroke=\"#16324F\" stroke-width=\"4\" stroke-linejoin=\"round\"/><rect x=\"26\" y=\"54\" width=\"18\" height=\"32\" fill=\"#B5651D\"/><rect x=\"6\" y=\"42\" width=\"14\" height=\"12\" fill=\"#cfe9fb\"/></g><circle cx=\"140\" cy=\"80\" r=\"15\" fill=\"#8D5524\"/><path d=\"M127 74 Q140 51 153 74 Q140 67 127 74Z\" fill=\"#1d1d1d\"/><circle cx=\"131\" cy=\"82\" r=\"3.4\" fill=\"#1d1d1d\"/><circle cx=\"149\" cy=\"82\" r=\"3.4\" fill=\"#1d1d1d\"/><path d=\"M131 92 Q140 100 149 92\" stroke=\"#1d1d1d\" stroke-width=\"3\" fill=\"none\" stroke-linecap=\"round\"/><rect x=\"128\" y=\"95\" width=\"24\" height=\"30\" rx=\"9\" fill=\"#F7931E\"/><path d=\"M134 124 L130 146\" stroke=\"#16324F\" stroke-width=\"8\" stroke-linecap=\"round\"/><path d=\"M146 124 L152 146\" stroke=\"#16324F\" stroke-width=\"8\" stroke-linecap=\"round\"/><path d=\"M168 150 L190 150 M182 142 L190 150 L182 158\" stroke=\"#3BB273\" stroke-width=\"5\" fill=\"none\" stroke-linecap=\"round\" stroke-linejoin=\"round\"/><rect x=\"10\" y=\"170\" width=\"180\" height=\"8\" rx=\"4\" fill=\"#cfd8e3\"/></svg>", "star_outline": "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 200 200\"><polygon points=\"100.0,28.0 78.8,78.9 23.9,83.3 65.8,119.1 53.0,172.7 100.0,144.0 147.0,172.7 134.2,119.1 176.1,83.3 121.2,78.9\" fill=\"#FFFFFF\" stroke=\"#16324F\" stroke-width=\"7\" stroke-linejoin=\"round\"/></svg>", "plateclean": "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 200 200\"><rect x=\"4\" y=\"4\" width=\"192\" height=\"192\" rx=\"28\" fill=\"#E6F7EE\"/><ellipse cx=\"100\" cy=\"118\" rx=\"58\" ry=\"30\" fill=\"#fff\" stroke=\"#16324F\" stroke-width=\"5\"/><ellipse cx=\"100\" cy=\"114\" rx=\"34\" ry=\"16\" fill=\"none\" stroke=\"#c9dcef\" stroke-width=\"4\"/><path d=\"M140 64 L146 76 L158 78 L148 86 L150 98 L140 92 L130 98 L132 86 L122 78 L134 76Z\" fill=\"#FFC93C\"/></svg>", "pouring": "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 200 200\"><rect x=\"4\" y=\"4\" width=\"192\" height=\"192\" rx=\"28\" fill=\"#E6F1FC\"/><g transform=\"rotate(-55 90 90)\"><path d=\"M60 70 L120 70 L126 150 L54 150Z\" fill=\"#BFE3FF\" stroke=\"#16324F\" stroke-width=\"5\" stroke-linejoin=\"round\"/><path d=\"M120 86 Q150 96 124 126\" stroke=\"#16324F\" stroke-width=\"6\" fill=\"none\"/><path d=\"M60 70 L48 60\" stroke=\"#16324F\" stroke-width=\"5\"/></g><circle cx=\"130\" cy=\"116\" r=\"11\" fill=\"#E5484D\" stroke=\"#16324F\" stroke-width=\"3\"/><circle cx=\"146\" cy=\"136\" r=\"11\" fill=\"#168fe5\" stroke=\"#16324F\" stroke-width=\"3\"/><path d=\"M110 170 L180 170 L168 192 L122 192Z\" fill=\"#fff\" stroke=\"#16324F\" stroke-width=\"4\" transform=\"translate(0,-28)\"/></svg>", "comehome": "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 200 200\"><rect x=\"4\" y=\"4\" width=\"192\" height=\"192\" rx=\"28\" fill=\"#F1E9FF\"/><g transform=\"translate(90 60) scale(1)\"><rect x=\"0\" y=\"30\" width=\"70\" height=\"56\" fill=\"#F3D9B1\" stroke=\"#16324F\" stroke-width=\"4\"/><path d=\"M-6 32 L35 0 L76 32Z\" fill=\"#168fe5\" stroke=\"#16324F\" stroke-width=\"4\" stroke-linejoin=\"round\"/><rect x=\"26\" y=\"54\" width=\"18\" height=\"32\" fill=\"#B5651D\"/><rect x=\"6\" y=\"42\" width=\"14\" height=\"12\" fill=\"#cfe9fb\"/></g><circle cx=\"56\" cy=\"80\" r=\"15\" fill=\"#8D5524\"/><path d=\"M43 74 Q56 51 69 74 Q56 67 43 74Z\" fill=\"#1d1d1d\"/><circle cx=\"47\" cy=\"82\" r=\"3.4\" fill=\"#1d1d1d\"/><circle cx=\"65\" cy=\"82\" r=\"3.4\" fill=\"#1d1d1d\"/><path d=\"M47 92 Q56 100 65 92\" stroke=\"#1d1d1d\" stroke-width=\"3\" fill=\"none\" stroke-linecap=\"round\"/><rect x=\"44\" y=\"95\" width=\"24\" height=\"30\" rx=\"9\" fill=\"#F7931E\"/><path d=\"M50 124 L46 146\" stroke=\"#16324F\" stroke-width=\"8\" stroke-linecap=\"round\"/><path d=\"M62 124 L68 146\" stroke=\"#16324F\" stroke-width=\"8\" stroke-linecap=\"round\"/><path d=\"M66 104 L84 118\" stroke=\"#8D5524\" stroke-width=\"7\" stroke-linecap=\"round\"/><rect x=\"78\" y=\"112\" width=\"22\" height=\"22\" rx=\"4\" fill=\"#ffffff\" stroke=\"#16324F\" stroke-width=\"3\"/><ellipse cx=\"89\" cy=\"112\" rx=\"9\" ry=\"6\" fill=\"#D9A066\"/><rect x=\"10\" y=\"170\" width=\"180\" height=\"8\" rx=\"4\" fill=\"#cfd8e3\"/></svg>", "matrolling": "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 200 200\"><rect x=\"4\" y=\"4\" width=\"192\" height=\"192\" rx=\"28\" fill=\"#FFF4D6\"/><path d=\"M40 130 L120 130 L110 160 L50 160Z\" fill=\"#E5484D\" stroke=\"#16324F\" stroke-width=\"5\" stroke-linejoin=\"round\"/><ellipse cx=\"140\" cy=\"136\" rx=\"22\" ry=\"24\" fill=\"#E5484D\" stroke=\"#16324F\" stroke-width=\"5\"/><path d=\"M140 124 A12 12 0 1 1 128 138\" stroke=\"#FFC93C\" stroke-width=\"4\" fill=\"none\"/><path d=\"M150 96 Q170 110 160 126\" stroke=\"#3BB273\" stroke-width=\"5\" fill=\"none\"/><path d=\"M152 118 L160 128 L168 116\" stroke=\"#3BB273\" stroke-width=\"5\" fill=\"none\"/></svg>", "bread": "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 200 200\"><rect x=\"4\" y=\"4\" width=\"192\" height=\"192\" rx=\"28\" fill=\"#FFF4D6\"/><path d=\"M40 120 Q40 70 100 70 Q160 70 160 120 L160 150 Q160 160 150 160 L50 160 Q40 160 40 150Z\" fill=\"#D9A066\" stroke=\"#8a5a2b\" stroke-width=\"5\"/><path d=\"M70 92 L80 82 M98 90 L108 80 M126 92 L136 82\" stroke=\"#8a5a2b\" stroke-width=\"4\" stroke-linecap=\"round\"/><path d=\"M148 120 Q160 108 172 120 Q178 140 160 146 Z\" fill=\"#ffffff\" stroke=\"#8a5a2b\" stroke-width=\"3\"/><circle cx=\"150\" cy=\"52\" r=\"18\" fill=\"#8D5524\"/><path d=\"M134 46 Q150 20 166 46 Q150 36 134 46Z\" fill=\"#1d1d1d\"/><circle cx=\"141\" cy=\"54\" r=\"3.4\" fill=\"#1d1d1d\"/><circle cx=\"159\" cy=\"54\" r=\"3.4\" fill=\"#1d1d1d\"/><path d=\"M141 62 Q150 74 159 62\" stroke=\"#1d1d1d\" stroke-width=\"3\" fill=\"none\" stroke-linecap=\"round\"/></svg>", "bigjob": "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 200 200\"><rect x=\"4\" y=\"4\" width=\"192\" height=\"192\" rx=\"28\" fill=\"#F1E9FF\"/><rect x=\"22\" y=\"56\" width=\"70\" height=\"90\" rx=\"6\" fill=\"#8E5BD9\" stroke=\"#16324F\" stroke-width=\"5\"/><path d=\"M100 100 L120 100\" stroke=\"#16324F\" stroke-width=\"6\"/><path d=\"M114 90 L126 100 L114 110\" fill=\"none\" stroke=\"#16324F\" stroke-width=\"6\"/><rect x=\"134\" y=\"44\" width=\"40\" height=\"30\" rx=\"4\" fill=\"#F7931E\" stroke=\"#16324F\" stroke-width=\"4\"/><rect x=\"134\" y=\"86\" width=\"40\" height=\"30\" rx=\"4\" fill=\"#3BB273\" stroke=\"#16324F\" stroke-width=\"4\"/><rect x=\"134\" y=\"128\" width=\"40\" height=\"30\" rx=\"4\" fill=\"#168fe5\" stroke=\"#16324F\" stroke-width=\"4\"/><text x=\"154\" y=\"66\" font-family=\"Arial\" font-weight=\"900\" font-size=\"18\" text-anchor=\"middle\" fill=\"#fff\">1</text><text x=\"154\" y=\"108\" font-family=\"Arial\" font-weight=\"900\" font-size=\"18\" text-anchor=\"middle\" fill=\"#fff\">2</text><text x=\"154\" y=\"150\" font-family=\"Arial\" font-weight=\"900\" font-size=\"18\" text-anchor=\"middle\" fill=\"#fff\">3</text></svg>", "matflat": "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 200 200\"><rect x=\"4\" y=\"4\" width=\"192\" height=\"192\" rx=\"28\" fill=\"#FFF4D6\"/><path d=\"M30 120 L170 120 L150 160 L50 160Z\" fill=\"#E5484D\" stroke=\"#16324F\" stroke-width=\"5\" stroke-linejoin=\"round\"/><path d=\"M60 128 L140 128 M56 140 L144 140 M52 152 L148 152\" stroke=\"#FFC93C\" stroke-width=\"4\"/></svg>", "jug": "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 200 200\"><rect x=\"4\" y=\"4\" width=\"192\" height=\"192\" rx=\"28\" fill=\"#E6F1FC\"/><path d=\"M60 70 L120 70 L126 150 L54 150Z\" fill=\"#BFE3FF\" stroke=\"#16324F\" stroke-width=\"5\" stroke-linejoin=\"round\"/><path d=\"M120 86 Q150 96 124 126\" stroke=\"#16324F\" stroke-width=\"6\" fill=\"none\"/><path d=\"M60 70 L48 60\" stroke=\"#16324F\" stroke-width=\"5\"/><circle cx=\"76\" cy=\"128\" r=\"11\" fill=\"#E5484D\" stroke=\"#16324F\" stroke-width=\"3\"/><circle cx=\"100\" cy=\"130\" r=\"11\" fill=\"#168fe5\" stroke=\"#16324F\" stroke-width=\"3\"/><circle cx=\"88\" cy=\"108\" r=\"11\" fill=\"#FFC93C\" stroke=\"#16324F\" stroke-width=\"3\"/></svg>", "pay": "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 200 200\"><rect x=\"4\" y=\"4\" width=\"192\" height=\"192\" rx=\"28\" fill=\"#E6F7EE\"/><rect x=\"30\" y=\"70\" width=\"110\" height=\"60\" rx=\"8\" fill=\"#9ED9A6\" stroke=\"#16324F\" stroke-width=\"5\" transform=\"rotate(-8 85 100)\"/><circle cx=\"85\" cy=\"100\" r=\"16\" fill=\"none\" stroke=\"#2f7d3b\" stroke-width=\"5\" transform=\"rotate(-8 85 100)\"/><circle cx=\"146\" cy=\"124\" r=\"24\" fill=\"#FFC93C\" stroke=\"#16324F\" stroke-width=\"5\"/><circle cx=\"160\" cy=\"98\" r=\"20\" fill=\"#FFC93C\" stroke=\"#16324F\" stroke-width=\"5\"/><path d=\"M60 160 Q100 142 150 160\" stroke=\"#8D5524\" stroke-width=\"14\" fill=\"none\" stroke-linecap=\"round\"/></svg>", "market": "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 200 200\"><rect x=\"4\" y=\"4\" width=\"192\" height=\"192\" rx=\"28\" fill=\"#E6F7EE\"/><path d=\"M24 50 L176 50 L166 82 L34 82 Z\" fill=\"#3BB273\"/><path d=\"M44 50 L63 50 L61 82 L46 82Z\" fill=\"#ffffff\"/><path d=\"M82 50 L101 50 L99 82 L84 82Z\" fill=\"#ffffff\"/><path d=\"M120 50 L139 50 L137 82 L122 82Z\" fill=\"#ffffff\"/><rect x=\"34\" y=\"82\" width=\"6\" height=\"90\" fill=\"#B5651D\"/><rect x=\"160\" y=\"82\" width=\"6\" height=\"90\" fill=\"#B5651D\"/><rect x=\"30\" y=\"128\" width=\"140\" height=\"14\" rx=\"4\" fill=\"#B5651D\"/><ellipse cx=\"64\" cy=\"120\" rx=\"16\" ry=\"11\" fill=\"#D9A066\" stroke=\"#8a5a2b\" stroke-width=\"3\"/><ellipse cx=\"100\" cy=\"120\" rx=\"16\" ry=\"11\" fill=\"#D9A066\" stroke=\"#8a5a2b\" stroke-width=\"3\"/><ellipse cx=\"136\" cy=\"120\" rx=\"16\" ry=\"11\" fill=\"#D9A066\" stroke=\"#8a5a2b\" stroke-width=\"3\"/></svg>", "matrolled": "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 200 200\"><rect x=\"4\" y=\"4\" width=\"192\" height=\"192\" rx=\"28\" fill=\"#FFF4D6\"/><rect x=\"40\" y=\"96\" width=\"120\" height=\"44\" rx=\"22\" fill=\"#E5484D\" stroke=\"#16324F\" stroke-width=\"5\"/><ellipse cx=\"150\" cy=\"118\" rx=\"12\" ry=\"22\" fill=\"#c43a3e\" stroke=\"#16324F\" stroke-width=\"4\"/><path d=\"M150 108 A8 8 0 1 1 144 120\" stroke=\"#FFC93C\" stroke-width=\"3\" fill=\"none\"/></svg>", "platedirty": "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 200 200\"><rect x=\"4\" y=\"4\" width=\"192\" height=\"192\" rx=\"28\" fill=\"#FDECEC\"/><ellipse cx=\"100\" cy=\"118\" rx=\"58\" ry=\"30\" fill=\"#fff\" stroke=\"#16324F\" stroke-width=\"5\"/><ellipse cx=\"100\" cy=\"114\" rx=\"34\" ry=\"16\" fill=\"none\" stroke=\"#c9dcef\" stroke-width=\"4\"/><circle cx=\"86\" cy=\"110\" r=\"7\" fill=\"#C8955C\"/><circle cx=\"110\" cy=\"118\" r=\"5\" fill=\"#E5484D\"/><circle cx=\"100\" cy=\"106\" r=\"4\" fill=\"#3BB273\"/></svg>", "bowlfull": "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 200 200\"><rect x=\"4\" y=\"4\" width=\"192\" height=\"192\" rx=\"28\" fill=\"#E6F7EE\"/><path d=\"M36 100 L164 100 Q160 160 100 164 Q40 160 36 100Z\" fill=\"#fff\" stroke=\"#16324F\" stroke-width=\"5\"/><circle cx=\"70\" cy=\"92\" r=\"11\" fill=\"#E5484D\" stroke=\"#16324F\" stroke-width=\"3\"/><circle cx=\"96\" cy=\"88\" r=\"11\" fill=\"#168fe5\" stroke=\"#16324F\" stroke-width=\"3\"/><circle cx=\"122\" cy=\"92\" r=\"11\" fill=\"#FFC93C\" stroke=\"#16324F\" stroke-width=\"3\"/><circle cx=\"84\" cy=\"74\" r=\"11\" fill=\"#3BB273\" stroke=\"#16324F\" stroke-width=\"3\"/><circle cx=\"110\" cy=\"72\" r=\"11\" fill=\"#E5484D\" stroke=\"#16324F\" stroke-width=\"3\"/></svg>", "platewash": "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 200 200\"><rect x=\"4\" y=\"4\" width=\"192\" height=\"192\" rx=\"28\" fill=\"#E6F1FC\"/><ellipse cx=\"100\" cy=\"118\" rx=\"58\" ry=\"30\" fill=\"#fff\" stroke=\"#16324F\" stroke-width=\"5\"/><ellipse cx=\"100\" cy=\"114\" rx=\"34\" ry=\"16\" fill=\"none\" stroke=\"#c9dcef\" stroke-width=\"4\"/><circle cx=\"70\" cy=\"80\" r=\"10\" fill=\"#fff\" stroke=\"#7cc4ff\" stroke-width=\"3\"/><circle cx=\"92\" cy=\"66\" r=\"8\" fill=\"#fff\" stroke=\"#7cc4ff\" stroke-width=\"3\"/><circle cx=\"118\" cy=\"76\" r=\"12\" fill=\"#fff\" stroke=\"#7cc4ff\" stroke-width=\"3\"/><path d=\"M140 70 L160 50\" stroke=\"#FFC93C\" stroke-width=\"14\" stroke-linecap=\"round\"/></svg>", "qmark": "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 200 200\"><rect x=\"4\" y=\"4\" width=\"192\" height=\"192\" rx=\"28\" fill=\"#FFF4D6\"/><circle cx=\"100\" cy=\"100\" r=\"66\" fill=\"#ffffff\" stroke=\"#F7931E\" stroke-width=\"6\" stroke-dasharray=\"10 8\"/><text x=\"100\" y=\"128\" text-anchor=\"middle\" font-family=\"Inter, Arial\" font-weight=\"800\" font-size=\"84\" fill=\"#F7931E\">?</text></svg>"};
+const ROUNDS = [{"say": "Ayo goes to the shop! Put the small steps in order.", "order": ["leavehome", "market", "comehome"], "labels": {"leavehome": "leave home", "market": "buy bread", "comehome": "go home"}, "oops": "Think: what does Ayo do first?", "win": "Leave home, buy bread, go home. Big job done!"}, {"say": "Roll the mat in small steps.", "order": ["matflat", "matrolling", "matrolled"], "labels": {"matflat": "flat mat", "matrolling": "roll it up", "matrolled": "rolled up"}, "oops": "What does the mat look like at the start?", "win": "Flat, roll it, rolled up!"}, {"say": "Pour the counters into the bowl, one small step at a time.", "order": ["jug", "pouring", "bowlfull"], "labels": {"jug": "jug with counters", "pouring": "pour slowly", "bowlfull": "counters in the bowl"}, "oops": "Where are the counters at the start?", "win": "Jug, pour, bowl. Well done!"}, {"say": "Wash your plate in small steps. One card does not belong!", "order": ["platedirty", "platewash", "plateclean"], "extra": ["bread"], "labels": {"platedirty": "dirty plate", "platewash": "wash it", "plateclean": "clean plate", "bread": "bread"}, "oops": "Which step is about washing the plate?", "win": "Dirty, wash, clean! You broke it small!"}, {"say": "Stretch! Four small steps: add pay.", "stretch": true, "order": ["leavehome", "market", "pay", "comehome"], "labels": {"leavehome": "leave home", "market": "buy bread", "pay": "pay", "comehome": "go home"}, "oops": "When does Ayo pay: before or after he goes home?", "win": "Leave home, buy bread, pay, go home. Four steps!"}];
+const WORDS = n => n===3 ? ["first","next","last"] : ["first", ...Array(n-2).fill("next"), "last"];
+let r = 0, placed = [];
+const $ = id => document.getElementById(id);
+
+function speak(t){
+  try{ if(!('speechSynthesis' in window)) return; speechSynthesis.cancel();
+    const u = new SpeechSynthesisUtterance(t); u.rate = .85; u.pitch = 1.1; speechSynthesis.speak(u);}catch(e){}
+}
+function shuffle(a){ a = a.slice(); do{ for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]];} }while(a.join()===ROUNDS[r].order.join()); return a; }
+
+function build(){
+  const R = ROUNDS[r]; placed = [];
+  $('round').textContent = `Round ${r+1} of ${ROUNDS.length}` + (R.stretch ? ' · Stretch' : '');
+  $('say').textContent = R.say;
+  $('win').classList.remove('show');
+  const m = $('model'); m.hidden = !R.model; m.innerHTML = R.model ? R.order.map((k,i)=>`<div><b>${i+1}</b>${ICONS[k]}</div>`).join('') : '';
+  $('slots').style.gridTemplateColumns = `repeat(${R.order.length},1fr)`; $('tray').style.gridTemplateColumns = `repeat(${R.order.length+(R.extra||[]).length},1fr)`;
+  $('slots').innerHTML = WORDS(R.order.length).map((w,i)=>`<div class="slot" data-i="${i}"><span class="num">${i+1}</span><span class="lbl">${w}</span></div>`).join('');
+  $('tray').innerHTML = shuffle(R.order.concat(R.extra||[])).map(k=>`<button class="card" data-k="${k}" aria-label="${R.labels[k]}">${ICONS[k]}</button>`).join('');
+  document.querySelectorAll('.card').forEach(c=>c.onclick=()=>place(c));
+  sync(); speak(R.say);
+}
+function place(c){
+  if(placed.length>=ROUNDS[r].order.length) return;
+  placed.push(c.dataset.k); c.classList.add('gone'); speak(ROUNDS[r].labels[c.dataset.k]); sync();
+}
+function sync(){
+  const R = ROUNDS[r];
+  document.querySelectorAll('.slot').forEach((s,i)=>{
+    const k = placed[i];
+    s.classList.toggle('filled', !!k);
+    s.querySelectorAll('svg').forEach(x=>x.remove());
+    if(k) s.insertAdjacentHTML('beforeend', ICONS[k]);
+  });
+  $('check').disabled = placed.length<R.order.length;
+}
+$('undo').onclick = ()=>{ const k = placed.pop(); if(!k) return; const c=document.querySelector(`.card.gone[data-k="${k}"]`); c.classList.remove('gone'); sync(); };
+$('check').onclick = ()=>{
+  const R = ROUNDS[r];
+  if(placed.join()===R.order.join()){
+    $('say').textContent = 'You did it!'; $('winsay').textContent = R.win; $('win').classList.add('show'); speak("Well done! "+R.win);
+    $('next').textContent = r < ROUNDS.length-1 ? 'Next ▶' : 'Play again ↻';
+    $('win').scrollIntoView({behavior:'smooth',block:'center'});
+  } else {
+    $('slots').classList.add('shake'); setTimeout(()=>$('slots').classList.remove('shake'),500);
+    const t = R.oops || (R.model ? "Oops! Look at RhinoBot's cards and try again." : "Oops! What does Ayo do first? Try again.");
+    $('say').textContent = t; speak(t);
+    setTimeout(()=>{ placed=[]; document.querySelectorAll('.card').forEach(c=>c.classList.remove('gone')); sync(); }, 900);
+  }
+};
+$('next').onclick = ()=>{ r = (r+1) % ROUNDS.length; build(); window.scrollTo({top:0,behavior:'smooth'}); };
+$('speak').onclick = ()=>speak($('say').textContent);
+build();
+</script>
+</body>
+</html>

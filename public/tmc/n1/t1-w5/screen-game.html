@@ -1,0 +1,117 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Fix It!</title>
+<style>
+:root{--blue:#168fe5;--navy:#16324F;--orange:#F7931E;--green:#3BB273;--yellow:#FFC93C;--bg:#F4F9FF;--card:#fff;--ink:#16324F}
+*{box-sizing:border-box}
+body{margin:0;font-family:"Nunito","Trebuchet MS",Arial,sans-serif;background:var(--bg);color:var(--ink);-webkit-tap-highlight-color:transparent}
+.wrap{max-width:860px;margin:0 auto;padding:16px}
+.top{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap}
+.brand{font-weight:800;color:var(--navy);font-size:15px}
+.tag{font-size:12px;background:#fff;border:2px dashed var(--blue);color:var(--navy);border-radius:999px;padding:4px 12px}
+.bubble{margin:16px 0 8px;background:#fff;border-radius:22px;padding:16px 18px;display:flex;gap:14px;align-items:center;box-shadow:0 4px 0 #d8e8f8}
+.bot{flex:0 0 auto;width:54px;height:54px;border-radius:16px;background:var(--blue);color:#fff;display:grid;place-items:center;font-weight:900;font-size:13px;text-align:center;line-height:1.05}
+.say{font-size:clamp(20px,4.2vw,28px);font-weight:800;margin:0}
+.speak{margin-left:auto;border:0;background:var(--yellow);color:var(--navy);font-size:28px;width:60px;height:60px;border-radius:50%;cursor:pointer;box-shadow:0 4px 0 #d9a91e}
+.round{font-weight:800;color:var(--orange);font-size:14px;letter-spacing:.06em;text-transform:uppercase}
+.slots{display:grid;grid-template-columns:repeat(3,1fr);gap:clamp(8px,2vw,18px);margin:18px 0}
+.slot{aspect-ratio:1/1.1;border:4px dashed #9cc9f0;border-radius:24px;background:#fff;position:relative;display:grid;place-items:center;cursor:pointer}
+.slot .num{position:absolute;top:8px;left:12px;font-size:clamp(22px,5vw,34px);font-weight:900;color:var(--blue)}
+.slot .lbl{position:absolute;bottom:6px;width:100%;text-align:center;font-weight:800;font-size:clamp(13px,2.6vw,18px);color:#5b7a98}
+.slot.filled{border-style:solid;border-color:var(--blue)}
+.slot.pick{border-color:var(--orange);background:#FFF4D6;transform:translateY(-4px)}
+.slot.bad{border-color:#D9534F}
+.slot{transition:transform .15s}
+.slot svg,.card svg{width:78%;height:auto}
+.arrows{display:flex;justify-content:space-around;margin-top:-10px;color:var(--blue);font-size:28px;font-weight:900}
+.tray{display:grid;grid-template-columns:repeat(3,1fr);gap:clamp(8px,2vw,18px);min-height:120px;margin-top:6px}
+.card{border:0;padding:6px;background:var(--card);border-radius:22px;box-shadow:0 6px 0 #c9dcef;cursor:pointer;display:grid;place-items:center;transition:transform .15s}
+.card:active{transform:translateY(3px);box-shadow:0 3px 0 #c9dcef}
+.card.gone{visibility:hidden}
+.model{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;max-width:420px;margin:6px auto 0;opacity:.95}
+.model div{background:#fff;border-radius:16px;padding:4px;border:3px solid var(--orange);position:relative}
+.model div b{position:absolute;top:2px;left:8px;color:var(--orange);font-weight:900}
+.model svg{width:100%;height:auto;display:block}
+.bar{display:flex;gap:12px;justify-content:center;margin:18px 0;flex-wrap:wrap}
+.btn{border:0;border-radius:999px;padding:16px 28px;font-size:20px;font-weight:900;cursor:pointer;color:#fff;background:var(--green);box-shadow:0 5px 0 #2a8a57}
+.btn.alt{background:#fff;color:var(--navy);box-shadow:0 5px 0 #c9dcef}
+.btn[disabled]{opacity:.45;cursor:default}
+.shake{animation:sh .5s}
+@keyframes sh{20%,60%{transform:translateX(-8px)}40%,80%{transform:translateX(8px)}}
+.win{display:none;text-align:center;padding:10px}
+.win.show{display:block}
+.stars{font-size:54px;letter-spacing:6px}
+.stars span{display:inline-block;animation:pop .6s backwards}
+.stars span:nth-child(2){animation-delay:.15s}.stars span:nth-child(3){animation-delay:.3s}
+@keyframes pop{from{transform:scale(0)}to{transform:scale(1)}}
+.note{font-size:12px;color:#5b7a98;text-align:center;margin-top:18px}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="top">
+    <div class="brand">Think • Move • Code! · Nursery 1 · Week 5</div>
+    <div class="tag">Optional · just for fun · not a test</div>
+  </div>
+  <div class="bubble">
+    <div class="bot">Rhino<br>Bot</div>
+    <div><div class="round" id="round">Round 1</div><p class="say" id="say"></p></div>
+    <button class="speak" id="speak" aria-label="Read aloud">🔊</button>
+  </div>
+  <p style="text-align:center;font-weight:800;color:#5b7a98;margin:4px 0 0">Tap two cards to swap them.</p>
+  <div class="slots" id="slots"></div>
+  <div class="bar"><button class="btn" id="check">✔ Check</button></div>
+  <div class="win" id="win">
+    <div class="stars"><span>⭐</span><span>⭐</span><span>⭐</span></div>
+    <p class="say" id="winsay"></p>
+    <div class="bar"><button class="btn" id="next">Next ▶</button></div>
+  </div>
+  <p class="note">Works offline once loaded.</p>
+</div>
+<script>
+const ICONS = {"socks": "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 200 200\"><rect x=\"4\" y=\"4\" width=\"192\" height=\"192\" rx=\"28\" fill=\"#F1E9FF\"/><path d=\"M70 40 L100 40 L100 102 Q100 126 78 130 L48 130 Q30 128 32 114 Q36 102 64 102 L70 102 Z\" fill=\"#8E5BD9\" stroke=\"#16324F\" stroke-width=\"4\" stroke-linejoin=\"round\"/><rect x=\"70\" y=\"40\" width=\"30\" height=\"12\" fill=\"#ffffff\" stroke=\"#16324F\" stroke-width=\"3\"/><rect x=\"70\" y=\"70\" width=\"30\" height=\"8\" fill=\"#ffffff\" opacity=\".7\"/><path d=\"M128 52 L158 52 L158 114 Q158 138 136 142 L106 142 Q88 140 90 126 Q94 114 122 114 L128 114 Z\" fill=\"#8E5BD9\" stroke=\"#16324F\" stroke-width=\"4\" stroke-linejoin=\"round\"/><rect x=\"128\" y=\"52\" width=\"30\" height=\"12\" fill=\"#ffffff\" stroke=\"#16324F\" stroke-width=\"3\"/><rect x=\"128\" y=\"82\" width=\"30\" height=\"8\" fill=\"#ffffff\" opacity=\".7\"/></svg>", "shoes": "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 200 200\"><rect x=\"4\" y=\"4\" width=\"192\" height=\"192\" rx=\"28\" fill=\"#E3F3FF\"/><path d=\"M32 52 L66 52 L72 78 Q106 84 108 104 L108 112 L28 112 Z\" fill=\"#168fe5\" stroke=\"#16324F\" stroke-width=\"4\" stroke-linejoin=\"round\"/><rect x=\"26\" y=\"108\" width=\"84\" height=\"10\" rx=\"5\" fill=\"#ffffff\" stroke=\"#16324F\" stroke-width=\"3\"/><path d=\"M40 66 L62 62 M40 76 L64 72\" stroke=\"#ffffff\" stroke-width=\"3\" stroke-linecap=\"round\"/><path d=\"M96 100 L130 100 L136 126 Q170 132 172 152 L172 160 L92 160 Z\" fill=\"#168fe5\" stroke=\"#16324F\" stroke-width=\"4\" stroke-linejoin=\"round\"/><rect x=\"90\" y=\"156\" width=\"84\" height=\"10\" rx=\"5\" fill=\"#ffffff\" stroke=\"#16324F\" stroke-width=\"3\"/><path d=\"M104 114 L126 110 M104 124 L128 120\" stroke=\"#ffffff\" stroke-width=\"3\" stroke-linecap=\"round\"/></svg>", "walk": "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 200 200\"><rect x=\"4\" y=\"4\" width=\"192\" height=\"192\" rx=\"28\" fill=\"#E6F7EE\"/><circle cx=\"96\" cy=\"48\" r=\"20\" fill=\"#8D5524\"/><path d=\"M78 42 Q96 14 114 42 Q96 30 78 42Z\" fill=\"#1d1d1d\"/><circle cx=\"87\" cy=\"50\" r=\"3.4\" fill=\"#1d1d1d\"/><circle cx=\"105\" cy=\"50\" r=\"3.4\" fill=\"#1d1d1d\"/><path d=\"M87 60 Q96 68 105 60\" stroke=\"#1d1d1d\" stroke-width=\"3\" fill=\"none\" stroke-linecap=\"round\"/><rect x=\"80\" y=\"68\" width=\"32\" height=\"44\" rx=\"12\" fill=\"#F7931E\"/><path d=\"M86 108 L70 150\" stroke=\"#16324F\" stroke-width=\"11\" stroke-linecap=\"round\"/><path d=\"M104 108 L122 148\" stroke=\"#16324F\" stroke-width=\"11\" stroke-linecap=\"round\"/><path d=\"M82 76 L62 100\" stroke=\"#8D5524\" stroke-width=\"9\" stroke-linecap=\"round\"/><path d=\"M110 76 L130 96\" stroke=\"#8D5524\" stroke-width=\"9\" stroke-linecap=\"round\"/><ellipse cx=\"146\" cy=\"172\" rx=\"7\" ry=\"11\" fill=\"#3BB273\" opacity=\".7\" transform=\"rotate(90 146 172)\"/><ellipse cx=\"172\" cy=\"160\" rx=\"7\" ry=\"11\" fill=\"#3BB273\" opacity=\".7\" transform=\"rotate(90 172 160)\"/><path d=\"M140 120 L176 120 M164 108 L178 120 L164 132\" stroke=\"#3BB273\" stroke-width=\"7\" fill=\"none\" stroke-linecap=\"round\" stroke-linejoin=\"round\"/></svg>", "wake": "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 200 200\"><rect x=\"4\" y=\"4\" width=\"192\" height=\"192\" rx=\"28\" fill=\"#FFF4D6\"/><circle cx=\"160\" cy=\"44\" r=\"18\" fill=\"#FFC93C\"/><line x1=\"160\" y1=\"44\" x2=\"190\" y2=\"44\" stroke=\"#FFC93C\" stroke-width=\"5\" stroke-linecap=\"round\"/><line x1=\"160\" y1=\"44\" x2=\"130\" y2=\"44\" stroke=\"#FFC93C\" stroke-width=\"5\" stroke-linecap=\"round\"/><line x1=\"160\" y1=\"44\" x2=\"160\" y2=\"74\" stroke=\"#FFC93C\" stroke-width=\"5\" stroke-linecap=\"round\"/><line x1=\"160\" y1=\"44\" x2=\"160\" y2=\"14\" stroke=\"#FFC93C\" stroke-width=\"5\" stroke-linecap=\"round\"/><line x1=\"160\" y1=\"44\" x2=\"181.0\" y2=\"65.0\" stroke=\"#FFC93C\" stroke-width=\"5\" stroke-linecap=\"round\"/><line x1=\"160\" y1=\"44\" x2=\"139.0\" y2=\"65.0\" stroke=\"#FFC93C\" stroke-width=\"5\" stroke-linecap=\"round\"/><line x1=\"160\" y1=\"44\" x2=\"181.0\" y2=\"23.0\" stroke=\"#FFC93C\" stroke-width=\"5\" stroke-linecap=\"round\"/><line x1=\"160\" y1=\"44\" x2=\"139.0\" y2=\"23.0\" stroke=\"#FFC93C\" stroke-width=\"5\" stroke-linecap=\"round\"/><rect x=\"22\" y=\"120\" width=\"156\" height=\"34\" rx=\"8\" fill=\"#168fe5\"/><rect x=\"22\" y=\"96\" width=\"16\" height=\"78\" rx=\"6\" fill=\"#16324F\"/><rect x=\"162\" y=\"112\" width=\"16\" height=\"62\" rx=\"6\" fill=\"#16324F\"/><rect x=\"40\" y=\"104\" width=\"34\" height=\"18\" rx=\"8\" fill=\"#ffffff\"/><rect x=\"78\" y=\"96\" width=\"44\" height=\"40\" rx=\"14\" fill=\"#F7931E\"/><circle cx=\"100\" cy=\"78\" r=\"22\" fill=\"#8D5524\"/><path d=\"M80 72 Q100 42 120 72 Q100 58 80 72Z\" fill=\"#1d1d1d\"/><circle cx=\"91\" cy=\"80\" r=\"3.4\" fill=\"#1d1d1d\"/><circle cx=\"109\" cy=\"80\" r=\"3.4\" fill=\"#1d1d1d\"/><path d=\"M91 90 Q100 98 109 90\" stroke=\"#1d1d1d\" stroke-width=\"3\" fill=\"none\" stroke-linecap=\"round\"/><path d=\"M80 104 L58 70\" stroke=\"#F7931E\" stroke-width=\"11\" stroke-linecap=\"round\"/><path d=\"M120 104 L142 70\" stroke=\"#F7931E\" stroke-width=\"11\" stroke-linecap=\"round\"/><circle cx=\"57\" cy=\"66\" r=\"7\" fill=\"#8D5524\"/><circle cx=\"143\" cy=\"66\" r=\"7\" fill=\"#8D5524\"/><rect x=\"60\" y=\"118\" width=\"110\" height=\"20\" rx=\"8\" fill=\"#ffffff\" opacity=\".9\"/></svg>", "brush": "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 200 200\"><rect x=\"4\" y=\"4\" width=\"192\" height=\"192\" rx=\"28\" fill=\"#E3F3FF\"/><circle cx=\"96\" cy=\"96\" r=\"46\" fill=\"#8D5524\"/><path d=\"M52 90 Q96 36 140 90 Q96 52 52 90Z\" fill=\"#1d1d1d\"/><circle cx=\"87\" cy=\"98\" r=\"3.4\" fill=\"#1d1d1d\"/><circle cx=\"105\" cy=\"98\" r=\"3.4\" fill=\"#1d1d1d\"/><path d=\"M87 108 Q96 116 105 108\" stroke=\"#1d1d1d\" stroke-width=\"4\" fill=\"none\" stroke-linecap=\"round\"/><rect x=\"80\" y=\"104\" width=\"34\" height=\"12\" rx=\"6\" fill=\"#ffffff\" stroke=\"#1d1d1d\" stroke-width=\"2\"/><rect x=\"110\" y=\"104\" width=\"70\" height=\"12\" rx=\"6\" fill=\"#168fe5\"/><rect x=\"96\" y=\"98\" width=\"20\" height=\"8\" rx=\"3\" fill=\"#ffffff\" stroke=\"#168fe5\" stroke-width=\"2\"/><circle cx=\"62\" cy=\"128\" r=\"8\" fill=\"#DFF3FF\" stroke=\"#168fe5\" stroke-width=\"2\"/><circle cx=\"48\" cy=\"112\" r=\"6\" fill=\"#DFF3FF\" stroke=\"#168fe5\" stroke-width=\"2\"/><circle cx=\"56\" cy=\"146\" r=\"5\" fill=\"#DFF3FF\" stroke=\"#168fe5\" stroke-width=\"2\"/><rect x=\"58\" y=\"150\" width=\"76\" height=\"40\" rx=\"18\" fill=\"#F7931E\"/></svg>", "eat": "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 200 200\"><rect x=\"4\" y=\"4\" width=\"192\" height=\"192\" rx=\"28\" fill=\"#E6F7EE\"/><ellipse cx=\"100\" cy=\"130\" rx=\"74\" ry=\"40\" fill=\"#ffffff\" stroke=\"#16324F\" stroke-width=\"4\"/><ellipse cx=\"100\" cy=\"128\" rx=\"50\" ry=\"25\" fill=\"#F3F7FB\"/><ellipse cx=\"86\" cy=\"126\" rx=\"26\" ry=\"16\" fill=\"#ffffff\" stroke=\"#e6e6e6\" stroke-width=\"2\"/><circle cx=\"86\" cy=\"126\" r=\"9\" fill=\"#FFC93C\"/><rect x=\"108\" y=\"118\" width=\"34\" height=\"18\" rx=\"6\" fill=\"#D9A066\"/><rect x=\"112\" y=\"122\" width=\"26\" height=\"4\" rx=\"2\" fill=\"#B97D40\"/><rect x=\"150\" y=\"40\" width=\"30\" height=\"44\" rx=\"6\" fill=\"#ffffff\" stroke=\"#16324F\" stroke-width=\"4\"/><rect x=\"154\" y=\"58\" width=\"22\" height=\"22\" fill=\"#F7931E\" opacity=\".85\"/><ellipse cx=\"42\" cy=\"70\" rx=\"10\" ry=\"14\" fill=\"#cfd8e3\"/><rect x=\"38\" y=\"80\" width=\"8\" height=\"40\" rx=\"4\" fill=\"#cfd8e3\"/></svg>"};
+const ROUNDS = [{"say": "Silly Ayo! Shoes before socks? Find the two cards in the wrong place and swap them.", "start": ["shoes", "socks", "walk"], "order": ["socks", "shoes", "walk"], "labels": {"socks": "socks", "shoes": "shoes", "walk": "walk"}, "win": "Socks first, shoes next, then walk. Fixed!"}, {"say": "Ayo\u2019s morning is mixed up. Find the two wrong cards and swap them.", "start": ["eat", "brush", "wake"], "order": ["wake", "brush", "eat"], "labels": {"wake": "wake up", "brush": "brush teeth", "eat": "eat breakfast"}, "win": "Wake up, brush teeth, eat breakfast. Fixed!"}, {"say": "Stretch! Four cards, two are swapped. Fix them.", "stretch": true, "start": ["wake", "shoes", "socks", "walk"], "order": ["wake", "socks", "shoes", "walk"], "labels": {"wake": "wake up", "socks": "socks", "shoes": "shoes", "walk": "walk"}, "win": "Wake up, socks, shoes, walk. Four cards fixed!"}];
+const WORDS = n => n===3 ? ["first","next","last"] : ["first", ...Array(n-2).fill("next"), "last"];
+let r = 0, cards = [], pick = null;
+const $ = id => document.getElementById(id);
+function speak(t){ try{ if(!('speechSynthesis' in window)) return; speechSynthesis.cancel(); const u=new SpeechSynthesisUtterance(t); u.rate=.85; u.pitch=1.1; speechSynthesis.speak(u);}catch(e){} }
+function build(){
+  const R = ROUNDS[r]; cards = R.start.slice(); pick = null;
+  $('round').textContent = `Round ${r+1} of ${ROUNDS.length}` + (R.stretch ? ' · Stretch' : '');
+  $('say').textContent = R.say; $('win').classList.remove('show');
+  $('slots').style.gridTemplateColumns = `repeat(${cards.length},1fr)`;
+  draw(); speak(R.say);
+}
+function draw(){
+  const w = WORDS(cards.length);
+  $('slots').innerHTML = cards.map((k,i)=>`<div class="slot filled" data-i="${i}" role="button" aria-label="${ROUNDS[r].labels[k]}"><span class="num">${i+1}</span><span class="lbl">${w[i]}</span>${ICONS[k]}</div>`).join('');
+  document.querySelectorAll('.slot').forEach(s=>s.onclick=()=>tap(+s.dataset.i));
+}
+function tap(i){
+  const R = ROUNDS[r];
+  if(pick===null){ pick=i; speak(R.labels[cards[i]]); document.querySelector(`.slot[data-i="${i}"]`).classList.add('pick'); return; }
+  if(pick===i){ pick=null; draw(); return; }
+  [cards[pick],cards[i]]=[cards[i],cards[pick]]; pick=null; draw(); speak('Swapped!');
+}
+$('check').onclick = ()=>{
+  const R = ROUNDS[r];
+  if(cards.join()===R.order.join()){
+    $('winsay').textContent = R.win; $('win').classList.add('show'); speak('Fixed! '+R.win);
+    $('next').textContent = r < ROUNDS.length-1 ? 'Next ▶' : 'Play again ↻';
+    $('win').scrollIntoView({behavior:'smooth',block:'center'});
+  } else {
+    document.querySelectorAll('.slot').forEach((s,i)=>{ if(cards[i]!==R.order[i]) s.classList.add('bad'); });
+    $('slots').classList.add('shake'); setTimeout(()=>$('slots').classList.remove('shake'),500);
+    const t = R.oops || 'Not yet! Act it out step by step. Which card is in the wrong place?';
+    $('say').textContent = t; speak(t);
+  }
+};
+$('next').onclick = ()=>{ r=(r+1)%ROUNDS.length; build(); window.scrollTo({top:0,behavior:'smooth'}); };
+$('speak').onclick = ()=>speak($('say').textContent);
+build();
+</script>
+</body>
+</html>

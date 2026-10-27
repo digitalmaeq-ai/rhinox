@@ -1,0 +1,141 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Ayo's Morning</title>
+<style>
+:root{--blue:#168fe5;--navy:#16324F;--orange:#F7931E;--green:#3BB273;--yellow:#FFC93C;--bg:#F4F9FF;--card:#fff;--ink:#16324F}
+*{box-sizing:border-box}
+body{margin:0;font-family:"Nunito","Trebuchet MS",Arial,sans-serif;background:var(--bg);color:var(--ink);-webkit-tap-highlight-color:transparent}
+.wrap{max-width:860px;margin:0 auto;padding:16px}
+.top{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap}
+.brand{font-weight:800;color:var(--navy);font-size:15px}
+.tag{font-size:12px;background:#fff;border:2px dashed var(--blue);color:var(--navy);border-radius:999px;padding:4px 12px}
+.bubble{margin:16px 0 8px;background:#fff;border-radius:22px;padding:16px 18px;display:flex;gap:14px;align-items:center;box-shadow:0 4px 0 #d8e8f8}
+.bot{flex:0 0 auto;width:54px;height:54px;border-radius:16px;background:var(--blue);color:#fff;display:grid;place-items:center;font-weight:900;font-size:13px;text-align:center;line-height:1.05}
+.say{font-size:clamp(20px,4.2vw,28px);font-weight:800;margin:0}
+.speak{margin-left:auto;border:0;background:var(--yellow);color:var(--navy);font-size:28px;width:60px;height:60px;border-radius:50%;cursor:pointer;box-shadow:0 4px 0 #d9a91e}
+.round{font-weight:800;color:var(--orange);font-size:14px;letter-spacing:.06em;text-transform:uppercase}
+.slots{display:grid;grid-template-columns:repeat(3,1fr);gap:clamp(8px,2vw,18px);margin:18px 0}
+.slot{aspect-ratio:1/1.1;border:4px dashed #9cc9f0;border-radius:24px;background:#fff;position:relative;display:grid;place-items:center;cursor:pointer}
+.slot .num{position:absolute;top:8px;left:12px;font-size:clamp(22px,5vw,34px);font-weight:900;color:var(--blue)}
+.slot .lbl{position:absolute;bottom:6px;width:100%;text-align:center;font-weight:800;font-size:clamp(13px,2.6vw,18px);color:#5b7a98}
+.slot.filled{border-style:solid;border-color:var(--blue)}
+.slot svg,.card svg{width:78%;height:auto}
+.arrows{display:flex;justify-content:space-around;margin-top:-10px;color:var(--blue);font-size:28px;font-weight:900}
+.tray{display:grid;grid-template-columns:repeat(3,1fr);gap:clamp(8px,2vw,18px);min-height:120px;margin-top:6px}
+.card{border:0;padding:6px;background:var(--card);border-radius:22px;box-shadow:0 6px 0 #c9dcef;cursor:pointer;display:grid;place-items:center;transition:transform .15s}
+.card:active{transform:translateY(3px);box-shadow:0 3px 0 #c9dcef}
+.card.gone{visibility:hidden}
+.model{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;max-width:420px;margin:6px auto 0;opacity:.95}
+.model div{background:#fff;border-radius:16px;padding:4px;border:3px solid var(--orange);position:relative}
+.model div b{position:absolute;top:2px;left:8px;color:var(--orange);font-weight:900}
+.model svg{width:100%;height:auto;display:block}
+.bar{display:flex;gap:12px;justify-content:center;margin:18px 0;flex-wrap:wrap}
+.btn{border:0;border-radius:999px;padding:16px 28px;font-size:20px;font-weight:900;cursor:pointer;color:#fff;background:var(--green);box-shadow:0 5px 0 #2a8a57}
+.btn.alt{background:#fff;color:var(--navy);box-shadow:0 5px 0 #c9dcef}
+.btn[disabled]{opacity:.45;cursor:default}
+.shake{animation:sh .5s}
+@keyframes sh{20%,60%{transform:translateX(-8px)}40%,80%{transform:translateX(8px)}}
+.win{display:none;text-align:center;padding:10px}
+.win.show{display:block}
+.stars{font-size:54px;letter-spacing:6px}
+.stars span{display:inline-block;animation:pop .6s backwards}
+.stars span:nth-child(2){animation-delay:.15s}.stars span:nth-child(3){animation-delay:.3s}
+@keyframes pop{from{transform:scale(0)}to{transform:scale(1)}}
+.note{font-size:12px;color:#5b7a98;text-align:center;margin-top:18px}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="top">
+    <div class="brand">Think • Move • Code! · Nursery 1 · Week 2</div>
+    <div class="tag">Optional · just for fun · not a test</div>
+  </div>
+
+  <div class="bubble">
+    <div class="bot">Rhino<br>Bot</div>
+    <div><div class="round" id="round">Round 1 of 2</div><p class="say" id="say">Ayo's morning is mixed up! Tap it in order.</p></div>
+    <button class="speak" id="speak" aria-label="Read aloud">🔊</button>
+  </div>
+
+  <div id="model" class="model" hidden></div>
+
+  <div class="slots" id="slots"></div>
+  
+  <div class="tray" id="tray"></div>
+
+  <div class="bar">
+    <button class="btn alt" id="undo">↩ Undo</button>
+    <button class="btn" id="check" disabled>✔ Check</button>
+  </div>
+
+  <div class="win" id="win">
+    <div class="stars"><span>⭐</span><span>⭐</span><span>⭐</span></div>
+    <p class="say" id="winsay"></p>
+    <div class="bar"><button class="btn" id="next">Next ▶</button></div>
+  </div>
+
+  <p class="note">Works offline once loaded.</p>
+</div>
+
+<script>
+const ICONS = {"wake": "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 200 200\"><rect x=\"4\" y=\"4\" width=\"192\" height=\"192\" rx=\"28\" fill=\"#FFF4D6\"/><circle cx=\"160\" cy=\"44\" r=\"18\" fill=\"#FFC93C\"/><line x1=\"160\" y1=\"44\" x2=\"190\" y2=\"44\" stroke=\"#FFC93C\" stroke-width=\"5\" stroke-linecap=\"round\"/><line x1=\"160\" y1=\"44\" x2=\"130\" y2=\"44\" stroke=\"#FFC93C\" stroke-width=\"5\" stroke-linecap=\"round\"/><line x1=\"160\" y1=\"44\" x2=\"160\" y2=\"74\" stroke=\"#FFC93C\" stroke-width=\"5\" stroke-linecap=\"round\"/><line x1=\"160\" y1=\"44\" x2=\"160\" y2=\"14\" stroke=\"#FFC93C\" stroke-width=\"5\" stroke-linecap=\"round\"/><line x1=\"160\" y1=\"44\" x2=\"181.0\" y2=\"65.0\" stroke=\"#FFC93C\" stroke-width=\"5\" stroke-linecap=\"round\"/><line x1=\"160\" y1=\"44\" x2=\"139.0\" y2=\"65.0\" stroke=\"#FFC93C\" stroke-width=\"5\" stroke-linecap=\"round\"/><line x1=\"160\" y1=\"44\" x2=\"181.0\" y2=\"23.0\" stroke=\"#FFC93C\" stroke-width=\"5\" stroke-linecap=\"round\"/><line x1=\"160\" y1=\"44\" x2=\"139.0\" y2=\"23.0\" stroke=\"#FFC93C\" stroke-width=\"5\" stroke-linecap=\"round\"/><rect x=\"22\" y=\"120\" width=\"156\" height=\"34\" rx=\"8\" fill=\"#168fe5\"/><rect x=\"22\" y=\"96\" width=\"16\" height=\"78\" rx=\"6\" fill=\"#16324F\"/><rect x=\"162\" y=\"112\" width=\"16\" height=\"62\" rx=\"6\" fill=\"#16324F\"/><rect x=\"40\" y=\"104\" width=\"34\" height=\"18\" rx=\"8\" fill=\"#ffffff\"/><rect x=\"78\" y=\"96\" width=\"44\" height=\"40\" rx=\"14\" fill=\"#F7931E\"/><circle cx=\"100\" cy=\"78\" r=\"22\" fill=\"#8D5524\"/><path d=\"M80 72 Q100 42 120 72 Q100 58 80 72Z\" fill=\"#1d1d1d\"/><circle cx=\"91\" cy=\"80\" r=\"3.4\" fill=\"#1d1d1d\"/><circle cx=\"109\" cy=\"80\" r=\"3.4\" fill=\"#1d1d1d\"/><path d=\"M91 90 Q100 98 109 90\" stroke=\"#1d1d1d\" stroke-width=\"3\" fill=\"none\" stroke-linecap=\"round\"/><path d=\"M80 104 L58 70\" stroke=\"#F7931E\" stroke-width=\"11\" stroke-linecap=\"round\"/><path d=\"M120 104 L142 70\" stroke=\"#F7931E\" stroke-width=\"11\" stroke-linecap=\"round\"/><circle cx=\"57\" cy=\"66\" r=\"7\" fill=\"#8D5524\"/><circle cx=\"143\" cy=\"66\" r=\"7\" fill=\"#8D5524\"/><rect x=\"60\" y=\"118\" width=\"110\" height=\"20\" rx=\"8\" fill=\"#ffffff\" opacity=\".9\"/></svg>", "dressed": "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 200 200\"><rect x=\"4\" y=\"4\" width=\"192\" height=\"192\" rx=\"28\" fill=\"#E3F3FF\"/><circle cx=\"100\" cy=\"62\" r=\"24\" fill=\"#8D5524\"/><path d=\"M78 56 Q100 24 122 56 Q100 40 78 56Z\" fill=\"#1d1d1d\"/><circle cx=\"91\" cy=\"64\" r=\"3.4\" fill=\"#1d1d1d\"/><circle cx=\"109\" cy=\"64\" r=\"3.4\" fill=\"#1d1d1d\"/><path d=\"M91 74 Q100 82 109 74\" stroke=\"#1d1d1d\" stroke-width=\"3\" fill=\"none\" stroke-linecap=\"round\"/><rect x=\"80\" y=\"84\" width=\"40\" height=\"22\" rx=\"8\" fill=\"#8D5524\"/><path d=\"M58 100 L84 88 L116 88 L142 100 L154 128 L136 134 L132 120 L132 176 L68 176 L68 120 L64 134 L46 128 Z\" fill=\"#168fe5\" stroke=\"#16324F\" stroke-width=\"4\" stroke-linejoin=\"round\"/><path d=\"M88 88 L100 104 L112 88\" fill=\"#ffffff\" stroke=\"#16324F\" stroke-width=\"3\"/><circle cx=\"100\" cy=\"122\" r=\"3.5\" fill=\"#ffffff\"/><circle cx=\"100\" cy=\"140\" r=\"3.5\" fill=\"#ffffff\"/><circle cx=\"100\" cy=\"158\" r=\"3.5\" fill=\"#ffffff\"/><circle cx=\"50\" cy=\"128\" r=\"9\" fill=\"#8D5524\"/><circle cx=\"150\" cy=\"128\" r=\"9\" fill=\"#8D5524\"/></svg>", "school": "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 200 200\"><rect x=\"4\" y=\"4\" width=\"192\" height=\"192\" rx=\"28\" fill=\"#FFF4D6\"/><rect x=\"104\" y=\"70\" width=\"80\" height=\"70\" fill=\"#F3D9B1\" stroke=\"#16324F\" stroke-width=\"4\"/><path d=\"M98 72 L144 40 L190 72 Z\" fill=\"#D9534F\" stroke=\"#16324F\" stroke-width=\"4\" stroke-linejoin=\"round\"/><rect x=\"134\" y=\"106\" width=\"20\" height=\"34\" fill=\"#16324F\"/><rect x=\"112\" y=\"84\" width=\"16\" height=\"14\" fill=\"#168fe5\"/><rect x=\"160\" y=\"84\" width=\"16\" height=\"14\" fill=\"#168fe5\"/><line x1=\"144\" y1=\"40\" x2=\"144\" y2=\"18\" stroke=\"#16324F\" stroke-width=\"3\"/><path d=\"M144 18 L164 24 L144 30Z\" fill=\"#3BB273\"/><rect x=\"10\" y=\"150\" width=\"180\" height=\"12\" rx=\"6\" fill=\"#cfd8e3\"/><circle cx=\"56\" cy=\"76\" r=\"18\" fill=\"#8D5524\"/><path d=\"M40 70 Q56 44 72 70 Q56 60 40 70Z\" fill=\"#1d1d1d\"/><circle cx=\"47\" cy=\"78\" r=\"3.4\" fill=\"#1d1d1d\"/><circle cx=\"65\" cy=\"78\" r=\"3.4\" fill=\"#1d1d1d\"/><path d=\"M47 88 Q56 96 65 88\" stroke=\"#1d1d1d\" stroke-width=\"3\" fill=\"none\" stroke-linecap=\"round\"/><rect x=\"40\" y=\"94\" width=\"32\" height=\"34\" rx=\"10\" fill=\"#F7931E\"/><rect x=\"28\" y=\"96\" width=\"14\" height=\"26\" rx=\"5\" fill=\"#8E5BD9\"/><path d=\"M48 126 L40 150\" stroke=\"#16324F\" stroke-width=\"9\" stroke-linecap=\"round\"/><path d=\"M64 126 L74 150\" stroke=\"#16324F\" stroke-width=\"9\" stroke-linecap=\"round\"/><path d=\"M70 102 L84 116\" stroke=\"#8D5524\" stroke-width=\"8\" stroke-linecap=\"round\"/></svg>", "bath": "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 200 200\"><rect x=\"4\" y=\"4\" width=\"192\" height=\"192\" rx=\"28\" fill=\"#E3F3FF\"/><path d=\"M48 92 L152 92 L140 172 L60 172 Z\" fill=\"#168fe5\" stroke=\"#16324F\" stroke-width=\"4\" stroke-linejoin=\"round\"/><ellipse cx=\"100\" cy=\"92\" rx=\"52\" ry=\"10\" fill=\"#9fd4fb\" stroke=\"#16324F\" stroke-width=\"4\"/><path d=\"M52 92 Q100 30 148 92\" stroke=\"#16324F\" stroke-width=\"4\" fill=\"none\"/><circle cx=\"76\" cy=\"80\" r=\"10\" fill=\"#ffffff\" stroke=\"#168fe5\" stroke-width=\"2.5\"/><circle cx=\"96\" cy=\"70\" r=\"13\" fill=\"#ffffff\" stroke=\"#168fe5\" stroke-width=\"2.5\"/><circle cx=\"120\" cy=\"78\" r=\"9\" fill=\"#ffffff\" stroke=\"#168fe5\" stroke-width=\"2.5\"/><circle cx=\"110\" cy=\"56\" r=\"7\" fill=\"#ffffff\" stroke=\"#168fe5\" stroke-width=\"2.5\"/><circle cx=\"84\" cy=\"58\" r=\"6\" fill=\"#ffffff\" stroke=\"#168fe5\" stroke-width=\"2.5\"/><circle cx=\"132\" cy=\"64\" r=\"5\" fill=\"#ffffff\" stroke=\"#168fe5\" stroke-width=\"2.5\"/><rect x=\"150\" y=\"130\" width=\"34\" height=\"22\" rx=\"7\" fill=\"#FFC93C\" stroke=\"#F7931E\" stroke-width=\"3\"/></svg>"};
+const ROUNDS = [{"say": "Ayo's morning is mixed up! Tap it in order.", "order": ["wake", "dressed", "school"], "labels": {"wake": "wake up", "dressed": "get dressed", "school": "walk to school"}, "win": "First Ayo wakes up. Next he gets dressed. Last he walks to school!"}, {"say": "Stretch! Put four steps in order.", "stretch": true, "order": ["wake", "bath", "dressed", "school"], "labels": {"wake": "wake up", "bath": "take a bath", "dressed": "get dressed", "school": "walk to school"}, "win": "Wake up, bath, get dressed, walk to school. Four steps in order!"}];
+const WORDS = n => n===3 ? ["first","next","last"] : ["first", ...Array(n-2).fill("next"), "last"];
+let r = 0, placed = [];
+const $ = id => document.getElementById(id);
+
+function speak(t){
+  try{ if(!('speechSynthesis' in window)) return; speechSynthesis.cancel();
+    const u = new SpeechSynthesisUtterance(t); u.rate = .85; u.pitch = 1.1; speechSynthesis.speak(u);}catch(e){}
+}
+function shuffle(a){ a = a.slice(); do{ for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]];} }while(a.join()===ROUNDS[r].order.join()); return a; }
+
+function build(){
+  const R = ROUNDS[r]; placed = [];
+  $('round').textContent = `Round ${r+1} of ${ROUNDS.length}` + (R.stretch ? ' · Stretch' : '');
+  $('say').textContent = R.say;
+  $('win').classList.remove('show');
+  const m = $('model'); m.hidden = !R.model; m.innerHTML = R.model ? R.order.map((k,i)=>`<div><b>${i+1}</b>${ICONS[k]}</div>`).join('') : '';
+  $('slots').style.gridTemplateColumns = `repeat(${R.order.length},1fr)`; $('tray').style.gridTemplateColumns = `repeat(${R.order.length},1fr)`;
+  $('slots').innerHTML = WORDS(R.order.length).map((w,i)=>`<div class="slot" data-i="${i}"><span class="num">${i+1}</span><span class="lbl">${w}</span></div>`).join('');
+  $('tray').innerHTML = shuffle(R.order).map(k=>`<button class="card" data-k="${k}" aria-label="${R.labels[k]}">${ICONS[k]}</button>`).join('');
+  document.querySelectorAll('.card').forEach(c=>c.onclick=()=>place(c));
+  sync(); speak(R.say);
+}
+function place(c){
+  if(placed.length>=ROUNDS[r].order.length) return;
+  placed.push(c.dataset.k); c.classList.add('gone'); speak(ROUNDS[r].labels[c.dataset.k]); sync();
+}
+function sync(){
+  const R = ROUNDS[r];
+  document.querySelectorAll('.slot').forEach((s,i)=>{
+    const k = placed[i];
+    s.classList.toggle('filled', !!k);
+    s.querySelectorAll('svg').forEach(x=>x.remove());
+    if(k) s.insertAdjacentHTML('beforeend', ICONS[k]);
+  });
+  $('check').disabled = placed.length<R.order.length;
+}
+$('undo').onclick = ()=>{ const k = placed.pop(); if(!k) return; const c=document.querySelector(`.card[data-k="${k}"]`); c.classList.remove('gone'); sync(); };
+$('check').onclick = ()=>{
+  const R = ROUNDS[r];
+  if(placed.join()===R.order.join()){
+    $('winsay').textContent = R.win; $('win').classList.add('show'); speak("Well done! "+R.win);
+    $('next').textContent = r < ROUNDS.length-1 ? 'Next ▶' : 'Play again ↻';
+    $('win').scrollIntoView({behavior:'smooth',block:'center'});
+  } else {
+    $('slots').classList.add('shake'); setTimeout(()=>$('slots').classList.remove('shake'),500);
+    const t = R.model ? "Oops! Look at RhinoBot's cards and try again." : "Oops! What does Ayo do first? Try again.";
+    $('say').textContent = t; speak(t);
+    setTimeout(()=>{ placed=[]; document.querySelectorAll('.card').forEach(c=>c.classList.remove('gone')); sync(); }, 900);
+  }
+};
+$('next').onclick = ()=>{ r = (r+1) % ROUNDS.length; build(); window.scrollTo({top:0,behavior:'smooth'}); };
+$('speak').onclick = ()=>speak($('say').textContent);
+build();
+</script>
+</body>
+</html>

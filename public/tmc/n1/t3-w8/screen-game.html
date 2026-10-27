@@ -1,0 +1,141 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Ayo’s Big Challenge</title>
+<style>
+:root{--blue:#168fe5;--navy:#16324F;--orange:#F7931E;--green:#3BB273;--yellow:#FFC93C;--bg:#F4F9FF;--card:#fff;--ink:#16324F}
+*{box-sizing:border-box}
+body{margin:0;font-family:"Nunito","Trebuchet MS",Arial,sans-serif;background:var(--bg);color:var(--ink);-webkit-tap-highlight-color:transparent}
+.wrap{max-width:860px;margin:0 auto;padding:16px}
+.top{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap}
+.brand{font-weight:800;color:var(--navy);font-size:15px}
+.tag{font-size:12px;background:#fff;border:2px dashed var(--blue);color:var(--navy);border-radius:999px;padding:4px 12px}
+.bubble{margin:16px 0 8px;background:#fff;border-radius:22px;padding:16px 18px;display:flex;gap:14px;align-items:center;box-shadow:0 4px 0 #d8e8f8}
+.bot{flex:0 0 auto;width:54px;height:54px;border-radius:16px;background:var(--blue);color:#fff;display:grid;place-items:center;font-weight:900;font-size:13px;text-align:center;line-height:1.05}
+.say{font-size:clamp(20px,4.2vw,28px);font-weight:800;margin:0}
+.speak{margin-left:auto;border:0;background:var(--yellow);color:var(--navy);font-size:28px;width:60px;height:60px;border-radius:50%;cursor:pointer;box-shadow:0 4px 0 #d9a91e}
+.round{font-weight:800;color:var(--orange);font-size:14px;letter-spacing:.06em;text-transform:uppercase}
+.slots{display:grid;grid-template-columns:repeat(3,1fr);gap:clamp(8px,2vw,18px);margin:18px 0}
+.slot{aspect-ratio:1/1.1;border:4px dashed #9cc9f0;border-radius:24px;background:#fff;position:relative;display:grid;place-items:center;cursor:pointer}
+.slot .num{position:absolute;top:8px;left:12px;font-size:clamp(22px,5vw,34px);font-weight:900;color:var(--blue)}
+.slot .lbl{position:absolute;bottom:6px;width:100%;text-align:center;font-weight:800;font-size:clamp(13px,2.6vw,18px);color:#5b7a98}
+.slot.filled{border-style:solid;border-color:var(--blue)}
+.slot svg,.card svg{width:78%;height:auto}
+.arrows{display:flex;justify-content:space-around;margin-top:-10px;color:var(--blue);font-size:28px;font-weight:900}
+.tray{display:grid;grid-template-columns:repeat(3,1fr);gap:clamp(8px,2vw,18px);min-height:120px;margin-top:6px}
+.card{border:0;padding:6px;background:var(--card);border-radius:22px;box-shadow:0 6px 0 #c9dcef;cursor:pointer;display:grid;place-items:center;transition:transform .15s}
+.card:active{transform:translateY(3px);box-shadow:0 3px 0 #c9dcef}
+.card.gone{visibility:hidden}
+.model{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;max-width:420px;margin:6px auto 0;opacity:.95}
+.model div{background:#fff;border-radius:16px;padding:4px;border:3px solid var(--orange);position:relative}
+.model div b{position:absolute;top:2px;left:8px;color:var(--orange);font-weight:900}
+.model svg{width:100%;height:auto;display:block}
+.bar{display:flex;gap:12px;justify-content:center;margin:18px 0;flex-wrap:wrap}
+.btn{border:0;border-radius:999px;padding:16px 28px;font-size:20px;font-weight:900;cursor:pointer;color:#fff;background:var(--green);box-shadow:0 5px 0 #2a8a57}
+.btn.alt{background:#fff;color:var(--navy);box-shadow:0 5px 0 #c9dcef}
+.btn[disabled]{opacity:.45;cursor:default}
+.shake{animation:sh .5s}
+@keyframes sh{20%,60%{transform:translateX(-8px)}40%,80%{transform:translateX(8px)}}
+.win{display:none;text-align:center;padding:10px}
+.win.show{display:block}
+.stars{font-size:54px;letter-spacing:6px}
+.stars span{display:inline-block;animation:pop .6s backwards}
+.stars span:nth-child(2){animation-delay:.15s}.stars span:nth-child(3){animation-delay:.3s}
+@keyframes pop{from{transform:scale(0)}to{transform:scale(1)}}
+.note{font-size:12px;color:#5b7a98;text-align:center;margin-top:18px}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="top">
+    <div class="brand">Think • Move • Code! · Nursery 1 · Term 3 · Week 8</div>
+    <div class="tag">Optional · just for fun · not a test</div>
+  </div>
+
+  <div class="bubble">
+    <div class="bot">Rhino<br>Bot</div>
+    <div><div class="round" id="round">Round 1 of 2</div><p class="say" id="say">Plan Ayo’s way through the course: crawl under the table first, then walk round the boxes, then step along the line.</p></div>
+    <button class="speak" id="speak" aria-label="Read aloud">🔊</button>
+  </div>
+
+  <div id="model" class="model" hidden></div>
+
+  <div class="slots" id="slots"></div>
+  
+  <div class="tray" id="tray"></div>
+
+  <div class="bar">
+    <button class="btn alt" id="undo">↩ Undo</button>
+    <button class="btn" id="check" disabled>✔ Check</button>
+  </div>
+
+  <div class="win" id="win">
+    <div class="stars"><span>⭐</span><span>⭐</span><span>⭐</span></div>
+    <p class="say" id="winsay"></p>
+    <div class="bar"><button class="btn" id="next">Next ▶</button></div>
+  </div>
+
+  <p class="note">Works offline once loaded.</p>
+</div>
+
+<script>
+const ICONS = {"qmark": "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 200 200\"><rect x=\"4\" y=\"4\" width=\"192\" height=\"192\" rx=\"28\" fill=\"#FFF4D6\"/><circle cx=\"100\" cy=\"100\" r=\"66\" fill=\"#ffffff\" stroke=\"#F7931E\" stroke-width=\"6\" stroke-dasharray=\"10 8\"/><text x=\"100\" y=\"128\" text-anchor=\"middle\" font-family=\"Inter, Arial\" font-weight=\"800\" font-size=\"84\" fill=\"#F7931E\">?</text></svg>", "rampdown": "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 200 200\"><rect x=\"4\" y=\"4\" width=\"192\" height=\"192\" rx=\"28\" fill=\"#E6F1FC\"/><rect x=\"14\" y=\"160\" width=\"172\" height=\"8\" fill=\"#c9dcef\"/><path d=\"M30 160 L170 160 L30 96Z\" fill=\"#C8955C\" stroke=\"#16324F\" stroke-width=\"4\" stroke-linejoin=\"round\"/><g transform=\"rotate(25 90 120)\"><circle cx=\"78\" cy=\"112\" r=\"16\" fill=\"#F7931E\" stroke=\"#fff\" stroke-width=\"3\"/><circle cx=\"78\" cy=\"112\" r=\"9\" fill=\"#8D5524\"/></g></svg>", "stop": "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 200 200\"><rect x=\"4\" y=\"4\" width=\"192\" height=\"192\" rx=\"28\" fill=\"#FDECEC\"/><polygon points=\"70,30 130,30 172,72 172,128 130,170 70,170 28,128 28,72\" fill=\"#D9534F\" stroke=\"#ffffff\" stroke-width=\"6\"/><rect x=\"86\" y=\"66\" width=\"12\" height=\"44\" rx=\"6\" fill=\"#fff\"/><rect x=\"100\" y=\"58\" width=\"12\" height=\"52\" rx=\"6\" fill=\"#fff\"/><rect x=\"114\" y=\"62\" width=\"12\" height=\"48\" rx=\"6\" fill=\"#fff\"/><rect x=\"128\" y=\"74\" width=\"11\" height=\"38\" rx=\"5.5\" fill=\"#fff\"/><path d=\"M84 98 L74 88 Q66 82 72 96 L86 124 Q94 140 112 140 L122 140 Q138 140 139 120 L139 100 L84 100 Z\" fill=\"#fff\"/></svg>", "team": "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 200 200\"><rect x=\"4\" y=\"4\" width=\"192\" height=\"192\" rx=\"28\" fill=\"#E6F7EE\"/><g transform=\"translate(64,124) scale(1.1)\"><circle cx=\"0\" cy=\"-30\" r=\"12\" fill=\"#8D5524\"/><path d=\"M-12 -34 Q0 -48 12 -34 Q0 -42 -12 -34Z\" fill=\"#1d1d1d\"/><rect x=\"-11\" y=\"-18\" width=\"22\" height=\"20\" rx=\"6\" fill=\"#F7931E\"/><path d=\"M-5 0 L-8 22 M5 0 L8 22\" stroke=\"#16324F\" stroke-width=\"6\" stroke-linecap=\"round\"/></g><g transform=\"translate(100,118) scale(1.25)\"><circle cx=\"0\" cy=\"-30\" r=\"12\" fill=\"#8D5524\"/><path d=\"M-12 -34 Q0 -48 12 -34 Q0 -42 -12 -34Z\" fill=\"#1d1d1d\"/><rect x=\"-11\" y=\"-18\" width=\"22\" height=\"20\" rx=\"6\" fill=\"#F7931E\"/><path d=\"M-5 0 L-8 22 M5 0 L8 22\" stroke=\"#16324F\" stroke-width=\"6\" stroke-linecap=\"round\"/></g><g transform=\"translate(136,124) scale(1.1)\"><circle cx=\"0\" cy=\"-30\" r=\"12\" fill=\"#8D5524\"/><path d=\"M-12 -34 Q0 -48 12 -34 Q0 -42 -12 -34Z\" fill=\"#1d1d1d\"/><rect x=\"-11\" y=\"-18\" width=\"22\" height=\"20\" rx=\"6\" fill=\"#F7931E\"/><path d=\"M-5 0 L-8 22 M5 0 L8 22\" stroke=\"#16324F\" stroke-width=\"6\" stroke-linecap=\"round\"/></g><path d=\"M74 110 L90 104 M110 104 L126 110\" stroke=\"#8D5524\" stroke-width=\"5\" stroke-linecap=\"round\"/></svg>", "ayobread": "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 200 200\"><rect x=\"4\" y=\"4\" width=\"192\" height=\"192\" rx=\"28\" fill=\"#FFF4D6\"/><circle cx=\"80\" cy=\"96\" r=\"44\" fill=\"#F7931E\" stroke=\"#fff\" stroke-width=\"5\"/><circle cx=\"80\" cy=\"98\" r=\"27\" fill=\"#8D5524\"/><circle cx=\"72\" cy=\"98\" r=\"3\" fill=\"#1d1d1d\"/><circle cx=\"88\" cy=\"98\" r=\"3\" fill=\"#1d1d1d\"/><path d=\"M72 108 Q80 115 88 108\" stroke=\"#1d1d1d\" stroke-width=\"3\" fill=\"none\" stroke-linecap=\"round\"/><path d=\"M110 130 Q112 104 140 102 Q170 104 172 130 Q170 150 140 150 Q112 150 110 130Z\" fill=\"#D9A15C\" stroke=\"#16324F\" stroke-width=\"4\"/><path d=\"M126 116 L132 124 M140 112 L146 120 M154 116 L160 124\" stroke=\"#8a5a2b\" stroke-width=\"4\" stroke-linecap=\"round\"/></svg>", "star_outline": "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 200 200\"><polygon points=\"100.0,28.0 78.8,78.9 23.9,83.3 65.8,119.1 53.0,172.7 100.0,144.0 147.0,172.7 134.2,119.1 176.1,83.3 121.2,78.9\" fill=\"#FFFFFF\" stroke=\"#16324F\" stroke-width=\"7\" stroke-linejoin=\"round\"/></svg>", "stepline": "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 200 200\"><rect x=\"4\" y=\"4\" width=\"192\" height=\"192\" rx=\"28\" fill=\"#E6F1FC\"/><rect x=\"14\" y=\"160\" width=\"172\" height=\"8\" fill=\"#c9dcef\"/><rect x=\"20\" y=\"150\" width=\"160\" height=\"10\" fill=\"#FFC93C\" stroke=\"#16324F\" stroke-width=\"2\"/><g transform=\"translate(100,128) scale(1.0)\"><circle cx=\"0\" cy=\"-30\" r=\"12\" fill=\"#8D5524\"/><path d=\"M-12 -34 Q0 -48 12 -34 Q0 -42 -12 -34Z\" fill=\"#1d1d1d\"/><rect x=\"-11\" y=\"-18\" width=\"22\" height=\"20\" rx=\"6\" fill=\"#F7931E\"/><path d=\"M-5 0 L-8 22 M5 0 L8 22\" stroke=\"#16324F\" stroke-width=\"6\" stroke-linecap=\"round\"/></g><path d=\"M90 116 L62 106 M110 116 L138 106\" stroke=\"#8D5524\" stroke-width=\"6\" stroke-linecap=\"round\"/></svg>", "forward": "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 200 200\"><rect x=\"4\" y=\"4\" width=\"192\" height=\"192\" rx=\"28\" fill=\"#E6F7EE\"/><path d=\"M100 30 L160 96 L124 96 L124 170 L76 170 L76 96 L40 96 Z\" fill=\"#3BB273\" stroke=\"#16324F\" stroke-width=\"5\" stroke-linejoin=\"round\"/></svg>", "courseplan": "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 200 200\"><rect x=\"4\" y=\"4\" width=\"192\" height=\"192\" rx=\"28\" fill=\"#fff\"/><rect x=\"20\" y=\"30\" width=\"160\" height=\"140\" rx=\"6\" fill=\"#FFFDF5\" stroke=\"#16324F\" stroke-width=\"4\"/><text x=\"34\" y=\"60\" font-family=\"Arial\" font-weight=\"900\" font-size=\"14\" fill=\"#16324F\">START</text><rect x=\"60\" y=\"74\" width=\"46\" height=\"8\" fill=\"#8a5a2b\"/><rect x=\"120\" y=\"100\" width=\"22\" height=\"22\" fill=\"#C8955C\"/><path d=\"M40 140 L160 140\" stroke=\"#FFC93C\" stroke-width=\"6\"/><path d=\"M40 70 Q80 64 84 92 Q100 120 150 112 Q170 120 160 140\" stroke=\"#168fe5\" stroke-width=\"4\" fill=\"none\" stroke-dasharray=\"7 6\"/><text x=\"128\" y=\"162\" font-family=\"Arial\" font-weight=\"900\" font-size=\"14\" fill=\"#16324F\">BREAD</text></svg>", "wave": "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 200 200\"><rect x=\"4\" y=\"4\" width=\"192\" height=\"192\" rx=\"28\" fill=\"#F1E9FF\"/><rect x=\"116\" y=\"30\" width=\"62\" height=\"146\" rx=\"4\" fill=\"#B5651D\" stroke=\"#16324F\" stroke-width=\"4\"/><circle cx=\"166\" cy=\"108\" r=\"5\" fill=\"#FFC93C\"/><rect x=\"124\" y=\"40\" width=\"46\" height=\"40\" rx=\"3\" fill=\"#cfe9fb\"/><circle cx=\"70\" cy=\"62\" r=\"20\" fill=\"#8D5524\"/><path d=\"M52 56 Q70 28 88 56 Q70 44 52 56Z\" fill=\"#1d1d1d\"/><circle cx=\"61\" cy=\"64\" r=\"3.4\" fill=\"#1d1d1d\"/><circle cx=\"79\" cy=\"64\" r=\"3.4\" fill=\"#1d1d1d\"/><path d=\"M61 74 Q70 82 79 74\" stroke=\"#1d1d1d\" stroke-width=\"3\" fill=\"none\" stroke-linecap=\"round\"/><rect x=\"54\" y=\"82\" width=\"32\" height=\"46\" rx=\"12\" fill=\"#F7931E\"/><path d=\"M62 126 L58 168\" stroke=\"#16324F\" stroke-width=\"11\" stroke-linecap=\"round\"/><path d=\"M78 126 L82 168\" stroke=\"#16324F\" stroke-width=\"11\" stroke-linecap=\"round\"/><path d=\"M84 90 L104 56\" stroke=\"#8D5524\" stroke-width=\"9\" stroke-linecap=\"round\"/><circle cx=\"106\" cy=\"50\" r=\"9\" fill=\"#8D5524\"/><path d=\"M92 38 Q86 44 92 50 M120 38 Q126 44 120 50\" stroke=\"#8E5BD9\" stroke-width=\"4\" fill=\"none\" stroke-linecap=\"round\"/><path d=\"M58 92 L50 120\" stroke=\"#8D5524\" stroke-width=\"9\" stroke-linecap=\"round\"/></svg>", "crawlunder": "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 200 200\"><rect x=\"4\" y=\"4\" width=\"192\" height=\"192\" rx=\"28\" fill=\"#E6F1FC\"/><rect x=\"14\" y=\"160\" width=\"172\" height=\"8\" fill=\"#c9dcef\"/><rect x=\"60\" y=\"88\" width=\"110\" height=\"12\" rx=\"3\" fill=\"#8a5a2b\" stroke=\"#16324F\" stroke-width=\"3\"/><path d=\"M70 100 L70 160 M160 100 L160 160\" stroke=\"#8a5a2b\" stroke-width=\"8\"/><g transform=\"translate(112,150) scale(1.1)\"><circle cx=\"-26\" cy=\"-14\" r=\"12\" fill=\"#8D5524\"/><rect x=\"-16\" y=\"-20\" width=\"40\" height=\"18\" rx=\"8\" fill=\"#F7931E\"/><path d=\"M-12 -2 L-14 14 M18 -2 L22 14 M-6 -2 L-2 14\" stroke=\"#16324F\" stroke-width=\"6\" stroke-linecap=\"round\"/></g></svg>", "walkaround": "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 200 200\"><rect x=\"4\" y=\"4\" width=\"192\" height=\"192\" rx=\"28\" fill=\"#E6F1FC\"/><rect x=\"14\" y=\"160\" width=\"172\" height=\"8\" fill=\"#c9dcef\"/><rect x=\"84\" y=\"126\" width=\"34\" height=\"34\" rx=\"4\" fill=\"#C8955C\" stroke=\"#16324F\" stroke-width=\"4\"/><path d=\"M50 150 Q60 96 100 98 Q140 98 150 150\" stroke=\"#168fe5\" stroke-width=\"6\" fill=\"none\" stroke-dasharray=\"10 7\" stroke-linecap=\"round\"/><g transform=\"translate(156,140) scale(0.9)\"><circle cx=\"0\" cy=\"-30\" r=\"12\" fill=\"#8D5524\"/><path d=\"M-12 -34 Q0 -48 12 -34 Q0 -42 -12 -34Z\" fill=\"#1d1d1d\"/><rect x=\"-11\" y=\"-18\" width=\"22\" height=\"20\" rx=\"6\" fill=\"#F7931E\"/><path d=\"M-5 0 L-8 22 M5 0 L8 22\" stroke=\"#16324F\" stroke-width=\"6\" stroke-linecap=\"round\"/></g></svg>", "goround": "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 200 200\"><rect x=\"4\" y=\"4\" width=\"192\" height=\"192\" rx=\"28\" fill=\"#E6F1FC\"/><g transform=\"translate(40,140)\"><circle r=\"24\" fill=\"#F7931E\" stroke=\"#fff\" stroke-width=\"3\"/><circle cy=\"-1\" r=\"14\" fill=\"#8D5524\"/><path d=\"M-14 -3 Q0 -20 14 -3 Q0 -14 -14 -3Z\" fill=\"#1d1d1d\"/><circle cx=\"-4\" cy=\"0\" r=\"1.6\" fill=\"#1d1d1d\"/><circle cx=\"4\" cy=\"0\" r=\"1.6\" fill=\"#1d1d1d\"/><path d=\"M-4 5 Q0 9 4 5\" stroke=\"#1d1d1d\" stroke-width=\"2\" fill=\"none\" stroke-linecap=\"round\"/></g><rect x=\"84\" y=\"118\" width=\"40\" height=\"40\" rx=\"4\" fill=\"#C8955C\" stroke=\"#16324F\" stroke-width=\"4\"/><path d=\"M84 131.33333333333334 L124 131.33333333333334 M104.0 118 L104.0 158\" stroke=\"#8a5a2b\" stroke-width=\"3\"/><path d=\"M64 132 Q72 70 104 72 Q140 72 150 122\" stroke=\"#168fe5\" stroke-width=\"10\" fill=\"none\" stroke-linecap=\"round\"/><path d=\"M136 116 L152 132 L164 112\" fill=\"none\" stroke=\"#168fe5\" stroke-width=\"10\" stroke-linecap=\"round\" stroke-linejoin=\"round\"/></svg>"};
+const ROUNDS = [{"say": "Plan Ayo\u2019s way through the course: crawl under the table first, then walk round the boxes, then step along the line.", "order": ["crawlunder", "walkaround", "stepline"], "labels": {"crawlunder": "crawl under", "walkaround": "walk around", "stepline": "step along the line"}, "oops": "What does Ayo do first?", "win": "Crawl under, walk around, step along the line. The bread is delivered!"}, {"say": "A new course! First step along the line, next crawl under, last walk around.", "order": ["stepline", "crawlunder", "walkaround"], "extra": ["wave"], "labels": {"stepline": "step along the line", "crawlunder": "crawl under", "walkaround": "walk around", "wave": "wave"}, "oops": "Listen again: what comes first?", "win": "Line, crawl, around. Great plan!"}, {"say": "Oh no, the boxes are blocked! Plan it again with the go round card: crawl under, go round, step along the line.", "order": ["crawlunder", "goround", "stepline"], "extra": ["walkaround"], "labels": {"crawlunder": "crawl under", "goround": "go round", "stepline": "step along the line", "walkaround": "walk around"}, "oops": "The boxes are blocked. Which card goes round?", "win": "You changed one card and it worked!"}, {"say": "Stretch! A second obstacle: crawl under, walk around, step along the line, then roll the bread down the ramp.", "stretch": true, "order": ["crawlunder", "walkaround", "stepline", "rampdown"], "labels": {"crawlunder": "crawl under", "walkaround": "walk around", "stepline": "step along the line", "rampdown": "down the ramp"}, "oops": "What is the last obstacle?", "win": "Four steps! Big challenge solved!"}];
+const WORDS = n => n===3 ? ["first","next","last"] : ["first", ...Array(n-2).fill("next"), "last"];
+let r = 0, placed = [];
+const $ = id => document.getElementById(id);
+
+function speak(t){
+  try{ if(!('speechSynthesis' in window)) return; speechSynthesis.cancel();
+    const u = new SpeechSynthesisUtterance(t); u.rate = .85; u.pitch = 1.1; speechSynthesis.speak(u);}catch(e){}
+}
+function shuffle(a){ a = a.slice(); do{ for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]];} }while(a.join()===ROUNDS[r].order.join()); return a; }
+
+function build(){
+  const R = ROUNDS[r]; placed = [];
+  $('round').textContent = `Round ${r+1} of ${ROUNDS.length}` + (R.stretch ? ' · Stretch' : '');
+  $('say').textContent = R.say;
+  $('win').classList.remove('show');
+  const m = $('model'); m.hidden = !R.model; m.innerHTML = R.model ? R.order.map((k,i)=>`<div><b>${i+1}</b>${ICONS[k]}</div>`).join('') : '';
+  $('slots').style.gridTemplateColumns = `repeat(${R.order.length},1fr)`; $('tray').style.gridTemplateColumns = `repeat(${R.order.length+(R.extra||[]).length},1fr)`;
+  $('slots').innerHTML = WORDS(R.order.length).map((w,i)=>`<div class="slot" data-i="${i}"><span class="num">${i+1}</span><span class="lbl">${w}</span></div>`).join('');
+  $('tray').innerHTML = shuffle(R.order.concat(R.extra||[])).map(k=>`<button class="card" data-k="${k}" aria-label="${R.labels[k]}">${ICONS[k]}</button>`).join('');
+  document.querySelectorAll('.card').forEach(c=>c.onclick=()=>place(c));
+  sync(); speak(R.say);
+}
+function place(c){
+  if(placed.length>=ROUNDS[r].order.length) return;
+  placed.push(c.dataset.k); c.classList.add('gone'); speak(ROUNDS[r].labels[c.dataset.k]); sync();
+}
+function sync(){
+  const R = ROUNDS[r];
+  document.querySelectorAll('.slot').forEach((s,i)=>{
+    const k = placed[i];
+    s.classList.toggle('filled', !!k);
+    s.querySelectorAll('svg').forEach(x=>x.remove());
+    if(k) s.insertAdjacentHTML('beforeend', ICONS[k]);
+  });
+  $('check').disabled = placed.length<R.order.length;
+}
+$('undo').onclick = ()=>{ const k = placed.pop(); if(!k) return; const c=document.querySelector(`.card.gone[data-k="${k}"]`); c.classList.remove('gone'); sync(); };
+$('check').onclick = ()=>{
+  const R = ROUNDS[r];
+  if(placed.join()===R.order.join()){
+    $('say').textContent = 'You did it!'; $('winsay').textContent = R.win; $('win').classList.add('show'); speak("Well done! "+R.win);
+    $('next').textContent = r < ROUNDS.length-1 ? 'Next ▶' : 'Play again ↻';
+    $('win').scrollIntoView({behavior:'smooth',block:'center'});
+  } else {
+    $('slots').classList.add('shake'); setTimeout(()=>$('slots').classList.remove('shake'),500);
+    const t = R.oops || (R.model ? "Oops! Look at RhinoBot's cards and try again." : "Oops! What does Ayo do first? Try again.");
+    $('say').textContent = t; speak(t);
+    setTimeout(()=>{ placed=[]; document.querySelectorAll('.card').forEach(c=>c.classList.remove('gone')); sync(); }, 900);
+  }
+};
+$('next').onclick = ()=>{ r = (r+1) % ROUNDS.length; build(); window.scrollTo({top:0,behavior:'smooth'}); };
+$('speak').onclick = ()=>speak($('say').textContent);
+build();
+</script>
+</body>
+</html>

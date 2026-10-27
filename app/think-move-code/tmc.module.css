@@ -1,0 +1,441 @@
+/* Think • Move • Code! week pages: the plain light layout chosen for the
+   pages the book QR codes open. Phone first: most visits come from a scan. */
+
+.page {
+  background: var(--rx-bg-soft);
+  color: var(--rx-text);
+  padding: clamp(20px, 4vw, 40px) 0 clamp(48px, 7vw, 80px);
+}
+
+.narrow {
+  max-width: 760px;
+}
+
+.crumbs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin: 0 0 18px;
+  padding: 0;
+  list-style: none;
+  font-size: 0.86rem;
+  color: var(--rx-text-soft);
+}
+
+.crumbs li + li::before {
+  content: "›";
+  margin-right: 6px;
+  color: var(--rx-text-muted);
+}
+
+.crumbs a {
+  color: var(--rx-blue);
+  text-decoration: none;
+}
+
+.crumbs a:hover,
+.crumbs a:focus-visible {
+  text-decoration: underline;
+}
+
+/* ---------- Week header ---------- */
+
+.head {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 16px;
+  align-items: end;
+  margin-bottom: 24px;
+}
+
+.eyebrow {
+  margin: 0 0 6px;
+  font-size: 0.82rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--rx-blue);
+}
+
+.title {
+  margin: 0;
+  font-family: var(--rx-font-display);
+  font-size: clamp(1.7rem, 5vw, 2.4rem);
+  line-height: 1.15;
+  font-weight: 800;
+  color: var(--rx-heading);
+}
+
+.goal {
+  margin: 12px 0 0;
+  display: inline-block;
+  padding: 8px 14px;
+  border-radius: 999px;
+  background: var(--rx-white);
+  border: 1px solid var(--rx-border);
+  font-weight: 600;
+  color: var(--rx-heading);
+}
+
+.ayo {
+  width: clamp(76px, 18vw, 120px);
+  height: auto;
+}
+
+/* ---------- Sections ---------- */
+
+.section {
+  margin-top: 16px;
+  padding: clamp(18px, 3.5vw, 26px);
+  background: var(--rx-white);
+  border: 1px solid var(--rx-border);
+  border-radius: var(--rx-radius-lg);
+}
+
+.sectionTitle {
+  margin: 0 0 4px;
+  font-family: var(--rx-font-display);
+  font-size: 1.2rem;
+  font-weight: 800;
+  color: var(--rx-heading);
+}
+
+.sectionLead {
+  margin: 0 0 14px;
+  color: var(--rx-text-soft);
+  font-size: 0.95rem;
+}
+
+.actions {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 10px;
+}
+
+.action {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-height: 64px;
+  padding: 12px 14px;
+  border-radius: var(--rx-radius-md);
+  border: 1px solid var(--rx-border-strong);
+  background: var(--rx-surface-soft);
+  color: var(--rx-heading);
+  text-decoration: none;
+  transition: border-color 0.15s ease, background 0.15s ease;
+}
+
+.action:hover {
+  border-color: var(--rx-blue);
+  background: var(--rx-surface-blue);
+}
+
+.action:focus-visible {
+  outline: 3px solid var(--rx-blue-bright);
+  outline-offset: 2px;
+}
+
+.actionIcon {
+  flex: none;
+  display: grid;
+  place-items: center;
+  width: 40px;
+  height: 40px;
+  border-radius: 10px;
+  background: #168fe5;
+  color: var(--rx-white);
+}
+
+.actionIcon svg {
+  width: 22px;
+  height: 22px;
+}
+
+.actionText {
+  display: grid;
+  gap: 2px;
+  min-width: 0;
+}
+
+.actionText strong {
+  font-weight: 700;
+}
+
+.actionText span {
+  font-size: 0.85rem;
+  color: var(--rx-text-soft);
+}
+
+.note {
+  margin: 12px 0 0;
+  font-size: 0.88rem;
+  color: var(--rx-text-soft);
+}
+
+/* ---------- Parent note ---------- */
+
+.prose p {
+  margin: 0 0 12px;
+  line-height: 1.6;
+}
+
+.subTitle {
+  margin: 18px 0 8px;
+  font-size: 1rem;
+  font-weight: 700;
+  color: var(--rx-heading);
+}
+
+.list {
+  margin: 0;
+  padding-left: 1.2em;
+  line-height: 1.6;
+}
+
+.list li + li {
+  margin-top: 6px;
+}
+
+.words {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.words li {
+  padding: 6px 12px;
+  border-radius: 999px;
+  background: var(--rx-surface-blue);
+  color: var(--rx-heading);
+  font-weight: 600;
+  font-size: 0.92rem;
+}
+
+.signs {
+  margin-top: 12px;
+}
+
+.signs summary {
+  cursor: pointer;
+  color: var(--rx-blue);
+  font-weight: 600;
+}
+
+.signs summary:focus-visible {
+  outline: 3px solid var(--rx-blue-bright);
+  outline-offset: 2px;
+}
+
+.table {
+  width: 100%;
+  margin-top: 10px;
+  border-collapse: collapse;
+  font-size: 0.92rem;
+}
+
+.table th,
+.table td {
+  padding: 8px 6px;
+  text-align: left;
+  vertical-align: top;
+  border-bottom: 1px solid var(--rx-border);
+}
+
+.table th {
+  font-weight: 700;
+  color: var(--rx-heading);
+}
+
+.tip {
+  margin-top: 16px;
+  padding: 12px 14px;
+  border-left: 4px solid #168fe5;
+  border-radius: 0 var(--rx-radius-md) var(--rx-radius-md) 0;
+  background: var(--rx-surface-blue);
+}
+
+.tip strong {
+  display: block;
+  margin-bottom: 2px;
+  color: var(--rx-heading);
+}
+
+.invite {
+  white-space: pre-line;
+}
+
+.badges {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 16px;
+  margin-top: 14px;
+}
+
+.badges a {
+  display: grid;
+  justify-items: center;
+  gap: 6px;
+  color: var(--rx-blue);
+  font-size: 0.88rem;
+  font-weight: 600;
+  text-decoration: none;
+}
+
+.badges img {
+  width: 120px;
+  height: 120px;
+}
+
+/* ---------- Teacher strip and week navigation ---------- */
+
+.teacher {
+  margin-top: 16px;
+  padding: 14px 16px;
+  border-radius: var(--rx-radius-md);
+  border: 1px dashed var(--rx-border-strong);
+  font-size: 0.92rem;
+  color: var(--rx-text-soft);
+}
+
+.teacher strong {
+  color: var(--rx-heading);
+}
+
+.pager {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+  margin-top: 24px;
+}
+
+.pager a {
+  display: grid;
+  gap: 2px;
+  padding: 12px 14px;
+  border-radius: var(--rx-radius-md);
+  border: 1px solid var(--rx-border);
+  background: var(--rx-white);
+  color: var(--rx-heading);
+  text-decoration: none;
+  font-weight: 600;
+  font-size: 0.92rem;
+}
+
+.pager a span {
+  font-size: 0.8rem;
+  font-weight: 500;
+  color: var(--rx-text-soft);
+}
+
+.pager a:hover {
+  border-color: var(--rx-blue);
+}
+
+.pager a:focus-visible {
+  outline: 3px solid var(--rx-blue-bright);
+  outline-offset: 2px;
+}
+
+.pagerNext {
+  grid-column: 2;
+  text-align: right;
+}
+
+/* ---------- Week list ---------- */
+
+.intro {
+  margin: 10px 0 0;
+  max-width: 60ch;
+  line-height: 1.6;
+}
+
+.term {
+  margin-top: 20px;
+}
+
+.weekList {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  display: grid;
+  gap: 6px;
+}
+
+.weekList a {
+  display: grid;
+  grid-template-columns: 76px minmax(0, 1fr);
+  gap: 10px;
+  align-items: baseline;
+  padding: 10px 12px;
+  border-radius: var(--rx-radius-md);
+  color: var(--rx-heading);
+  text-decoration: none;
+}
+
+.weekList a:hover {
+  background: var(--rx-surface-blue);
+}
+
+.weekList a:focus-visible {
+  outline: 3px solid var(--rx-blue-bright);
+  outline-offset: 2px;
+}
+
+.weekList small {
+  color: var(--rx-text-soft);
+  font-size: 0.82rem;
+  font-weight: 600;
+}
+
+/* ---------- Game page ---------- */
+
+.playBar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 12px;
+}
+
+.playBar h1 {
+  margin: 0;
+  font-family: var(--rx-font-display);
+  font-size: 1.3rem;
+  color: var(--rx-heading);
+}
+
+.back {
+  color: var(--rx-blue);
+  font-weight: 600;
+  text-decoration: none;
+}
+
+.back:focus-visible {
+  outline: 3px solid var(--rx-blue-bright);
+  outline-offset: 2px;
+}
+
+.frame {
+  display: block;
+  width: 100%;
+  height: min(80vh, 760px);
+  min-height: 520px;
+  border: 1px solid var(--rx-border);
+  border-radius: var(--rx-radius-lg);
+  background: var(--rx-white);
+}
+
+@media (max-width: 520px) {
+  .head {
+    grid-template-columns: minmax(0, 1fr) 76px;
+  }
+
+  .weekList a {
+    grid-template-columns: 64px minmax(0, 1fr);
+  }
+}
