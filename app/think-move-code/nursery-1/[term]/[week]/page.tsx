@@ -8,7 +8,9 @@ import {
   N1_BASE,
   NURSERY_1_TERMS,
   NURSERY_1_WEEKS,
+  TEACHER_FILES,
   findWeek,
+  packCode,
   gameTitle,
   neighbours,
   weekAssets,
@@ -223,11 +225,31 @@ export default async function WeekPage({ params }: WeekPageProps) {
           ) : null}
         </section>
 
-        <p className={styles.teacher}>
-          <strong>Teachers:</strong> the full lesson for this week is on page {item.teacherGuidePage} of the Teacher Guide
-          {item.activityBookPage ? `, and the children’s page is page ${item.activityBookPage} of the Activity Book` : ""}.
-          Term {item.term}: {termTitle}.
-        </p>
+        <section className={styles.section} aria-labelledby="teachers">
+          <h2 id="teachers" className={styles.sectionTitle}>
+            For teachers
+          </h2>
+          <p className={styles.sectionLead}>
+            This week’s lesson is on page {item.teacherGuidePage} of the Teacher Guide
+            {item.activityBookPage ? `; the children’s page is page ${item.activityBookPage} of the Activity Book` : ""}. Term{" "}
+            {item.term}: {termTitle}.
+          </p>
+          <ul className={styles.fileList}>
+            {TEACHER_FILES.map((file) => (
+              <li key={file.suffix}>
+                <a href={`${assets}/${packCode(item)}-${file.suffix}`} download>
+                  <strong>{file.title}</strong>
+                  <span>{file.detail}</span>
+                </a>
+                {"extra" in file ? (
+                  <a className={styles.fileExtra} href={`${assets}/${packCode(item)}-${file.extra.suffix}`} download>
+                    {file.extra.label}
+                  </a>
+                ) : null}
+              </li>
+            ))}
+          </ul>
+        </section>
 
         <nav className={styles.pager} aria-label="Other weeks">
           {previous ? (
