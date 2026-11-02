@@ -1011,5 +1011,7 @@
   .side {
     max-height: none;
     min-height: 0;
+    /* Keep each block its natural height and let the column scroll, so a long task never squeezes the exercise list. */
+    grid-auto-rows: max-content;
   }
 }
