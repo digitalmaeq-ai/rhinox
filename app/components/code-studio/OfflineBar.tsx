@@ -106,7 +106,7 @@ export default function OfflineBar({ kind = "python" }: { kind?: StudioKind }) {
         <>
           <span>
             {online
-              ? kind === "arduino" ? "Want to code without internet? Save Arduino Studio on this device (about 3 MB)." : "Want to code without internet? Save Code Studio on this device (about 15 MB)."
+              ? kind === "arduino" ? "Want to code without internet? Save Arduino Studio on this device (about 3 MB)." : kind === "web" ? "Want to build pages without internet? Save Web Studio on this device (about 3 MB)." : "Want to code without internet? Save Code Studio on this device (about 15 MB)."
               : "You are offline, and Code Studio is not saved on this device yet."}
           </span>
           <button type="button" onClick={() => void save()} disabled={!online}>

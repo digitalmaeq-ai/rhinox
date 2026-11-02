@@ -23,6 +23,8 @@ import "monaco-editor/editor/contrib/wordHighlighter/browser/wordHighlighter.js"
 import "monaco-editor/editor/contrib/wordOperations/browser/wordOperations.js";
 import "monaco-editor/editor/standalone/browser/quickAccess/standaloneGotoLineQuickAccess.js";
 import "monaco-editor/languages/definitions/cpp/register.js";
+import "monaco-editor/languages/definitions/css/register.js";
+import "monaco-editor/languages/definitions/html/register.js";
 import "monaco-editor/languages/definitions/python/register.js";
 
 // Monaco can use a helper worker for background text work. This editor has no

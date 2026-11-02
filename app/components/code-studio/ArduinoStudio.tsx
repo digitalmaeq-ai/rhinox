@@ -243,6 +243,7 @@ export default function ArduinoStudio({ savedId: initialSavedId = null, saved = 
           </nav>
           <div className={styles.links}>
             <Link href="/coding-robotics/code-studio">Python Studio</Link>
+            <Link href="/coding-robotics/code-studio/web">Web Studio</Link>
             <Link href="/coding-robotics/my-projects">My Projects</Link>
           </div>
         </header>

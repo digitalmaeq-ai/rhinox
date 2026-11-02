@@ -17,7 +17,7 @@ type Props = {
   /** Called when the learner presses Ctrl+Enter (Cmd+Enter on a Mac). */
   onRun?: () => void;
   /** The language for colouring. Python unless told otherwise. */
-  language?: "python" | "cpp";
+  language?: "python" | "cpp" | "html" | "css";
 };
 
 // The editor owns its text. It is deliberately not "controlled" by a value prop:
@@ -45,14 +45,14 @@ export default function PythonEditor({ initialValue, onChange, readOnly = false,
         lineNumbersMinChars: 3,
         scrollBeyondLastLine: false,
         automaticLayout: true,
-        tabSize: language === "cpp" ? 2 : 4,
+        tabSize: language === "python" ? 4 : 2,
         insertSpaces: true,
         wordWrap: "on",
         padding: { top: 12, bottom: 12 },
         renderLineHighlight: "line",
         quickSuggestions: false,
         suggestOnTriggerCharacters: false,
-        ariaLabel: `${language === "cpp" ? "Arduino" : "Python"} code editor. Press Escape then Tab to leave the editor.`,
+        ariaLabel: `${language === "cpp" ? "Arduino" : language === "python" ? "Python" : language.toUpperCase()} code editor. Press Escape then Tab to leave the editor.`,
       }}
     />
   );
