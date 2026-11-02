@@ -374,6 +374,7 @@ export default function CodeStudio({ savedId: initialSavedId, savedProject }: Pr
           </nav>
           <div className={styles.links}>
             <Link href="/coding-robotics/code-studio/arduino">Arduino Studio</Link>
+            <Link href="/coding-robotics/code-studio/web">Web Studio</Link>
             <Link href="/coding-robotics/my-projects">My Projects</Link>
           </div>
         </header>

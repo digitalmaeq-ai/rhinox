@@ -483,8 +483,11 @@
 .frame {
   display: block;
   width: 100%;
-  height: min(80vh, 760px);
-  min-height: 520px;
+  /* Fill the screen below the page header so the whole game is seen at once. */
+  height: calc(100vh - 240px);
+  height: calc(100dvh - 240px);
+  min-height: 340px;
+  max-height: 760px;
   border: 1px solid var(--rx-border);
   border-radius: var(--rx-radius-lg);
   background: var(--rx-white);

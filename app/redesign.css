@@ -1,0 +1,173 @@
+/* RHINOX SCIENTIFICA — hybrid compact visual system
+   Layered after the existing styles so the redesign preserves component behaviour. */
+
+:root {
+  --rx-container: 1240px;
+  --rx-header-height: 66px;
+  --rx-heading: #102b46;
+  --rx-text: #34495e;
+  --rx-text-soft: #65788c;
+  --rx-blue: #1476db;
+  --rx-blue-bright: #42a0ff;
+  --rx-bg: #f3f7fb;
+  --rx-bg-soft: #f7faff;
+  --rx-border: #dce6f0;
+  --rx-border-strong: #c8d8e8;
+  --rx-radius-md: 12px;
+  --rx-radius-lg: 18px;
+  --rx-radius-xl: 24px;
+  --rx-shadow-sm: 0 5px 18px rgba(16, 43, 70, .055);
+  --rx-shadow-md: 0 14px 36px rgba(16, 43, 70, .09);
+  --rx-shadow-lg: 0 24px 60px rgba(16, 43, 70, .14);
+  --rx-shadow-menu: 0 22px 56px rgba(16, 43, 70, .16);
+}
+
+html { background: #f3f7fb; }
+body { background: #f3f7fb; color: #34495e; font-size: 14px; line-height: 1.6; }
+.rx-container, .rx-header-inner { width: min(calc(100% - 48px), 1240px); }
+
+/* Global navigation: quiet, compact and legible. */
+.rx-header {
+  background: rgba(255,255,255,.94);
+  border-bottom: 1px solid rgba(16,43,70,.08);
+  box-shadow: 0 2px 14px rgba(16,43,70,.035);
+}
+.rx-header-inner { gap: 18px; }
+.rx-logo-img { height: 42px; }
+.rx-desktop-nav { gap: 2px; }
+.rx-nav-link, .rx-nav-trigger {
+  min-height: 66px;
+  padding-inline: 9px;
+  color: #52677c;
+  font-size: 10px;
+  font-weight: 650;
+  letter-spacing: .015em;
+}
+.rx-nav-link.is-active, .rx-nav-trigger.is-active { color: #1476db; }
+.rx-header-cta {
+  min-height: 36px;
+  padding-inline: 16px;
+  border-radius: 7px;
+  background: #102b46;
+  font-size: 10px;
+  letter-spacing: .045em;
+}
+.rx-header-cta:hover { background: #1476db; transform: translateY(-1px); }
+.rx-mega-menu {
+  width: min(calc(100vw - 40px), 1120px);
+  border-radius: 0 0 16px 16px;
+  border-color: #e1e9f1;
+}
+.rx-mega-menu-inner { padding: 22px 24px; gap: 22px; }
+.rx-mega-columns { gap: 18px; }
+.rx-mega-item { padding: 8px 9px; border-radius: 7px; }
+.rx-mega-item-label { font-size: 11px; }
+.rx-mega-item-description { font-size: 10px; line-height: 1.45; }
+.rx-mega-featured { padding: 19px; border-radius: 12px; }
+
+/* Homepage: retain the existing carousel, tabs, content and interactive sections. */
+main .rx-hero {
+  min-height: 0;
+  padding: 0;
+  isolation: isolate;
+}
+main .rx-hero-inner {
+  width: min(calc(100% - 64px), 1240px);
+  min-height: clamp(490px, 42vw, 590px);
+  grid-template-columns: minmax(0, 1.08fr) minmax(310px, .72fr);
+  gap: clamp(36px, 6vw, 88px);
+  padding-top: clamp(58px, 7vw, 88px);
+  padding-bottom: clamp(82px, 8vw, 104px);
+}
+main .rx-hero-content { max-width: 690px; }
+main .rx-hero .rx-eyebrow {
+  margin-bottom: 18px;
+  color: #1476db;
+  font-size: 9px;
+  letter-spacing: .17em;
+}
+main .rx-hero h1 {
+  max-width: 720px;
+  margin: 0;
+  color: #102b46;
+  font-family: var(--rx-font-display);
+  font-size: clamp(38px, 5vw, 66px);
+  font-weight: 800;
+  letter-spacing: -.055em;
+  line-height: 1.04;
+}
+main .rx-hero h1 span:last-child { color: #1476db !important; }
+main .rx-hero-description {
+  max-width: 570px;
+  margin-top: 20px;
+  color: #52677c;
+  font-size: clamp(14px, 1.15vw, 16px);
+  line-height: 1.72;
+}
+main .rx-hero-actions { gap: 10px; margin-top: 26px; }
+main .rx-hero-actions .rx-button { min-height: 43px; padding-inline: 17px; border-radius: 7px; font-size: 11px; }
+main .rx-hero-actions .rx-button-primary { background: #1476db; box-shadow: 0 9px 24px rgba(0,0,0,.16); }
+main .rx-hero-actions .rx-button-secondary { border-color: #c8d8e8; background: rgba(255,255,255,.88); color: #102b46; backdrop-filter: blur(8px); }
+main .rx-hero-actions .rx-button-secondary:hover { background: #eaf3ff; color: #102b46; }
+main .rx-hero-panel {
+  max-width: 410px;
+  justify-self: end;
+  padding: 25px 26px;
+  border: 1px solid rgba(255,255,255,.78);
+  border-radius: 16px;
+  background: rgba(255,255,255,.9);
+  box-shadow: 0 18px 46px rgba(16,43,70,.12);
+  color: #34495e;
+  backdrop-filter: blur(16px);
+}
+main .rx-hero-panel-category { color: #1476db; font-size: 9px; letter-spacing: .15em; }
+main .rx-hero-panel h2 { margin-bottom: 10px; color: #102b46; font-size: clamp(22px,2.2vw,30px); letter-spacing: -.035em; }
+main .rx-hero-panel-description { color: #65788c; font-size: 12px; line-height: 1.65; }
+main .rx-hero-panel-link { color: #1476db; font-size: 11px; font-weight: 700; }
+main .rx-hero-bottom { bottom: 0; }
+main .rx-hero-categories { gap: 6px; }
+main .rx-hero-category { padding: 9px 13px; border-radius: 7px 7px 0 0; font-size: 10px; }
+
+/* Tighter editorial rhythm across the homepage without flattening hierarchy. */
+main .rx-journey,
+main .rx-explore { padding-bottom: 38px; }
+main .rx-journey > .rx-container,
+main .rx-explore > .rx-container { padding-top: clamp(38px,4.5vw,56px); }
+main .rx-section { padding-block: clamp(44px,5vw,68px); }
+main .rx-section-heading { margin-bottom: 30px; }
+main .rx-section-heading p { margin-top: 12px; font-size: 14px; line-height: 1.65; }
+main .rx-content-grid { gap: 14px; }
+main .rx-content-card-title { font-size: 17px; }
+main .rx-content-card-description { font-size: 12px; }
+
+/* Smaller screens retain the original mobile menu and stacked hero behaviour. */
+@media (max-width: 1100px) {
+  .rx-desktop-nav { gap: 0; }
+  .rx-nav-link, .rx-nav-trigger { padding-inline: 6px; font-size: 9px; }
+  .rx-header-inner { gap: 10px; }
+}
+@media (max-width: 900px) {
+  .rx-header-inner { min-height: 64px; }
+  .rx-logo-img { height: 39px; }
+  main .rx-hero-inner {
+    width: min(calc(100% - 40px), 720px);
+    min-height: 0;
+    grid-template-columns: minmax(0,1fr);
+    gap: 28px;
+    padding-block: 58px 104px;
+  }
+  main .rx-hero-panel { justify-self: start; max-width: 520px; }
+}
+@media (max-width: 640px) {
+  .rx-container, .rx-header-inner { width: min(calc(100% - 32px), 1240px); }
+  main .rx-hero-inner { width: min(calc(100% - 36px), 560px); padding-block: 42px 112px; gap: 24px; }
+  main .rx-hero h1 { font-size: clamp(35px, 10vw, 48px); }
+  main .rx-hero-description { margin-top: 15px; font-size: 13px; }
+  main .rx-hero-panel { padding: 19px; }
+  main .rx-hero-categories { overflow-x: auto; justify-content: flex-start; }
+  main .rx-hero-category { flex: 0 0 auto; }
+  main .rx-journey > .rx-container, main .rx-explore > .rx-container { padding-top: 32px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { scroll-behavior: auto !important; animation-duration: .01ms !important; animation-iteration-count: 1 !important; transition-duration: .01ms !important; }
+}
