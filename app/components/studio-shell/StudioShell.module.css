@@ -8,6 +8,8 @@
   grid-template-columns: 188px minmax(0, 1fr);
   height: calc(100vh - var(--shell-header));
   height: calc(100dvh - var(--shell-header));
+  /* Studios inside the frame size themselves from this: the height they can fill. */
+  --studio-h: calc(100dvh - var(--shell-header));
   min-height: 460px;
   background: #f3f7fb;
   color: #102b46;

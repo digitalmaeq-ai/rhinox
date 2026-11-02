@@ -1,6 +1,6 @@
 .page {
   background: var(--rx-white);
-  padding: 12px 0 48px;
+  padding: 8px 0 8px;
 }
 
 /* The site gives every .rx-container 48px of vertical padding; the studio
@@ -136,4 +136,16 @@
 
 .lab {
   scroll-margin-top: 96px;
+}
+
+/* In the Code Studio frame on a desktop the progress strip under the lab is one slim row. */
+@media (min-width: 1100px) {
+  .lab > section {
+    margin-top: 6px;
+    padding: 5px 12px;
+  }
+
+  .lab > section ul {
+    display: none;
+  }
 }
