@@ -12,18 +12,18 @@
 /* Inside the Code Studio shell on a desktop: the whole workspace is visible at
    once. The mission is a compact strip and each panel scrolls on its own. */
 @media (min-width: 1000px) {
-  .page { display: flex; flex-direction: column; height: var(--studio-h, 100dvh); min-height: 0; overflow: hidden; }
+  .page { display: flex; flex-direction: column; min-height: var(--studio-h, 100dvh); }
   .topbar { min-height: 44px; flex: none; }
   .brandMark { width: 28px; height: 28px; border-radius: 9px; font-size: 1rem; }
-  .container { flex: 1; min-height: 0; display: flex; flex-direction: column; width: calc(100% - 32px); }
+  .container { flex: 1; display: flex; flex-direction: column; width: calc(100% - 32px); }
   .welcome { flex: none; padding: 10px 0 10px; gap: 16px; }
   .welcome h1 { margin: 2px 0 4px; font-size: 1.5rem; letter-spacing: -0.03em; }
   .welcome p { margin: 0; font-size: 0.84rem; line-height: 1.45; max-width: 760px; }
   .mission { padding: 9px 14px; border-radius: 14px; }
   .mission strong { margin: 3px 0; font-size: 0.95rem; }
-  .workspace { flex: 1; min-height: 0; grid-template-columns: minmax(0, 1fr) minmax(0, 0.95fr) minmax(0, 1fr); align-items: stretch; gap: 12px; }
+  .workspace { flex: 1; min-height: 440px; grid-template-columns: minmax(0, 1fr) minmax(0, 0.95fr) minmax(0, 1fr); align-items: stretch; gap: 12px; }
   .previewColumn { display: contents; }
-  .programPanel, .previewPanel, .codePanel { min-height: 0; overflow: auto; padding: 14px; border-radius: 16px; }
+  .programPanel, .previewPanel, .codePanel { min-height: 0; padding: 14px; border-radius: 16px; }
   .helper { margin: 6px 0 10px; line-height: 1.5; }
   .programList { margin-top: 12px; min-height: 0; }
   .grid { width: min(100%, 300px); margin: 10px auto; }

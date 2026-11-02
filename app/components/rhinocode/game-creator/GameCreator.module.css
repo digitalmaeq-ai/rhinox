@@ -681,18 +681,18 @@
 /* Inside the Code Studio shell on a desktop: the whole level editor is seen at
    once. The tools sit beside the board, and the board is sized to the space left. */
 @media (min-width: 1000px) {
-  .page { display: flex; flex-direction: column; height: var(--studio-h, 100dvh); padding: 8px 0; overflow: hidden; }
-  .page .wrap { display: flex; flex: 1; flex-direction: column; min-height: 0; }
+  .page { display: flex; flex-direction: column; min-height: var(--studio-h, 100dvh); padding: 8px 0; }
+  .page .wrap { display: flex; flex: 1; flex-direction: column; }
   .bar, .guide, .toolbar { flex: none; }
-  .layout { flex: 1; min-height: 0; grid-template-columns: minmax(0, 1fr) 300px; align-items: stretch; gap: 14px; }
-  .stage { display: grid; grid-template-columns: auto minmax(0, 1fr); grid-template-rows: auto auto minmax(0, 1fr) auto; column-gap: 12px; min-height: 0; }
+  .layout { flex: 1; grid-template-columns: minmax(0, 1fr) 300px; align-items: stretch; gap: 14px; }
+  .stage { display: grid; grid-template-columns: auto minmax(0, 1fr); grid-template-rows: auto auto minmax(0, 1fr) auto; column-gap: 12px; }
   .levelTabs { grid-column: 1 / -1; margin-bottom: 6px; }
   .hud { grid-column: 1 / -1; min-height: 0; margin-bottom: 6px; }
-  .boardFrame { grid-column: 2; grid-row: 3; width: 100%; min-height: 0; container-type: size; display: grid; place-items: center; }
-  .boardFrame > :first-child { width: min(100cqw, calc(100cqh * var(--cols) / var(--rows))); }
+  .boardFrame { grid-column: 2; grid-row: 3; width: 100%; min-height: 340px; container-type: size; display: grid; place-items: start center; }
+  .boardFrame > :first-child { width: min(100cqw, calc(min(100cqh, var(--studio-h, 100dvh) - 330px) * var(--cols) / var(--rows))); }
   .palette { grid-column: 1; grid-row: 3; flex-direction: column; flex-wrap: nowrap; justify-content: flex-start; align-self: start; max-height: 100%; margin-top: 0; overflow: auto; gap: 5px; }
   .palette button { padding: 4px 10px 4px 4px; font-size: 0.85rem; }
   .dpad { grid-column: 1; grid-row: 3; align-self: start; }
   .removeLevel { grid-column: 1 / -1; grid-row: 4; margin-top: 4px; }
-  .side { min-height: 0; overflow: auto; align-content: start; padding-right: 2px; }
+  .side { align-content: start; }
 }

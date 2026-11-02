@@ -968,15 +968,14 @@
   color: #334155;
 }
 
-/* Inside the Code Studio shell on a desktop the studio is exactly as tall as the
-   frame. The editor takes whatever the toolbar, offline bar and file panel leave,
-   so nothing here depends on guessing those heights. */
+/* Inside the Code Studio shell on a desktop the studio is at least as tall as the
+   screen and grows with its content, so the page scrolls as normal. The editor
+   takes whatever the toolbar, offline bar and file panel leave. */
 @media (min-width: 901px) {
   .page {
     display: flex;
     flex-direction: column;
-    height: var(--studio-h, auto);
-    overflow: hidden;
+    min-height: var(--studio-h, 0);
   }
 
   .page .wrap {
@@ -984,9 +983,6 @@
     flex: 1;
     flex-direction: column;
     min-height: 0;
-    /* If a lesson adds extra panels (for example the micro:bit board) and the frame is
-       too short, the studio scrolls instead of letting panels overlap or be cut off. */
-    overflow: auto;
   }
 
   .layout {
@@ -1017,8 +1013,9 @@
 
   .side {
     max-height: none;
+    overflow-y: visible;
     min-height: 0;
-    /* Keep each block its natural height and let the column scroll, so a long task never squeezes the exercise list. */
+    /* Keep each block its natural height, so a long task never squeezes the exercise list. */
     grid-auto-rows: max-content;
   }
 }

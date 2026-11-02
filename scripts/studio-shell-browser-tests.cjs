@@ -4,8 +4,9 @@
 //   npm run build && npm run start
 //   CHROMIUM_PATH=/path/to/chromium node scripts/studio-shell-browser-tests.cjs http://localhost:3000
 //
-// Needs Playwright. Checks that on laptop screens the page itself never
-// scrolls and each workspace fits inside the frame, that nothing overflows
+// Needs Playwright. Checks that on laptop screens each workspace's main
+// controls are in the first view, the page scrolls normally to reveal the rest
+// and the rail stays in view, that nothing overflows
 // sideways on tablets and phones, and that the main controls can be reached.
 const { chromium } = require("playwright");
 
@@ -21,8 +22,6 @@ const ROUTES = {
   projects: "/coding-robotics/my-projects",
   learn: "/coding-robotics/code-studio/learn",
 };
-// Learn is a list of lessons, so it scrolls inside the frame by design.
-const MAY_SCROLL_INSIDE = new Set(["learn"]);
 const LAPTOPS = [[1366, 768], [1440, 900], [1536, 864]];
 const MAIN_CONTROL = {
   python: { name: /^Run$/ },
@@ -61,23 +60,42 @@ async function measure(page) {
 (async () => {
   const browser = await chromium.launch(process.env.CHROMIUM_PATH ? { executablePath: process.env.CHROMIUM_PATH } : {});
 
-  // 1. Laptops: nothing scrolls except inside panels.
+  // 1. Laptops: the main controls are in the first view, the page scrolls normally
+  //    to reveal the rest, and the navigation rail stays in view while it does.
   for (const [w, h] of LAPTOPS) {
     const page = await browser.newPage({ viewport: { width: w, height: h } });
     for (const [name, route] of Object.entries(ROUTES)) {
       await open(page, route);
       const m = await measure(page);
-      check(m.pageH <= m.innerH + 1, `${w}x${h} ${name}: the page does not scroll (${m.pageH} of ${m.innerH})`);
-      check(m.footerHidden, `${w}x${h} ${name}: footer is out of the way`);
-      if (!MAY_SCROLL_INSIDE.has(name)) check(m.inner <= 1, `${w}x${h} ${name}: the whole workspace fits the frame (${m.inner}px over)`);
       check(m.pageW <= m.innerW, `${w}x${h} ${name}: no sideways scroll`);
+      check(m.pageH >= m.innerH - 1, `${w}x${h} ${name}: the studio fills at least one screen`);
+      const control = MAIN_CONTROL[name];
+      const target = control ? page.getByRole("button", { name: control.name }).first() : page.locator("main h1, main h2").first();
+      if ((await target.count()) > 0) {
+        const box = await target.boundingBox();
+        check(Boolean(box) && box.y >= 0 && box.y + box.height <= h, `${w}x${h} ${name}: the main control is in the first view without scrolling`);
+      }
+      await page.evaluate(() => window.scrollTo(0, document.documentElement.scrollHeight));
+      await page.waitForTimeout(200);
+      const end = await page.evaluate(() => {
+        const footer = document.querySelector("body > footer");
+        const fr = footer ? footer.getBoundingClientRect() : null;
+        const nav = document.querySelector('nav[aria-label="Code Studio"]');
+        const nr = nav ? nav.getBoundingClientRect() : null;
+        return {
+          footerSeen: Boolean(fr) && fr.bottom > 0 && fr.top < innerHeight,
+          navSeen: Boolean(nr) && nr.bottom > 0 && nr.top < innerHeight,
+        };
+      });
+      check(end.footerSeen, `${w}x${h} ${name}: scrolling down reaches the rest of the page`);
+      check(end.navSeen, `${w}x${h} ${name}: the navigation rail stays in view while scrolling`);
     }
-    // Game Creator in play mode.
+    // Game Creator in play mode: the board is in the first view.
     await open(page, ROUTES.game);
     await page.getByRole("button", { name: "Play", exact: true }).click();
     await page.waitForTimeout(400);
-    const play = await measure(page);
-    check(play.inner <= 1 && play.pageH <= play.innerH + 1, `${w}x${h} game (playing): fits the frame`);
+    const board = await page.locator('[role="application"]').boundingBox();
+    check(Boolean(board) && board.y + board.height <= h, `${w}x${h} game (playing): the board is in the first view`);
     await page.close();
   }
 

@@ -15,12 +15,12 @@
   color: #102b46;
 }
 
-/* The shell is the whole screen below the header, so the site footer moves out of the way. */
-:global(body):has([data-studio-shell]) > :global(footer) {
-  display: none;
-}
-
 .nav {
+  /* The rail stays in view while the page scrolls. */
+  position: sticky;
+  top: var(--shell-header);
+  align-self: start;
+  max-height: calc(100dvh - var(--shell-header));
   min-height: 0;
   overflow-y: auto;
   padding: 12px 10px 16px;
@@ -101,7 +101,6 @@
 .content {
   min-width: 0;
   min-height: 0;
-  overflow: auto;
 }
 
 .mobileBar,
@@ -183,6 +182,7 @@
     z-index: 20;
     top: 57px;
     left: 0;
+    align-self: auto;
     width: min(280px, 86vw);
     max-height: calc(100dvh - 140px);
     display: none;
@@ -206,9 +206,6 @@
     cursor: default;
   }
 
-  .content {
-    overflow: visible;
-  }
 }
 
 @media (min-width: 821px) and (max-width: 1099px) {
