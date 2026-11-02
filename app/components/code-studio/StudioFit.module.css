@@ -4,8 +4,7 @@
 .fill {
   display: flex;
   flex-direction: column;
-  height: calc(var(--studio-h, 100dvh) - 70px);
-  min-height: 420px;
+  min-height: 0;
 }
 
 .fillSplit {

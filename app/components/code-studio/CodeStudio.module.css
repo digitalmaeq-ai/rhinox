@@ -967,3 +967,49 @@
   font-size: 0.85rem;
   color: #334155;
 }
+
+/* Inside the Code Studio shell on a desktop the studio is exactly as tall as the
+   frame. The editor takes whatever the toolbar, offline bar and file panel leave,
+   so nothing here depends on guessing those heights. */
+@media (min-width: 901px) {
+  .page {
+    display: flex;
+    flex-direction: column;
+    height: var(--studio-h, auto);
+    overflow: hidden;
+  }
+
+  .page .wrap {
+    display: flex;
+    flex: 1;
+    flex-direction: column;
+    min-height: 0;
+  }
+
+  .layout {
+    flex: 1;
+    min-height: 0;
+    align-items: stretch;
+  }
+
+  .workspace {
+    display: flex;
+    flex-direction: column;
+    min-height: 0;
+  }
+
+  .page .wrap > .workspace {
+    flex: 1;
+  }
+
+  .split {
+    flex: 1 1 0;
+    height: auto;
+    min-height: 200px;
+  }
+
+  .side {
+    max-height: none;
+    min-height: 0;
+  }
+}
