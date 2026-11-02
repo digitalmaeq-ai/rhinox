@@ -984,6 +984,9 @@
     flex: 1;
     flex-direction: column;
     min-height: 0;
+    /* If a lesson adds extra panels (for example the micro:bit board) and the frame is
+       too short, the studio scrolls instead of letting panels overlap or be cut off. */
+    overflow: auto;
   }
 
   .layout {
@@ -1002,10 +1005,14 @@
     flex: 1;
   }
 
-  .split {
+  .workspace > * {
+    flex-shrink: 0;
+  }
+
+  .workspace > .split {
     flex: 1 1 0;
     height: auto;
-    min-height: 200px;
+    min-height: max(220px, 32dvh);
   }
 
   .side {

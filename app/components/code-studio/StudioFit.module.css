@@ -10,7 +10,7 @@
 .fillSplit {
   flex: 1 1 0;
   height: auto;
-  min-height: 0;
+  min-height: max(200px, 28dvh);
 }
 
 /* Editor on the left; serial monitor and board kit stacked on the right. */
