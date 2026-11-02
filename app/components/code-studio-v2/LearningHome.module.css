@@ -152,3 +152,19 @@
 .orderingActions > span { color: #71869b; font-size: .78rem; font-weight: 800; }
 .orderingActions .primaryButton { padding: 10px 14px; }
 @media (max-width: 420px) { .orderingActions { align-items: stretch; flex-direction: column; } .orderingActions .primaryButton { width: 100%; } }
+
+/* Inside the Code Studio shell on a desktop: a compact welcome so the first
+   lesson is visible without scrolling. The page still scrolls for later lessons. */
+@media (min-width: 1000px) {
+  .page { min-height: 0; padding-bottom: 16px; }
+  .topbar { min-height: 48px; }
+  .brandMark { width: 30px; height: 30px; border-radius: 10px; font-size: 1.05rem; }
+  .hero { padding: 18px 0 14px; gap: 22px; }
+  .hero h1 { margin-bottom: 8px; font-size: clamp(1.9rem, 3vw, 2.6rem); }
+  .heroText { font-size: 0.95rem; line-height: 1.6; }
+  .heroActions { margin-top: 14px; }
+  .heroArt { min-height: 170px; border-radius: 22px; }
+  .orbit { width: 170px; height: 170px; }
+  .robotCard { width: 112px; height: 128px; border-radius: 20px; transform: none; }
+  .robotFace { width: 64px; height: 46px; border-radius: 14px; gap: 12px; }
+}

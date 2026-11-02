@@ -1,0 +1,45 @@
+/* Helpers that let a studio fill the Code Studio shell: the studio is as tall
+   as the shell allows, and only its inner panels scroll. */
+
+.fill {
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+}
+
+.fillSplit {
+  flex: 1 1 0;
+  height: auto;
+  min-height: max(200px, 28dvh);
+}
+
+/* Editor on the left; serial monitor and board kit stacked on the right. */
+.side {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  min-width: 0;
+  min-height: 0;
+}
+
+.sideConsole {
+  flex: 1 1 120px;
+  min-height: 90px;
+}
+
+.side > section:not(:first-child) {
+  flex: none;
+  max-height: 55%;
+  margin: 0;
+  overflow: auto;
+}
+
+@media (max-width: 900px) {
+  .fill {
+    height: auto;
+  }
+
+  .fillSplit {
+    flex: none;
+  }
+}

@@ -1,6 +1,6 @@
 .page {
   background: var(--rx-white);
-  padding: 8px 0 40px;
+  padding: 8px 0 8px;
 }
 
 /* The site gives every .rx-container vertical padding; the studio wants the
@@ -116,7 +116,7 @@
   display: grid;
   grid-template-columns: minmax(0, 3fr) minmax(0, 2fr);
   gap: 12px;
-  height: clamp(420px, calc(100dvh - 250px), 760px);
+  height: clamp(300px, calc(var(--studio-h, 100dvh) - 176px), 900px);
 }
 
 .editorPane,
@@ -283,7 +283,7 @@
   display: grid;
   gap: 12px;
   align-content: start;
-  max-height: clamp(520px, calc(100dvh - 140px), 900px);
+  max-height: clamp(300px, calc(var(--studio-h, 100dvh) - 70px), 900px);
   overflow-y: auto;
   padding-right: 2px;
 }
@@ -966,4 +966,56 @@
 .boardMute {
   font-size: 0.85rem;
   color: #334155;
+}
+
+/* Inside the Code Studio shell on a desktop the studio is at least as tall as the
+   screen and grows with its content, so the page scrolls as normal. The editor
+   takes whatever the toolbar, offline bar and file panel leave. */
+@media (min-width: 901px) {
+  .page {
+    display: flex;
+    flex-direction: column;
+    min-height: var(--studio-h, 0);
+  }
+
+  .page .wrap {
+    display: flex;
+    flex: 1 0 auto;
+    flex-direction: column;
+    min-height: 0;
+  }
+
+  .layout {
+    flex: 1 0 auto;
+    min-height: 0;
+    align-items: stretch;
+  }
+
+  .workspace {
+    display: flex;
+    flex-direction: column;
+    min-height: 0;
+  }
+
+  .page .wrap > .workspace {
+    flex: 1 0 auto;
+  }
+
+  .workspace > * {
+    flex-shrink: 0;
+  }
+
+  .workspace > .split {
+    flex: 1 1 0;
+    height: auto;
+    min-height: max(220px, 32dvh);
+  }
+
+  .side {
+    max-height: none;
+    overflow-y: visible;
+    min-height: 0;
+    /* Keep each block its natural height, so a long task never squeezes the exercise list. */
+    grid-auto-rows: max-content;
+  }
 }

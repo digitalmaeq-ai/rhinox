@@ -16,6 +16,7 @@ import { playTone, prepareAudio, stopTone } from "@/lib/code-studio/board-audio"
 import ArduinoBoard from "./ArduinoBoard";
 import OfflineBar from "./OfflineBar";
 import styles from "./CodeStudio.module.css";
+import fit from "./StudioFit.module.css";
 
 const PythonEditor = dynamic(() => import("./PythonEditor"), {
   ssr: false,
@@ -250,7 +251,7 @@ export default function ArduinoStudio({ savedId: initialSavedId = null, saved = 
 
         <OfflineBar kind="arduino" />
 
-        <div className={styles.workspace}>
+        <div className={`${styles.workspace} ${fit.fill}`}>
           <div className={styles.toolbar} role="toolbar" aria-label="Run controls">
             <button type="button" className={styles.run} onClick={() => void run()} disabled={running}>
               {running ? "Running…" : "Run"}
@@ -361,7 +362,7 @@ export default function ArduinoStudio({ savedId: initialSavedId = null, saved = 
             </section>
           )}
 
-          <div className={styles.split}>
+          <div className={`${styles.split} ${fit.fillSplit}`}>
             <section className={styles.editorPane} aria-label="Code editor">
               <PythonEditor
                 key={editorKey}
@@ -378,7 +379,8 @@ export default function ArduinoStudio({ savedId: initialSavedId = null, saved = 
                 onRun={() => void run()}
               />
             </section>
-            <section className={styles.console} aria-label="Serial Monitor">
+            <div className={fit.side}>
+            <section className={`${styles.console} ${fit.sideConsole}`} aria-label="Serial Monitor">
               <h2 className={styles.consoleTitle}>Serial Monitor</h2>
               <pre ref={logRef} className={styles.consoleBody} role="log" aria-live="polite">
                 {serial === "" && message === "" && <span className={styles.info}>Text from Serial.print and Serial.println appears here.</span>}
@@ -386,32 +388,32 @@ export default function ArduinoStudio({ savedId: initialSavedId = null, saved = 
                 {message && <span className={message.startsWith("Error") ? styles.err : styles.info}>{`\n${message}\n`}</span>}
               </pre>
             </section>
+            <ArduinoBoard
+              board={board}
+              wifi={wifi}
+              router={router}
+              onRouter={(up) => {
+                setRouter(up);
+                getRunner().setRouter(up);
+              }}
+              pins={pins}
+              running={running}
+              buzzing={buzzing}
+              muted={muted}
+              dials={dials}
+              onButton={(pin, down) => getRunner().setButton(pin, down)}
+              onDial={(analog, value) => {
+                getRunner().setDial(analog, value);
+                setDials((previous) => (analog === 0 ? [value, previous[1]] : [previous[0], value]));
+              }}
+              onMute={(value) => {
+                mutedRef.current = value;
+                setMuted(value);
+                if (value) stopTone();
+              }}
+            />
+            </div>
           </div>
-
-          <ArduinoBoard
-            board={board}
-            wifi={wifi}
-            router={router}
-            onRouter={(up) => {
-              setRouter(up);
-              getRunner().setRouter(up);
-            }}
-            pins={pins}
-            running={running}
-            buzzing={buzzing}
-            muted={muted}
-            dials={dials}
-            onButton={(pin, down) => getRunner().setButton(pin, down)}
-            onDial={(analog, value) => {
-              getRunner().setDial(analog, value);
-              setDials((previous) => (analog === 0 ? [value, previous[1]] : [previous[0], value]));
-            }}
-            onMute={(value) => {
-              mutedRef.current = value;
-              setMuted(value);
-              if (value) stopTone();
-            }}
-          />
         </div>
       </div>
     </main>

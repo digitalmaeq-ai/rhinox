@@ -788,6 +788,12 @@ export default function RhinoBotLab({ experience, runtimeState, actions }: Inter
         </div>
 
         {/* ---------- Score, hints, debugging, history ---------- */}
+        <details className={styles.more}>
+          <summary>
+            <span>Score, hints, saved programmes and badges</span>
+            <span className={styles.moreHint}>Overall score {overall} / 100</span>
+          </summary>
+          <div className={styles.moreBody}>
         <div className={styles.lower}>
           {scored ? (
             <section className={styles.card} aria-label="Score">
@@ -894,6 +900,8 @@ export default function RhinoBotLab({ experience, runtimeState, actions }: Inter
               </li>
             ))}
           </ul>
+        </details>
+          </div>
         </details>
 
         {toast && <div className={styles.toast} role="status">🏅 {toast}</div>}
