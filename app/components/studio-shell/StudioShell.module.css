@@ -1,16 +1,16 @@
-/* Code Studio shell. Desktop: a fixed frame under the site header, so the
-   workspace is seen at once and only inner panels scroll. Phones/tablets: the
+/* Code Studio shell. Desktop: at least one screen tall under the site header,
+   growing with the workspace so the whole page scrolls normally. Phones/tablets: the
    rail becomes a menu and the page scrolls normally. */
 
 .shell {
   --shell-header: 67px; /* replaced by the measured header height on load */
   display: grid;
   grid-template-columns: 188px minmax(0, 1fr);
-  height: calc(100vh - var(--shell-header));
-  height: calc(100dvh - var(--shell-header));
+  /* At least one screen tall; grows with the studio so the page scrolls normally. */
+  min-height: calc(100vh - var(--shell-header));
+  min-height: calc(100dvh - var(--shell-header));
   /* Studios inside the frame size themselves from this: the height they can fill. */
   --studio-h: calc(100dvh - var(--shell-header));
-  min-height: 460px;
   background: #f3f7fb;
   color: #102b46;
 }

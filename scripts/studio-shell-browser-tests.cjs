@@ -87,6 +87,20 @@ async function measure(page) {
           navSeen: Boolean(nr) && nr.bottom > 0 && nr.top < innerHeight,
         };
       });
+      const overlap = await page.evaluate(() => {
+        const f = document.querySelector("body > footer").getBoundingClientRect().top + scrollY;
+        const shell = document.querySelector("[data-studio-shell]");
+        const bottoms = [...shell.querySelectorAll("*")].filter((el) => {
+          if (!el.checkVisibility() || el.closest(".monaco-editor")) return false;
+          // Content inside a scrolling panel is reached by scrolling that panel.
+          for (let up = el.parentElement; up && up !== shell; up = up.parentElement) {
+            if (/auto|scroll|hidden|clip/.test(getComputedStyle(up).overflowY)) return false;
+          }
+          return true;
+        }).map((el) => el.getBoundingClientRect().bottom + scrollY);
+        return Math.max(...bottoms) - f;
+      });
+      check(overlap <= 1, `${w}x${h} ${name}: nothing in the studio runs under the footer`);
       check(end.footerSeen, `${w}x${h} ${name}: scrolling down reaches the rest of the page`);
       check(end.navSeen, `${w}x${h} ${name}: the navigation rail stays in view while scrolling`);
     }

@@ -682,9 +682,9 @@
    once. The tools sit beside the board, and the board is sized to the space left. */
 @media (min-width: 1000px) {
   .page { display: flex; flex-direction: column; min-height: var(--studio-h, 100dvh); padding: 8px 0; }
-  .page .wrap { display: flex; flex: 1; flex-direction: column; }
+  .page .wrap { display: flex; flex: 1 0 auto; flex-direction: column; }
   .bar, .guide, .toolbar { flex: none; }
-  .layout { flex: 1; grid-template-columns: minmax(0, 1fr) 300px; align-items: stretch; gap: 14px; }
+  .layout { flex: 1 0 auto; grid-template-columns: minmax(0, 1fr) 300px; align-items: stretch; gap: 14px; }
   .stage { display: grid; grid-template-columns: auto minmax(0, 1fr); grid-template-rows: auto auto minmax(0, 1fr) auto; column-gap: 12px; }
   .levelTabs { grid-column: 1 / -1; margin-bottom: 6px; }
   .hud { grid-column: 1 / -1; min-height: 0; margin-bottom: 6px; }
