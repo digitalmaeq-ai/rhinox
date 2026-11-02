@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-require-imports -- standalone Node script run by hand with a global Playwright */
 // Browser checks for the Code Studio shell and Overview directory.
 //
 //   npm run build && npm run start
@@ -52,7 +53,7 @@ async function measure(page) {
       pageW: document.documentElement.scrollWidth,
       innerW: innerWidth,
       inner: frame ? frame.scrollHeight - frame.clientHeight : 0,
-      footerHidden: getComputedStyle(document.querySelector("footer")).display === "none",
+      footerHidden: getComputedStyle(document.querySelector("body > footer")).display === "none",
     };
   });
 }
