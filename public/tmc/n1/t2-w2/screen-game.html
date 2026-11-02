@@ -52,6 +52,19 @@ body{margin:0;font-family:"Nunito","Trebuchet MS",Arial,sans-serif;background:va
 .seq .it.blank{outline:4px dashed var(--orange);background:#FFF4D6}
 .seq .it.now{outline:5px solid var(--orange)}
 </style>
+<style id="fit-css">
+html.fit-on,html.fit-on body{height:100%;overflow:hidden}
+.wrap{max-width:540px;padding:8px 12px;transform-origin:top center}
+.top{gap:6px}.brand{font-size:13px}.tag{font-size:11px;padding:2px 10px}
+.bubble{margin:8px 0;padding:8px 12px;gap:10px;border-radius:18px}
+.bot{width:42px;height:42px;font-size:11px;border-radius:12px}
+.say{font-size:clamp(17px,3.6vw,22px)}
+.speak{width:48px;height:48px;font-size:22px}
+.slots{margin:10px 0}.road{margin:8px 0 2px}.tray{min-height:0}
+.bar{margin:10px 0}.btn{padding:11px 22px;font-size:18px}
+.stars{font-size:40px;letter-spacing:4px}
+.final{margin-top:10px}.choices{margin:8px auto}.note{margin-top:6px}
+</style>
 </head>
 <body>
 <div class="wrap">
@@ -112,6 +125,17 @@ $('undo').onclick=()=>{ filled.pop(); draw(); };
 $('next').onclick=()=>{ r=(r+1)%ROUNDS.length; build(); window.scrollTo({top:0,behavior:'smooth'}); };
 $('speak').onclick=()=>speak($('say').textContent);
 build();
+</script>
+<script id="fit-js">
+(function(){var w=document.querySelector('.wrap');if(!w)return;
+document.documentElement.classList.add('fit-on');var raf=0;
+function fit(){raf=0;w.style.transform='none';var h=w.offsetHeight,H=window.innerHeight;
+var s=Math.max(.4,Math.min(1,H/h));w.style.transform=s<1?'scale('+s+')':'none';
+document.body.style.height=H+'px';w.setAttribute('data-fit',s.toFixed(2));}
+function q(){if(!raf)raf=requestAnimationFrame(fit);}
+addEventListener('resize',q);
+new MutationObserver(q).observe(w,{subtree:true,childList:true,attributes:true,attributeFilter:['class','hidden']});
+fit();})();
 </script>
 </body>
 </html>
