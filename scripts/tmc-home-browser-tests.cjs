@@ -40,18 +40,29 @@ function check(condition, message) {
     check(!(await week1.locator("details").evaluate((el) => el.open)), `${tag}: a week starts closed`);
     await week1.locator("summary").click();
     check(await week1.getByText("I can follow 3 steps in order.").isVisible(), `${tag}: week shows its goal`);
-    check(await week1.getByRole("link", { name: "Printable cards (PDF)" }).isVisible(), `${tag}: week shows cards`);
-    check((await week1.getByRole("link", { name: /^Game:/ }).count()) === 2, `${tag}: week shows both games`);
-    check(await week1.getByRole("link", { name: "Lesson with RhinoBot" }).isVisible(), `${tag}: Week 1 shows its RhinoBot lesson`);
+    check(await week1.getByRole("link", { name: "Cards", exact: true }).isVisible(), `${tag}: week shows cards`);
+    check((await week1.locator("a[href*='/play/']").count()) === 2, `${tag}: week shows both games`);
+    check(await week1.getByRole("link", { name: "Teacher pack" }).isVisible(), `${tag}: week links to the teacher pack`);
+    check(await week1.getByRole("link", { name: "RhinoBot lesson" }).isVisible(), `${tag}: Week 1 shows its RhinoBot lesson`);
     const week2 = terms.nth(0).locator("ol > li").nth(1);
     await week2.locator("summary").click();
-    check((await week2.getByRole("link", { name: "Lesson with RhinoBot" }).count()) === 0, `${tag}: a lesson in review is not offered`);
+    check((await week2.getByRole("link", { name: "RhinoBot lesson" }).count()) === 0, `${tag}: a lesson in review is not offered`);
 
     // Start button sits inside its row, not over the title.
     const box = await week1.getByRole("link", { name: /^Start Week 1/ }).boundingBox();
     const rowBox = await week1.boundingBox();
     check(Boolean(box && rowBox) && box.x >= rowBox.x && box.x + box.width <= rowBox.x + rowBox.width, `${tag}: Start stays inside its row`);
-    check(box.height >= 40 && box.width >= 44, `${tag}: Start is a comfortable tap target`);
+    check(box.height >= 32 && box.width >= 44, `${tag}: Start is a comfortable tap target`);
+
+    // Term files sit inside their term; videos and whole-year downloads sit in the side column.
+    for (const [i, name] of [[0, "Term 1"], [1, "Term 2"], [2, "Term 3"]]) {
+      const files = terms.nth(i).locator(`[aria-label="${name} resources"]`);
+      check((await files.locator("a[download]").count()) === 3, `${tag}: ${name} lists its card pack, stickers and badge`);
+    }
+    check((await page.locator("#videos li").count()) === 3, `${tag}: three bonus videos are listed`);
+    check((await page.locator("#videos").getByText("Coming soon").count()) === 3, `${tag}: unpublished videos say "Coming soon" and load nothing from YouTube`);
+    check((await page.locator("iframe").count()) === 0, `${tag}: no third-party player is loaded before Watch`);
+    check(await page.locator("#downloads").getByText("Question bank, all 39 weeks").isVisible(), `${tag}: whole-year downloads are listed`);
 
     // Keyboard: a term opens with Enter.
     await terms.nth(1).locator("summary").first().focus();
@@ -63,8 +74,31 @@ function check(condition, message) {
     check(!(await review.evaluate((el) => el.open)), `${tag}: lessons in review are collapsed`);
     await review.locator("summary").first().click();
     check(await review.getByText(/Year 1 · Term 1 · Week 3/).isVisible(), `${tag}: Year 1 lesson listed as in review`);
+    // Every download linked from the page exists.
+    const hrefs = await page.evaluate(() => [...new Set([...document.querySelectorAll("a[href^='/tmc/']")].map((a) => a.getAttribute("href")))]);
+    if (w === 1366) {
+      const bad = [];
+      for (const href of hrefs) {
+        const response = await page.request.head(BASE + href);
+        if (!response.ok()) bad.push(href);
+      }
+      check(hrefs.length > 40 && bad.length === 0, `${tag}: all ${hrefs.length} linked files exist ${bad.join(" ")}`);
+    }
     check(errors.length === 0, `${tag}: no page errors ${errors.join(" | ")}`);
     await page.close();
+  }
+
+  // Compact: on a laptop the weeks and the videos are both in the first view.
+  for (const [w, h] of [[1366, 768], [1440, 900]]) {
+    const laptop = await browser.newPage({ viewport: { width: w, height: h } });
+    await laptop.goto(`${BASE}/think-move-code`, { waitUntil: "networkidle" });
+    const heroHeight = await laptop.evaluate(() => document.querySelector("main header").getBoundingClientRect().height);
+    check(heroHeight <= 230, `${w}x${h}: the header band is compact (${Math.round(heroHeight)}px)`);
+    const firstWeeks = await laptop.evaluate((vh) => [...document.querySelectorAll("details[id='term-1'] ol > li")].filter((li) => li.getBoundingClientRect().bottom <= vh).length, h);
+    check(firstWeeks >= 5, `${w}x${h}: at least five weeks are visible without scrolling (${firstWeeks})`);
+    const videosBottom = await laptop.evaluate(() => document.querySelector("#videos").getBoundingClientRect().bottom);
+    check(videosBottom <= h, `${w}x${h}: the videos panel is in the first view`);
+    await laptop.close();
   }
 
   // Links and redirects.

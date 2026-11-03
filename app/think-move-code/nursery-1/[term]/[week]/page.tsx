@@ -259,7 +259,9 @@ export default async function WeekPage({ params }: WeekPageProps) {
               </li>
             ))}
           </ul>
-          <p className={styles.note}>Term {item.term} bonus lesson video: coming soon to this page.</p>
+          <p className={styles.note}>
+            Term {item.term} bonus video: <Link href="/think-move-code#videos">see the videos</Link>.
+          </p>
         </section>
 
         <nav className={styles.pager} aria-label="Other weeks">
