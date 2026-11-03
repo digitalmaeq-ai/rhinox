@@ -1,95 +1,70 @@
 import type { Metadata } from "next";
+import Link from "next/link";
 
-import HubShowcase, { type ShowcaseItem } from "../components/hub/HubShowcase";
-import { HubClosing, HubFeature, HubHero, HubSectionHead } from "../components/hub/HubParts";
-import styles from "../components/hub/hub.module.css";
+import Breadcrumbs from "../components/Breadcrumbs";
+import ResourcesBrowser, { type ResourceColumn, type ResourceRow } from "./ResourcesBrowser";
+import { getContentHref } from "@/lib/content-registry";
+import { getDestinationItems } from "@/lib/menu-destinations";
+import styles from "./resources.module.css";
 
 export const metadata: Metadata = {
   title: "Resources | Rhinox Scientifica",
-  description:
-    "Articles, videos, free downloads, learning materials, badges and certificates from Rhinox Scientifica.",
+  description: "Search Rhinox articles, videos and free downloads, and find badges, certificates and your learning library.",
 };
 
-const items: ShowcaseItem[] = [
-  {
-    title: "Articles",
-    text: "STEM articles and educational insights.",
-    href: "/resources/articles",
-    image: "/images/journey/journey-science.jpg",
-    alt: "A teacher and a young learner at a chalkboard of equations",
-    tag: "Read",
-  },
-  {
-    title: "Videos",
-    text: "Educational and companion videos.",
-    href: "/resources/videos",
-    image: "/images/journey/journey-unsplash.jpg",
-    alt: "A student looking through a microscope",
-    tag: "Watch",
-  },
-  {
-    title: "Free Downloads",
-    text: "Printable and downloadable learning resources.",
-    href: "/resources/free-downloads",
-    image: "/images/hero/classroom.jpg",
-    alt: "Learners studying together in a classroom",
-    tag: "Download",
-  },
-  {
-    title: "My Rhinox Library",
-    text: "A personal space to collect resources, projects and progress.",
-    href: "/resources/my-rhinox-library",
-    image: "/images/journey/journey-pexels.jpg",
-    alt: "Students working at a laboratory bench",
-    tag: "Coming soon",
-  },
-];
+function column(id: ResourceRow["type"], label: string, singular: string, seeAll: string): ResourceColumn {
+  const items = (getDestinationItems(seeAll) ?? [])
+    .slice()
+    .sort((a, b) => String(b.updatedAt ?? b.createdAt ?? "").localeCompare(String(a.updatedAt ?? a.createdAt ?? "")))
+    .map((item) => ({ title: item.title, text: item.excerpt ?? item.description, href: getContentHref(item), type: id }));
+  return { id, label, singular, seeAll, items };
+}
+
+function status(href: string): string {
+  const n = getDestinationItems(href)?.length ?? 0;
+  return n > 0 ? `${n} ${n === 1 ? "item" : "items"}` : "Coming soon";
+}
 
 export default function ResourcesPage() {
+  const columns = [
+    column("articles", "Articles", "Article", "/resources/articles"),
+    column("videos", "Videos", "Video", "/resources/videos"),
+    column("downloads", "Free Downloads", "Download", "/resources/free-downloads"),
+  ];
+  const mine = [
+    { title: "My Rhinox Library", href: "/resources/my-rhinox-library", status: "Coming soon" },
+    { title: "Badges", href: "/resources/badges", status: status("/resources/badges") },
+    { title: "Certificates", href: "/resources/certificates", status: status("/resources/certificates") },
+  ];
   return (
-    <main style={{ background: "var(--rx-white)" }}>
-      <HubHero
-        eyebrow="Rhinox resources"
-        lineOne="Keep learning"
-        lineTwo="beyond the classroom."
-        lead="Access articles, videos, downloads, learning materials, badges and certificates, all in one place."
-        actions={[
-          { label: "Free downloads", href: "/resources/free-downloads" },
-          { label: "Read articles", href: "/resources/articles", secondary: true },
-        ]}
-        image="/images/journey/journey-science.jpg"
-        alt="A teacher and a young learner in a science lesson"
-        chips={["Articles", "Videos", "Downloads", "Certificates"]}
-      />
+    <main className={styles.page}>
+      <div className={`rx-container ${styles.crumbs}`}>
+        <Breadcrumbs items={[{ label: "Home", href: "/" }, { label: "Resources" }]} />
+      </div>
+      <ResourcesBrowser columns={columns} />
 
-      <section className={styles.showcaseSection}>
+      <section className={styles.mine} aria-labelledby="mine-title">
         <div className="rx-container">
-          <HubSectionHead eyebrow="Browse resources" lineOne="Read, watch, download" lineTwo="and keep." />
-          <HubShowcase items={items} />
+          <h2 id="mine-title" className={styles.mineTitle}>My Rhinox</h2>
+          <ul className={styles.mineList}>
+            {mine.map((m) => (
+              <li key={m.href}>
+                <Link href={m.href} className={styles.mineLink}>
+                  <span>{m.title}</span>
+                  <span className={styles.mineStatus}>{m.status}</span>
+                </Link>
+              </li>
+            ))}
+          </ul>
         </div>
       </section>
 
-      <HubFeature
-        eyebrow="Learn by doing"
-        lineOne="Practise with interactive"
-        lineTwo="experiences."
-        text="Games, challenges and virtual labs that let learners try science, maths and coding for themselves, then pick another and keep going."
-        action={{ label: "Open the experience library", href: "/explore/experiences" }}
-        image="/images/hero/coding.jpg"
-        alt="Code on a screen"
-      />
-
-      <HubClosing
-        kicker="Can't find it?"
-        lineOne="Ask the Rhinox team"
-        lineTwo="for what you need."
-        lead="Looking for a particular worksheet, guide or video? Tell us and we will point you in the right direction."
-        actions={[
-          { label: "Contact Rhinox", href: "/contact" },
-          { label: "Get support", href: "/about/support", secondary: true },
-        ]}
-        image="/images/journey/journey-pixabay.jpg"
-      />
+      <section className={styles.closing} aria-label="Suggest a topic">
+        <div className={`rx-container ${styles.closingInner}`}>
+          <p>Want a topic covered? Tell us.</p>
+          <Link href="/contact" className="rx-button rx-button-primary">Suggest a topic</Link>
+        </div>
+      </section>
     </main>
   );
 }
