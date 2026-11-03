@@ -17,7 +17,7 @@ All paths are relative to `app/components/interactive/simlab/` unless stated.
 | Electrolysis | **Faraday maths correct; cell behaviour oversimplified.** | Q = It, electron stoichiometry, masses and gas volumes are right and conserve charge across both electrodes. The weak points are a single 2 V "on" threshold for every cell, a hint that shows the wrong explanation for copper electrodes in non-copper electrolytes, the `"water"` id/name, and chlorine safety information that only appears on a secondary tab. |
 | Acids and bases | **Weakest of the three.** | The fixed "0.5 pH per tenfold dilution for every non-strong sample" rule is wrong for several samples (baking soda, milk of magnesia, bleach). Indicator text confuses *pH* with *acid strength*, and milk (pH 6.5) is classed "neutral" while the lab's own note and CBT call it slightly acidic. |
 
-Counts: **0 critical, 4 high, 11 medium, 12 low/info.** None of these is a crash in normal use. The four high items are one safety-communication gap, one scientifically misleading dilution model, one wrong on-screen explanation, and one scientifically unjustified on/off rule.
+Counts: **0 critical, 4 high, 12 medium, 14 low/info (30 in total), plus 57 proposed test fixtures.** None of these is a crash in normal use. The four high items are one safety-communication gap, one scientifically misleading dilution model, one wrong on-screen explanation, and one scientifically unjustified on/off rule.
 
 ---
 
