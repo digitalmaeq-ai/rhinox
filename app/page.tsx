@@ -4,7 +4,6 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import RhinoxJourney from "./components/home/RhinoxJourney";
 import PlayRhinox from "./components/home/PlayRhinox";
-import PlayLabs from "./components/home/PlayLabs";
 import RhinoCodeBand from "./components/home/RhinoCodeBand";
 import ExploreRhinox from "./components/home/ExploreRhinox";
 import ShopRhinox from "./components/home/ShopRhinox";
@@ -173,8 +172,6 @@ export default function Home() {
       <RhinoxJourney />
 
       <PlayRhinox />
-
-      <PlayLabs />
 
       <RhinoCodeBand />
 
