@@ -107,8 +107,8 @@ export default function CodeStudioBand() {
             Write Python, build web pages, program Arduino, steer RhinoBot through a maze and design your own game levels. Save everything in My Projects.
           </p>
           <div className={styles.actions}>
-            <Link href="/coding-robotics/studio" className={styles.primary}>Open Code Studio</Link>
-            <Link href="/coding-robotics/game-creator" className={styles.secondary}>Make a game</Link>
+            <Link href="/coding-robotics" className={styles.primary}>Start coding</Link>
+            <Link href="/coding-robotics/game-creator" className={styles.secondary}>Open Game Creator</Link>
           </div>
         </div>
 
