@@ -11,6 +11,8 @@ import { parseLevel, runProgram, type Block } from "@/lib/maze-coder/engine";
 import { mazeLevels } from "@/lib/maze-coder/levels";
 import MazeBoard from "@/app/components/interactive/maze-coder/MazeBoard";
 
+import Lab3DPreview from "./Lab3DPreview";
+import { AcidBasePreview, CircuitPreview, ElectrolysisPreview, TitrationPreview } from "./LabPreviews";
 import styles from "./PlayLabs.module.css";
 
 /**
@@ -151,6 +153,25 @@ function MazePreview({ active }: { active: boolean }) {
   );
 }
 
+function Preview({ kind, reducedMotion }: { kind: ShowcaseEntry["preview"]; reducedMotion: boolean }) {
+  switch (kind) {
+    case "solar-system":
+      return <SolarPreview reducedMotion={reducedMotion} />;
+    case "maze-coder":
+      return <MazePreview active />;
+    case "titration":
+      return <Lab3DPreview kind="titration" label="3D titration: acid runs from a burette into a flask until the indicator changes colour" reducedMotion={reducedMotion} fallback={<TitrationPreview />} />;
+    case "acid-base":
+      return <Lab3DPreview kind="acids-bases" label="3D beaker of liquid tested with universal indicator against a pH colour chart" reducedMotion={reducedMotion} fallback={<AcidBasePreview />} />;
+    case "electrolysis":
+      return <Lab3DPreview kind="electrolysis" label="3D electrolysis cell with bubbles rising from two electrodes" reducedMotion={reducedMotion} fallback={<ElectrolysisPreview />} />;
+    case "circuit":
+      return <Lab3DPreview kind="electric-circuit" label="3D electric circuit with two cells and two lit bulbs" reducedMotion={reducedMotion} fallback={<CircuitPreview />} />;
+    default:
+      return <GenericPreview />;
+  }
+}
+
 function GenericPreview() {
   return <div className={styles.generic} aria-hidden="true" />;
 }
@@ -184,6 +205,7 @@ export default function PlayLabs() {
   const pairs = pairCount(pool.length);
   const [start, setStart] = useState(0);
   const [paused, setPaused] = useState(false);
+  const [stopped, setStopped] = useState(false);
   const reduced = useSyncExternalStore(subscribeReducedMotion, readReducedMotion, () => false);
 
   // Start from a different pair on each visit (after mount, so the server and
@@ -195,10 +217,10 @@ export default function PlayLabs() {
   }, [pairs]);
 
   useEffect(() => {
-    if (pairs < 2 || paused || reduced) return;
+    if (pairs < 2 || paused || stopped || reduced) return;
     const timer = window.setTimeout(() => setStart((value) => (value + 1) % pairs), SHOWCASE_ROTATE_MS);
     return () => window.clearTimeout(timer);
-  }, [start, pairs, paused, reduced]);
+  }, [start, pairs, paused, stopped, reduced]);
 
   if (pool.length === 0) return null;
   const shown = pickPair(pool, start);
@@ -214,10 +236,17 @@ export default function PlayLabs() {
             </h2>
           </div>
           {pairs > 1 && (
+            <div className={styles.controls}>
             <div className={styles.dots} role="group" aria-label="Choose a pair of labs">
               {Array.from({ length: pairs }, (_, index) => (
                 <button key={index} type="button" className={index === start ? styles.dotOn : ""} aria-label={`Show labs ${index + 1} of ${pairs}`} aria-current={index === start} onClick={() => setStart(index)} />
               ))}
+            </div>
+            {!reduced && (
+              <button type="button" className={styles.pauseBtn} aria-pressed={stopped} onClick={() => setStopped((v) => !v)}>
+                {stopped ? "Play rotation" : "Pause rotation"}
+              </button>
+            )}
             </div>
           )}
         </div>
@@ -226,7 +255,7 @@ export default function PlayLabs() {
           {shown.map(({ entry, item }) => (
             <article key={`${entry.slug}-${start}`} className={styles.card}>
               <div className={styles.preview}>
-                {entry.preview === "solar-system" ? <SolarPreview reducedMotion={reduced} /> : entry.preview === "maze-coder" ? <MazePreview active /> : <GenericPreview />}
+                <Preview kind={entry.preview} reducedMotion={reduced} />
                 <span className={styles.kicker}>{entry.kicker}</span>
               </div>
               <div className={styles.body}>
@@ -242,7 +271,7 @@ export default function PlayLabs() {
                     ))}
                   </ul>
                   <Link href={getExperienceHref(item)} className={styles.play}>
-                    Play now
+                    Open lab
                     <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.6" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6" /></svg>
                   </Link>
                 </div>

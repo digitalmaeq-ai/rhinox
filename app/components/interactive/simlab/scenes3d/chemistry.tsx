@@ -242,6 +242,7 @@ function PowerSupply({ position, volts }: { position: V3; volts: number }) {
 
 export function Electrolysis3D({ state }: P) {
   const s = state as unknown as CellState;
+  const bare = Boolean((state as Record<string, unknown>).bare); // homepage preview: no labels
   const o = outcome(s);
   const copperElectrodes = o.copperElectrodes;
   const metalCell = o.cathode.kind === "metal";
@@ -292,10 +293,14 @@ export function Electrolysis3D({ state }: P) {
       <PowerSupply position={[6, 0, -1.2]} volts={s.voltage} />
       <Wire points={[[6 - 0.2 + 0.35, 0.9, -0.2], [4.5, 3.6, -0.6], [-1.0, 4.4, -0.5], [-1.3, 3.95, 0]]} color="#dc2626" r={0.07} />
       <Wire points={[[6 + 0.55 + 0.35, 0.9, -0.2], [5.0, 3.2, 0.2], [1.8, 4.3, 0.3], [1.3, 3.95, 0]]} color="#2563eb" r={0.07} />
-      <Tag position={[-1.3, 4.7, 0.6]}>Anode (+)</Tag>
-      <Tag position={[1.3, 4.7, 0.6]}>Cathode (−)</Tag>
-      <Tag position={[-1.3, 0.1, 2.0]} tone="#475569">{o.on ? o.anode.name : "—"}</Tag>
-      <Tag position={[1.3, 0.1, 2.0]} tone="#475569">{o.on ? o.cathode.name : "—"}</Tag>
+      {!bare && (
+        <>
+          <Tag position={[-1.3, 4.7, 0.6]}>Anode (+)</Tag>
+          <Tag position={[1.3, 4.7, 0.6]}>Cathode (−)</Tag>
+          <Tag position={[-1.3, 0.1, 2.0]} tone="#475569">{o.on ? o.anode.name : "—"}</Tag>
+          <Tag position={[1.3, 0.1, 2.0]} tone="#475569">{o.on ? o.cathode.name : "—"}</Tag>
+        </>
+      )}
     </group>
   );
 }

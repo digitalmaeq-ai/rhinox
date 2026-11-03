@@ -1,0 +1,49 @@
+/* Animated lab drawings for the "Hands-on labs" cards (dark preview surface). */
+.scene3d { position: absolute; inset: 0; pointer-events: none; }
+.svg { position: absolute; inset: 0; width: 100%; height: 100%; padding: 36px 24px 20px; }
+
+.glass { fill: rgba(255, 255, 255, 0.08); stroke: #8ec5ff; stroke-width: 2; }
+.glassLine { fill: none; stroke: #8ec5ff; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+.tick { stroke: #8ec5ff; stroke-width: 1.5; }
+.tap { fill: #8ec5ff; }
+.acid { fill: #6fb4ff; opacity: 0.85; }
+.level { transform-box: fill-box; transform-origin: bottom; animation: levelDown 9s ease-in-out infinite; }
+.drop { fill: #6fb4ff; animation: drip 1.5s ease-in infinite; }
+.indicator { fill: #cfe8ff; animation: endPoint 9s ease-in-out infinite; }
+
+@keyframes levelDown { 0% { transform: scaleY(1); } 85%, 100% { transform: scaleY(0.78); } }
+@keyframes drip { 0% { transform: translateY(0); opacity: 0; } 15% { opacity: 1; } 85% { opacity: 1; } 100% { transform: translateY(66px); opacity: 0; } }
+@keyframes endPoint { 0%, 70% { fill: #cfe8ff; } 78%, 92% { fill: #ff5fa2; } 100% { fill: #cfe8ff; } }
+
+.label { fill: #9ec9ff; font: 700 12px/1 var(--rx-font-body, system-ui, sans-serif); }
+.heading { fill: #ffffff; font: 800 16px/1 var(--rx-font-display, system-ui, sans-serif); }
+.pointer { animation: sweep 8s ease-in-out infinite; }
+.pointerShape { fill: #ffffff; }
+@keyframes sweep { 0%, 8% { transform: translateX(0); } 45%, 55% { transform: translateX(132px); } 92%, 100% { transform: translateX(264px); } }
+
+.battery { fill: #0b2342; stroke: #8ec5ff; stroke-width: 2; }
+.wire { fill: none; stroke: #8ec5ff; stroke-width: 3; stroke-linecap: round; stroke-linejoin: round; }
+.electrode { fill: #cbd5e1; }
+.liquid { fill: rgba(111, 180, 255, 0.35); }
+.bubble { fill: rgba(255, 255, 255, 0.85); animation: rise 2.2s ease-in infinite; }
+@keyframes rise { 0% { transform: translateY(0); opacity: 0; } 15% { opacity: 1; } 100% { transform: translateY(-82px); opacity: 0; } }
+
+.current { fill: none; stroke: #ffd166; stroke-width: 4; stroke-linecap: round; stroke-dasharray: 1 18; animation: flow 1.6s linear infinite; }
+@keyframes flow { to { stroke-dashoffset: -19; } }
+.cellLong { stroke: #ffffff; stroke-width: 3; }
+.cellShort { stroke: #ffffff; stroke-width: 5; }
+.glow { fill: #ffd166; opacity: 0.25; animation: glowPulse 2.4s ease-in-out infinite; }
+.bulb { fill: #ffe9a3; stroke: #ffd166; stroke-width: 2; }
+.filament { fill: none; stroke: #b7791f; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+.node { fill: #8ec5ff; }
+.switch { stroke: #8ec5ff; stroke-width: 3; stroke-linecap: round; }
+@keyframes glowPulse { 0%, 100% { opacity: 0.18; } 50% { opacity: 0.4; } }
+
+@media (prefers-reduced-motion: reduce) {
+  .level, .drop, .indicator, .pointer, .bubble, .current, .glow { animation: none; }
+  .drop { opacity: 1; }
+  .indicator { fill: #ff5fa2; }
+  .pointer { transform: translateX(132px); }
+  .bubble { opacity: 0.8; }
+  .glow { opacity: 0.35; }
+}

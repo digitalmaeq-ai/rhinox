@@ -6,7 +6,7 @@
 //      (or "generic" for a simple gradient card).
 // Title, description, link, age and time all come from the experience itself.
 
-export type ShowcasePreview = "solar-system" | "maze-coder" | "generic";
+export type ShowcasePreview = "solar-system" | "maze-coder" | "titration" | "acid-base" | "electrolysis" | "circuit" | "generic";
 
 export interface ShowcaseEntry {
   slug: string;
@@ -18,6 +18,13 @@ export interface ShowcaseEntry {
 }
 
 export const showcaseEntries: ShowcaseEntry[] = [
+  // Entries are shown two at a time, in this order: 0+1, then 2+3, then 4+5.
+  {
+    slug: "titration",
+    preview: "titration",
+    kicker: "Virtual lab · Chemistry",
+    highlights: ["Burette and pipette", "Find the end point", "Calculate the concentration"],
+  },
   {
     slug: "solar-system-explorer",
     preview: "solar-system",
@@ -29,6 +36,24 @@ export const showcaseEntries: ShowcaseEntry[] = [
     preview: "maze-coder",
     kicker: "Block coding · Robotics",
     highlights: ["Snap-together blocks", "Loops and nested loops", "Collect energy chips", "10 levels"],
+  },
+  {
+    slug: "electric-circuit-lab",
+    preview: "circuit",
+    kicker: "Simulation · Electricity",
+    highlights: ["Cells, switch and bulbs", "Series and parallel", "Voltage and current"],
+  },
+  {
+    slug: "acids-and-bases",
+    preview: "acid-base",
+    kicker: "Virtual lab · Chemistry",
+    highlights: ["Litmus and universal indicator", "Phenolphthalein", "Place liquids on the pH scale"],
+  },
+  {
+    slug: "electrolysis",
+    preview: "electrolysis",
+    kicker: "Virtual lab · Chemistry",
+    highlights: ["Different liquids", "What forms at each electrode", "Check with Faraday's law"],
   },
 ];
 
