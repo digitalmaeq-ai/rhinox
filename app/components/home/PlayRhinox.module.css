@@ -12,8 +12,8 @@
 /* ---- one stage: categories on top, "now playing" and "up next" below ---- */
 .window { display: grid; gap: 14px; }
 
-.chips { display: flex; flex-wrap: wrap; gap: 6px; }
-.chip { display: inline-flex; align-items: center; gap: 8px; padding: 9px 12px; border: 1px solid var(--rx-border); border-radius: 999px; background: #fff; color: var(--rx-text-soft); font: inherit; font-size: 13.5px; font-weight: 700; cursor: pointer; transition: border-color 0.2s, color 0.2s, background 0.2s, transform 0.2s ease-out, box-shadow 0.2s; }
+.chips { display: flex; flex-wrap: wrap; gap: 8px; }
+.chip { display: inline-flex; align-items: center; gap: 8px; padding: 9px 15px; border: 1px solid var(--rx-border); border-radius: 999px; background: #fff; color: var(--rx-text-soft); font: inherit; font-size: 13.5px; font-weight: 700; cursor: pointer; transition: border-color 0.2s, color 0.2s, background 0.2s, transform 0.2s ease-out, box-shadow 0.2s; }
 .chip:hover { border-color: var(--rx-blue); color: var(--rx-blue); transform: translateY(-1px); }
 .chip:focus-visible, .railItem:focus-visible, .play_btn:focus-visible, .seeAll:focus-visible { outline: 3px solid #f59e0b; outline-offset: 3px; }
 .chipActive, .chipActive:hover { border-color: var(--rx-heading); background: var(--rx-heading); color: #fff; box-shadow: 0 12px 22px -14px rgba(10, 30, 60, 0.7); }
