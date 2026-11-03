@@ -3,6 +3,7 @@ import type { ReactNode } from "react";
 import localFont from "next/font/local";
 import "./globals.css";
 import "./redesign.css";
+import "./design-tokens.css";
 import Header from "./components/Header";
 import Footer from "./components/Footer";
 import { getMenuCounts } from "@/lib/menu-counts";

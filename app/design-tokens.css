@@ -1,0 +1,33 @@
+/*
+ * Rhinox design tokens, revision 2 (additive).
+ *
+ * Nothing in the site reads these yet, so adding this file changes no page.
+ * Existing tokens in globals.css and redesign.css are NOT edited, because
+ * Think • Move • Code! and other areas read them directly. Pages move to
+ * these names one at a time (see docs/design/phase-0-design-system.md,
+ * sections 4.1 and 7).
+ *
+ * Contrast notes (WCAG, computed):
+ *   --rx-brand-blue on white 3.45:1 (graphics and large text only; never
+ *     body text, and never behind white text).
+ *   --rx-action on white 5.40:1, on #f3f7fb 5.02:1, on #eaf3ff 4.82:1.
+ *   white on --rx-action 5.40:1; white on --rx-action-hover 6.37:1.
+ */
+:root {
+  /* Colour */
+  --rx-brand-blue: #168fe5; /* signature blue: logo, bands, bars, large type */
+  --rx-action: #116eb1; /* links, primary buttons, focus ring on light surfaces */
+  --rx-action-hover: #0f639e;
+  --rx-ink: #102b46; /* dark bands; same value as the heading colour */
+
+  /* Corner radius: new names, so --rx-radius-* (in use today) is untouched */
+  --rx-corner-sm: 6px;
+  --rx-corner-md: 10px;
+  --rx-corner-lg: 14px;
+  --rx-corner-pill: 999px;
+
+  /* Elevation: new names, so --rx-shadow-* (in use today) is untouched */
+  --rx-elev-sm: 0 2px 8px rgba(16, 43, 70, 0.06);
+  --rx-elev-md: 0 12px 32px rgba(16, 43, 70, 0.12);
+  --rx-elev-lg: 0 24px 60px rgba(16, 43, 70, 0.16);
+}
