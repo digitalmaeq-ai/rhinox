@@ -1,5 +1,5 @@
 .band { padding: 0 0 clamp(28px, 3.5vw, 48px); background: #fff; }
-.inner { display: grid; grid-template-columns: minmax(0, 1.1fr) minmax(0, 0.9fr); align-items: center; gap: clamp(20px, 4vw, 56px); padding: clamp(24px, 3vw, 40px); border-radius: 28px; background: linear-gradient(155deg, #0e2a52 0%, #0a4a9c 60%, #0f6fde 100%); color: #fff; }
+.inner { display: grid; grid-template-columns: minmax(0, 1.1fr) minmax(0, 0.9fr); align-items: center; gap: clamp(20px, 4vw, 56px); padding: clamp(24px, 3vw, 40px); border-radius: 28px; background: #0b1f3f; color: #fff; }
 .kind { margin: 0 0 8px; font-size: 11px; font-weight: 800; letter-spacing: 0.16em; text-transform: uppercase; color: rgba(255, 255, 255, 0.85); }
 .title { margin: 0 0 12px; color: #fff; font-family: var(--rx-font-display); font-size: clamp(26px, 3.2vw, 40px); font-weight: 800; letter-spacing: -0.03em; line-height: 1.08; }
 .title span { display: block; color: #9fd0ff; }
