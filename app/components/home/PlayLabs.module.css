@@ -8,10 +8,13 @@
 .title { margin: 0; color: var(--rx-heading); font-family: var(--rx-font-display); font-size: clamp(24px, 2.8vw, 34px); font-weight: 800; letter-spacing: -0.03em; line-height: 1.1; }
 .title span { color: var(--rx-blue); }
 
+.controls { display: flex; align-items: center; flex-wrap: wrap; gap: 8px 0; }
 .dots { display: flex; gap: 8px; }
 .dots button { width: 10px; height: 10px; padding: 0; border: 0; border-radius: 99px; background: var(--rx-border-strong); cursor: pointer; transition: width 0.25s ease, background 0.25s; }
 .dots button.dotOn { width: 28px; background: var(--rx-blue); }
 .dots button:focus-visible { outline: 3px solid #f59e0b; outline-offset: 3px; }
+.pauseBtn { margin-left: 16px; padding: 6px 12px; border: 1px solid var(--rx-border-strong); border-radius: 99px; background: #fff; color: #116eb1; font: 700 0.8125rem/1 inherit; cursor: pointer; }
+.pauseBtn:focus-visible { outline: 3px solid #f59e0b; outline-offset: 3px; }
 
 .grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: clamp(20px, 2.4vw, 32px); }
 
