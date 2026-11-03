@@ -1,7 +1,7 @@
 import type { ComponentType } from "react";
 import type { ContentType } from "@/types/content";
 import type { ContentItem } from "./content";
-import { STUDIO_ROUTES } from "./studio-routes";
+import { experienceHref } from "./studio-routes";
 import ExperimentDetailRenderer from "@/app/components/renderers/ExperimentDetailRenderer";
 import ProjectDetailRenderer from "@/app/components/renderers/ProjectDetailRenderer";
 import QuizDetailRenderer from "@/app/components/renderers/QuizDetailRenderer";
@@ -118,7 +118,7 @@ registerContentType({
     "Multi-scene explorable STEM experiences with their own assets, interactions and rules.",
   route: "/experiences",
   engine: "runtime",
-  getHref: (content) => STUDIO_ROUTES[content.slug] ?? `/experiences/${content.slug}`,
+  getHref: (content) => experienceHref(content.slug),
   // Detail rendering stays a dedicated route (app/experiences/[slug]) — a
   // literal folder always wins over the generic engine's catch-all, so no
   // DetailRenderer is consulted here today. Registered anyway so any
