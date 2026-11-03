@@ -1,19 +1,23 @@
 "use client";
 
 import dynamic from "next/dynamic";
-import { Component, useEffect, useRef, useState, type ReactNode } from "react";
+import Link from "next/link";
+import { Component, useEffect, useMemo, useRef, useState, useSyncExternalStore, type ReactNode } from "react";
 
+import { type ContentItem } from "@/lib/content";
+import { getExperienceHref, getExperienceSequence } from "@/lib/experience-sequence";
+import { pairCount, pickPair, SHOWCASE_ROTATE_MS, showcaseEntries, type ShowcaseEntry } from "@/lib/showcase-experiences";
 import { parseLevel, runProgram, type Block } from "@/lib/maze-coder/engine";
 import { mazeLevels } from "@/lib/maze-coder/levels";
 import MazeBoard from "@/app/components/interactive/maze-coder/MazeBoard";
-import type { ShowcasePreview } from "@/lib/showcase-experiences";
 
-import styles from "./LivePreviews.module.css";
+import styles from "./PlayLabs.module.css";
 
 /**
- * The live previews shown in the Play stage for the hands-on labs: a 3D Solar System and the
- * real maze engine replaying a solution. They sit in a dark frame the same shape as the
- * screenshots, so they swap in without changing the layout.
+ * "Hands-on labs": the continuation of Play. Two live experiences are shown
+ * side by side, each with a small animated preview, and the pair rotates
+ * through the pool in lib/showcase-experiences.ts. Pauses while the visitor
+ * is pointing at or focused on it, and never rotates for reduced motion.
  */
 
 // ---------- Solar System preview ----------
@@ -147,13 +151,106 @@ function MazePreview({ active }: { active: boolean }) {
   );
 }
 
+function GenericPreview() {
+  return <div className={styles.generic} aria-hidden="true" />;
+}
 
-/** A live preview in a screenshot-shaped frame. `kind` comes from lib/showcase-experiences.ts. */
-export default function LivePreview({ kind, kicker, reducedMotion }: { kind: ShowcasePreview; kicker: string; reducedMotion: boolean }) {
+function subscribeReducedMotion(onChange: () => void) {
+  const query = window.matchMedia("(prefers-reduced-motion: reduce)");
+  query.addEventListener("change", onChange);
+  return () => query.removeEventListener("change", onChange);
+}
+const readReducedMotion = () => window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+type Card = { entry: ShowcaseEntry; item: ContentItem };
+
+function metaOf(item: ContentItem) {
+  const extra = item as ContentItem & { durationMinutes?: number; difficulty?: string };
+  const parts: string[] = [];
+  if (extra.durationMinutes) parts.push(`${extra.durationMinutes} min`);
+  if (extra.difficulty) parts.push(extra.difficulty.charAt(0).toUpperCase() + extra.difficulty.slice(1));
+  return parts;
+}
+
+export default function PlayLabs() {
+  const pool = useMemo<Card[]>(() => {
+    const library = getExperienceSequence();
+    return showcaseEntries.flatMap((entry) => {
+      const item = library.find((candidate) => candidate.slug === entry.slug);
+      return item ? [{ entry, item }] : [];
+    });
+  }, []);
+
+  const pairs = pairCount(pool.length);
+  const [start, setStart] = useState(0);
+  const [paused, setPaused] = useState(false);
+  const reduced = useSyncExternalStore(subscribeReducedMotion, readReducedMotion, () => false);
+
+  // Start from a different pair on each visit (after mount, so the server and
+  // browser render the same first frame).
+  useEffect(() => {
+    if (pairs < 2) return;
+    const timer = window.setTimeout(() => setStart(Math.floor(Math.random() * pairs)), 0);
+    return () => window.clearTimeout(timer);
+  }, [pairs]);
+
+  useEffect(() => {
+    if (pairs < 2 || paused || reduced) return;
+    const timer = window.setTimeout(() => setStart((value) => (value + 1) % pairs), SHOWCASE_ROTATE_MS);
+    return () => window.clearTimeout(timer);
+  }, [start, pairs, paused, reduced]);
+
+  if (pool.length === 0) return null;
+  const shown = pickPair(pool, start);
+
   return (
-    <div className={styles.frame}>
-      {kind === "solar-system" ? <SolarPreview reducedMotion={reducedMotion} /> : kind === "maze-coder" ? <MazePreview active /> : <div className={styles.generic} aria-hidden="true" />}
-      <span className={styles.kicker}>{kicker}</span>
-    </div>
+    <section className={styles.labs} aria-labelledby="play-labs-title">
+      <div className={`rx-container ${styles.inner}`}>
+        <div className={styles.head}>
+          <div>
+            <p className={styles.eyebrow}>Hands-on labs</p>
+            <h2 id="play-labs-title" className={styles.title}>
+              Don&apos;t just read it. <span>Run it yourself.</span>
+            </h2>
+          </div>
+          {pairs > 1 && (
+            <div className={styles.dots} role="group" aria-label="Choose a pair of labs">
+              {Array.from({ length: pairs }, (_, index) => (
+                <button key={index} type="button" className={index === start ? styles.dotOn : ""} aria-label={`Show labs ${index + 1} of ${pairs}`} aria-current={index === start} onClick={() => setStart(index)} />
+              ))}
+            </div>
+          )}
+        </div>
+
+        <div className={styles.grid} onMouseEnter={() => setPaused(true)} onMouseLeave={() => setPaused(false)} onFocus={() => setPaused(true)} onBlur={() => setPaused(false)}>
+          {shown.map(({ entry, item }) => (
+            <article key={`${entry.slug}-${start}`} className={styles.card}>
+              <div className={styles.preview}>
+                {entry.preview === "solar-system" ? <SolarPreview reducedMotion={reduced} /> : entry.preview === "maze-coder" ? <MazePreview active /> : <GenericPreview />}
+                <span className={styles.kicker}>{entry.kicker}</span>
+              </div>
+              <div className={styles.body}>
+                <div className={styles.titleRow}>
+                  <h3 className={styles.cardTitle}>{item.title}</h3>
+                  <span className={styles.meta}>{metaOf(item).join(" · ")}</span>
+                </div>
+                <p className={styles.text}>{item.description}</p>
+                <div className={styles.foot}>
+                  <ul className={styles.points}>
+                    {entry.highlights.map((point) => (
+                      <li key={point}>{point}</li>
+                    ))}
+                  </ul>
+                  <Link href={getExperienceHref(item)} className={styles.play}>
+                    Play now
+                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.6" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6" /></svg>
+                  </Link>
+                </div>
+              </div>
+            </article>
+          ))}
+        </div>
+      </div>
+    </section>
   );
 }

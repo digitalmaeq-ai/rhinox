@@ -2,18 +2,13 @@
 
 import Image from "next/image";
 import Link from "next/link";
-import dynamic from "next/dynamic";
 import { useEffect, useMemo, useState } from "react";
 
 import { type ContentItem } from "@/lib/content";
 import { compareByDifficulty, getExperienceHref, getExperienceSequence } from "@/lib/experience-sequence";
-import { showcaseEntries, type ShowcaseEntry } from "@/lib/showcase-experiences";
 import { formatYears, yearsFromAgeGroups } from "@/lib/year-groups";
 
 import styles from "./PlayRhinox.module.css";
-
-// The live 3D and maze previews load only in the browser, and only when a hands-on lab is on stage.
-const LivePreview = dynamic(() => import("./LivePreviews"), { ssr: false });
 
 /**
  * The Play stage: a category bar, one large "now playing" stage and an
@@ -43,7 +38,6 @@ const subjectIcons: Record<string, string> = {
 };
 const subjectLabels: Record<string, string> = { "earth-and-space": "Earth & space", "environmental-science": "Environment" };
 const subjectOrder = ["coding", "robotics", "mathematics", "biology", "physics", "chemistry", "engineering", "earth-and-space"];
-const labIcon = "M9 3h6M10 3v6l-5 9a2 2 0 0 0 1.7 3h10.6a2 2 0 0 0 1.7-3l-5-9V3M7.5 14h9";
 const gamesIcon = "M6 8h12a2 2 0 0 1 2 2v7a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2v-7a2 2 0 0 1 2-2ZM12 8V4M9.5 13h.01M14.5 13h.01M9 16h6";
 
 function titleCase(value: string) {
@@ -59,11 +53,6 @@ function formatLabel(item: ContentItem) {
   if (branch === "games") return "Game";
   if (branch === "interactive-lessons" || branch === "interactive-learning") return "Interactive lesson";
   return "Interactive experience";
-}
-
-// Hands-on labs show a live preview in the stage; the entry also supplies a short kicker and highlights.
-function liveEntryFor(item: ContentItem): ShowcaseEntry | undefined {
-  return showcaseEntries.find((entry) => entry.slug === item.slug && entry.preview !== "generic");
 }
 
 function ctaFor(item: ContentItem) {
@@ -174,9 +163,6 @@ export default function PlayRhinox() {
     const built: Tab[] = [];
     if (featured.length) built.push({ id: "featured", label: "Featured", icon: sparkle, total: featured.length, items: featured });
 
-    const live = showcaseEntries.flatMap((entry) => experiences.filter((item) => item.slug === entry.slug));
-    if (live.length) built.push({ id: "live", label: "Live labs", icon: labIcon, total: live.length, items: live });
-
     const games = experiences.filter(isGame);
     if (games.length) built.push({ id: "games", label: "Games", icon: gamesIcon, total: games.length, items: pick(games) });
 
@@ -241,8 +227,6 @@ export default function PlayRhinox() {
   }
 
   const meta = metaLine(item);
-  const liveEntry = liveEntryFor(item);
-  const pills = liveEntry ? [...liveEntry.highlights.slice(0, 3), ...meta.filter((part) => /min$/.test(part))] : meta;
 
   return (
     <section className={`rx-play ${styles.play}`} id="play" aria-labelledby="rhinox-play-title">
@@ -256,8 +240,8 @@ export default function PlayRhinox() {
             </h2>
           </div>
           <p className={styles.intro}>
-            Interactive experiences, games and live hands-on labs across coding, robotics, maths and science, all in
-            one window. Pick something and start in a click.
+            Interactive experiences, games and virtual labs across coding, robotics, maths and science, all in one
+            window. Pick something and start in a click.
           </p>
         </header>
 
@@ -288,13 +272,13 @@ export default function PlayRhinox() {
               <div className={styles.stageCopy}>
                 <span className={styles.badge}>
                   <i aria-hidden="true" />
-                  {liveEntry ? "Live lab" : formatLabel(item)}
+                  {formatLabel(item)}
                 </span>
                 <h3 className={styles.stageTitle}>{item.title}</h3>
                 <p className={styles.stageText}>{describe(item)}</p>
-                {pills.length > 0 && (
+                {meta.length > 0 && (
                   <ul className={styles.pills}>
-                    {pills.map((part) => (
+                    {meta.map((part) => (
                       <li key={part}>{part}</li>
                     ))}
                   </ul>
@@ -308,11 +292,7 @@ export default function PlayRhinox() {
               </div>
 
               <div className={styles.device} aria-hidden="true">
-                {liveEntry ? (
-                  <LivePreview kind={liveEntry.preview} kicker={liveEntry.kicker} reducedMotion={calm} />
-                ) : (
-                  <Picture item={item} icon={tab.icon} sizes="(max-width: 900px) 100vw, 620px" className={styles.deviceScreen} />
-                )}
+                <Picture item={item} icon={tab.icon} sizes="(max-width: 900px) 100vw, 620px" className={styles.deviceScreen} />
               </div>
             </article>
 
