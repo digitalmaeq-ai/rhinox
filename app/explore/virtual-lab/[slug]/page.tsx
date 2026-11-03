@@ -1,4 +1,8 @@
-import Link from "next/link";
+import { notFound, redirect } from "next/navigation";
+
+import { getExperienceHref } from "@/lib/experience-sequence";
+import { isVirtualExperiment } from "@/lib/explore-experience-items";
+import { getInteractiveExperienceBySlug, isLiveContent } from "@/lib/interactive-experiences";
 
 interface PageProps {
   params: Promise<{
@@ -6,34 +10,16 @@ interface PageProps {
   }>;
 }
 
-export default async function VirtualLabDetailPage({
-  params,
-}: PageProps) {
+// The runtime lives at /experiences/<slug>. This older address used to show a
+// "being prepared" page for any slug. A published virtual lab now goes to its
+// real page; anything else is a proper not-found, never unrelated content.
+export default async function VirtualLabDetailPage({ params }: PageProps) {
   const { slug } = await params;
+  const experience = getInteractiveExperienceBySlug(slug);
 
-  return (
-    <main>
-      <section className="rx-section">
-        <div className="rx-container">
-          <p className="rx-content-meta-type">
-            Virtual Lab
-          </p>
+  if (!experience || !isLiveContent(experience) || !isVirtualExperiment(experience)) {
+    notFound();
+  }
 
-          <h1>{slug.replace(/-/g, " ")}</h1>
-
-          <p>
-            This interactive virtual laboratory experience is
-            being prepared by Rhinox Scientifica.
-          </p>
-
-          <Link
-            href="/explore/virtual-lab"
-            className="rx-button rx-button-primary"
-          >
-            Back to Virtual Labs
-          </Link>
-        </div>
-      </section>
-    </main>
-  );
+  redirect(getExperienceHref(experience));
 }

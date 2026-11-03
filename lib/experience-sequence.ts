@@ -1,7 +1,7 @@
 import type { ContentItem } from "./content";
 import { getContentHref } from "./content-registry";
 import { getExperienceLibrary } from "./interactive-experiences";
-import { STUDIO_ROUTES } from "./studio-routes";
+import { experienceHref, STUDIO_ROUTES } from "./studio-routes";
 import { yearsFromAgeGroups } from "./year-groups";
 
 export { STUDIO_ROUTES };
@@ -66,7 +66,7 @@ export function getExperienceSequence(): ContentItem[] {
 /** Where an item in the library opens. */
 export function getExperienceHref(item: ContentItem): string {
   if (item.contentType !== "experience") return getContentHref(item);
-  return STUDIO_ROUTES[item.slug] ?? `/experiences/${item.slug}`;
+  return experienceHref(item.slug);
 }
 
 export interface ExperienceNeighbours {
@@ -101,8 +101,11 @@ export function getExperienceNeighbours(id: string): ExperienceNeighbours | null
   }
 
   const family = isVirtualLab(current);
-  const sequence = all.filter(
-    (item) => item.contentType !== "experience" || isVirtualLab(item) === family
+  // Virtual labs are numbered among themselves only. Games and quizzes filed
+  // under Experiences share the numbering of the other experiences, so they
+  // must not be counted in the virtual-lab "N of M".
+  const sequence = all.filter((item) =>
+    item.contentType === "experience" ? isVirtualLab(item) === family : !family
   );
   const index = sequence.findIndex((item) => item.id === id);
 

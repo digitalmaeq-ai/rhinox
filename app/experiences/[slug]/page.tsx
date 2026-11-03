@@ -4,6 +4,7 @@ import { notFound, redirect } from "next/navigation";
 
 import {
   getInteractiveExperienceBySlug,
+  isLiveContent,
 } from "@/lib/interactive-experiences";
 
 import {
@@ -26,7 +27,7 @@ interface PageProps {
 export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
   const { slug } = await params;
   const experience = getInteractiveExperienceBySlug(slug);
-  if (!experience) return { title: "Experience not found | Rhinox Scientifica" };
+  if (!experience || !isLiveContent(experience)) return { title: "Experience not found | Rhinox Scientifica" };
   return { title: `${experience.title} | Rhinox Scientifica`, description: experience.description };
 }
 
@@ -41,7 +42,8 @@ export default async function ExperiencePage({
   const experience =
     getInteractiveExperienceBySlug(slug);
 
-  if (!experience) {
+  // Unknown, draft and archived experiences are not served, even by direct URL.
+  if (!experience || !isLiveContent(experience)) {
     notFound();
   }
 
