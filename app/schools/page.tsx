@@ -1,8 +1,10 @@
 import type { Metadata } from "next";
+import Link from "next/link";
 
-import HubShowcase, { type ShowcaseItem } from "../components/hub/HubShowcase";
-import { HubClosing, HubHero, HubSectionHead, HubSteps } from "../components/hub/HubParts";
-import styles from "../components/hub/hub.module.css";
+import Breadcrumbs from "../components/Breadcrumbs";
+import { contactDetails, telHref } from "../contact/contact-details";
+import SchoolsIndex from "./SchoolsIndex";
+import styles from "./schools.module.css";
 
 export const metadata: Metadata = {
   title: "Schools & Institutions | Rhinox Scientifica",
@@ -10,98 +12,99 @@ export const metadata: Metadata = {
     "STEM education, laboratory solutions, coding and robotics programmes, teacher training and quotations for schools and institutions.",
 };
 
-const items: ShowcaseItem[] = [
-  {
-    title: "STEM School Solutions",
-    text: "Practical STEM programmes and learning solutions.",
-    href: "/schools/stem-school-solutions",
-    image: "/images/hero/classroom.jpg",
-    alt: "Learners working together at a classroom table",
-    tag: "Programmes",
-  },
-  {
-    title: "Laboratory Solutions",
-    text: "Laboratory planning, supply and development.",
-    href: "/schools/laboratory-solutions",
-    image: "/images/hero/stem-lab.jpg",
-    alt: "A bright, modern school laboratory",
-    tag: "Laboratories",
-  },
-  {
-    title: "Coding & Robotics",
-    text: "Coding and robotics programmes for institutions.",
-    href: "/schools/coding-robotics",
-    image: "/images/journey/journey-robotics.jpg",
-    alt: "Young people building a robotics project",
-    tag: "Training",
-  },
-  {
-    title: "STEM Clubs",
-    text: "Hands-on school clubs. Express interest in the pilot.",
-    href: "/schools/stem-clubs",
-    image: "/images/journey/journey-science.jpg",
-    alt: "Learners carrying out a science activity",
-    tag: "Pilot",
-  },
-  {
-    title: "Teacher Training",
-    text: "Practical professional development for educators.",
-    href: "/schools/teacher-training",
-    image: "/images/journey/journey-pexels.jpg",
-    alt: "Students and a teacher working at laboratory apparatus",
-    tag: "Educators",
-  },
+const OFFERS = [
+  { title: "STEM School Solutions", text: "Practical STEM programmes and learning solutions for your school.", href: "/schools/stem-school-solutions" },
+  { title: "Laboratory Solutions", text: "Laboratory planning, supply and development.", href: "/schools/laboratory-solutions" },
+  { title: "Coding & Robotics", text: "Coding and robotics programmes for institutions.", href: "/schools/coding-robotics" },
+  { title: "STEM Clubs", text: "Hands-on school clubs. Express interest in the pilot.", href: "/schools/stem-clubs" },
+  { title: "Teacher Training", text: "Practical professional development for educators.", href: "/schools/teacher-training" },
 ];
 
-const steps = [
+const STEPS = [
   { title: "Consult", text: "We learn about your learners, space and goals." },
   { title: "Plan", text: "We shape a practical programme or laboratory plan." },
   { title: "Deliver", text: "Training, equipment and resources are put in place." },
   { title: "Support", text: "We stay close so the programme keeps working." },
 ];
 
+const INDEX = [
+  { id: "offer", label: "What we offer" },
+  { id: "how", label: "How we work" },
+  { id: "request", label: "Request a quote" },
+];
+
 export default function SchoolsPage() {
   return (
-    <main style={{ background: "var(--rx-white)" }}>
-      <HubHero
-        eyebrow="Schools & institutions"
-        lineOne="STEM solutions for"
-        lineTwo="schools & institutions."
-        lead="Rhinox supports schools and institutions with STEM education, laboratory solutions, coding, robotics, teacher training and practical programmes."
-        actions={[
-          { label: "Request a quote", href: "/schools/request-a-quote" },
-          { label: "Talk to us", href: "/contact", secondary: true },
-        ]}
-        image="/images/hero/stem-lab.jpg"
-        alt="A modern school laboratory"
-        chips={["Laboratories", "Coding & robotics", "Teacher training"]}
-      />
+    <main className={styles.page}>
+      <div className={`rx-container ${styles.crumbs}`}>
+        <Breadcrumbs items={[{ label: "Home", href: "/" }, { label: "Schools & Institutions" }]} />
+      </div>
 
-      <section className={styles.showcaseSection}>
-        <div className="rx-container">
-          <HubSectionHead eyebrow="What we offer" lineOne="One partner for the whole" lineTwo="STEM programme." />
-          <HubShowcase items={items} />
+      <header className={styles.statement}>
+        <div className={`rx-container ${styles.statementInner}`}>
+          <p className={styles.eyebrow}>Schools &amp; institutions</p>
+          <h1 className={styles.h1}>STEM solutions for schools and institutions</h1>
+          <p className={styles.lead}>
+            Rhinox supports schools with STEM education, laboratory solutions, coding, robotics, teacher training and practical programmes. Tell us what your school needs and we will come back with a clear, practical proposal.
+          </p>
+          <div className={styles.actions}>
+            <Link href="/schools/request-a-quote" className="rx-button rx-button-primary">Request a quote</Link>
+            <Link href="/contact" className="rx-button rx-button-secondary">Talk to us</Link>
+          </div>
+        </div>
+      </header>
+
+      <div className={`rx-container ${styles.layout}`}>
+        <SchoolsIndex entries={INDEX} />
+
+        <div className={styles.body}>
+          <section id="offer" className={styles.section} aria-labelledby="offer-title">
+            <h2 id="offer-title" tabIndex={-1} className={styles.h2}>What we offer</h2>
+            <ul className={styles.offers}>
+              {OFFERS.map((o) => (
+                <li key={o.href}>
+                  <Link href={o.href} className={styles.offer}>
+                    <span className={styles.offerName}>{o.title}</span>
+                    <span className={styles.offerText}>{o.text}</span>
+                    <span className={styles.offerGo}>Details <span aria-hidden="true">→</span></span>
+                  </Link>
+                </li>
+              ))}
+            </ul>
+            <Link href="/schools/request-a-quote" className={`rx-button rx-button-primary ${styles.afterOffers}`}>Request a quote</Link>
+          </section>
+
+          <section id="how" className={styles.section} aria-labelledby="how-title">
+            <h2 id="how-title" tabIndex={-1} className={styles.h2}>How we work</h2>
+            <ol className={styles.steps}>
+              {STEPS.map((s, i) => (
+                <li key={s.title}>
+                  <span className={styles.stepNum} aria-hidden="true">{i + 1}</span>
+                  <h3 className={styles.stepTitle}>{s.title}</h3>
+                  <p className={styles.stepText}>{s.text}</p>
+                </li>
+              ))}
+            </ol>
+          </section>
+        </div>
+      </div>
+
+      <section id="request" className={styles.request} aria-labelledby="request-title">
+        <div className={`rx-container ${styles.requestInner}`}>
+          <div>
+            <h2 id="request-title" tabIndex={-1} className={styles.h2}>Request a quote</h2>
+            <p className={styles.requestLead}>Share your requirements and the Rhinox team will reply with a practical proposal.</p>
+            <Link href="/schools/request-a-quote" className="rx-button rx-button-primary">Request a quote</Link>
+          </div>
+          <address className={styles.contact}>
+            <a href={`mailto:${contactDetails.email}`}>{contactDetails.email}</a>
+            {contactDetails.phones.map((p) => (
+              <a key={p} href={telHref(p)}>{p}</a>
+            ))}
+            <span>{contactDetails.addressLines.join(" ")}</span>
+          </address>
         </div>
       </section>
-
-      <section className={styles.stepsSection}>
-        <div className="rx-container">
-          <HubSectionHead eyebrow="How we work" lineOne="From first conversation" lineTwo="to a working programme." />
-          <HubSteps steps={steps} />
-        </div>
-      </section>
-
-      <HubClosing
-        kicker="Ready to start?"
-        lineOne="Tell us what your"
-        lineTwo="institution needs."
-        lead="Share your requirements and the Rhinox team will come back with a clear, practical proposal."
-        actions={[
-          { label: "Request a quote", href: "/schools/request-a-quote" },
-          { label: "Contact Rhinox", href: "/contact", secondary: true },
-        ]}
-        image="/images/hero/classroom.jpg"
-      />
     </main>
   );
 }

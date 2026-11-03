@@ -1,0 +1,71 @@
+/* Schools & Institutions: a proposal page (docs/design/phase-1-core-pages.md section 5). */
+.page { background: var(--rx-white, #fff); }
+.crumbs { padding-block: 12px 0; }
+.crumbs > nav { margin: 0; }
+
+.statement { padding: 24px 0 36px; }
+.statementInner { padding-block: 0; }
+.eyebrow { margin: 0 0 8px; font-size: 12px; font-weight: 700; letter-spacing: 0.14em; text-transform: uppercase; color: #116eb1; }
+.h1 { margin: 0 0 14px; max-width: 720px; font-family: var(--rx-font-display); font-size: clamp(30px, 4vw, 40px); font-weight: 800; letter-spacing: -0.03em; line-height: 1.12; color: var(--rx-heading); }
+.lead { margin: 0 0 22px; max-width: 720px; font-size: 17px; line-height: 1.65; color: var(--rx-text-soft); }
+.actions { display: flex; flex-wrap: wrap; gap: 12px; }
+
+.layout { display: grid; grid-template-columns: 200px minmax(0, 1fr); gap: clamp(24px, 4vw, 56px); align-items: start; padding-block: 8px 32px; }
+.layout > * { min-width: 0; }
+.body { min-width: 0; }
+.section { padding-block: 28px 36px; scroll-margin-top: calc(var(--rx-header-height, 78px) + 16px); border-top: 1px solid var(--rx-border); }
+.section:first-child { border-top: 0; }
+.h2 { margin: 0 0 18px; font-family: var(--rx-font-display); font-size: clamp(24px, 2.6vw, 28px); font-weight: 800; color: var(--rx-heading); scroll-margin-top: calc(var(--rx-header-height, 78px) + 16px); }
+.h2:focus { outline: none; }
+.h2:focus-visible { outline: 3px solid #f59e0b; outline-offset: 4px; border-radius: 4px; }
+
+/* Sticky index */
+.index { position: sticky; top: calc(var(--rx-header-height, 78px) + 20px); }
+.indexLabel { margin: 0 0 10px; font-size: 12px; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; color: #5a6b80; }
+.index ul { list-style: none; margin: 0; padding: 0; display: grid; gap: 2px; }
+.index a { display: block; padding: 8px 0 8px 14px; border-left: 3px solid var(--rx-border); color: var(--rx-text-soft); font-size: 14px; font-weight: 500; text-decoration: none; }
+.index a:hover { color: var(--rx-heading); }
+.index a.indexOn { border-left-color: #116eb1; color: var(--rx-heading); font-weight: 800; }
+.index a:focus-visible { outline: 3px solid #f59e0b; outline-offset: 2px; }
+
+/* Offer rows */
+.offers { list-style: none; margin: 0 0 20px; padding: 0; border-top: 1px solid var(--rx-border); }
+.offers li { border-bottom: 1px solid var(--rx-border); }
+.offer { display: grid; grid-template-columns: minmax(0, 0.9fr) minmax(0, 1.3fr) auto; align-items: center; gap: 8px 24px; min-height: 72px; padding: 14px 4px; color: inherit; text-decoration: none; }
+.offerName { font-family: var(--rx-font-display); font-size: 20px; font-weight: 700; color: var(--rx-heading); }
+.offerText { font-size: 15px; line-height: 1.5; color: var(--rx-text-soft); }
+.offerGo { font-size: 14px; font-weight: 700; color: #116eb1; white-space: nowrap; }
+.offer:hover .offerName { text-decoration: underline; text-underline-offset: 4px; }
+.offer:focus-visible { outline: 3px solid #f59e0b; outline-offset: 2px; border-radius: 6px; }
+.afterOffers { display: inline-flex; }
+
+/* Steps */
+.steps { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 24px; }
+.stepNum { display: inline-grid; place-items: center; width: 32px; height: 32px; border-radius: 50%; background: #eaf3ff; color: #0b5189; font-weight: 800; font-variant-numeric: tabular-nums; }
+.stepTitle { margin: 10px 0 4px; font-size: 18px; font-weight: 700; color: var(--rx-heading); }
+.stepText { margin: 0; font-size: 15px; line-height: 1.55; color: var(--rx-text-soft); }
+
+/* Request band */
+.request { background: #f3f7fb; padding-block: 8px; }
+.requestInner { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 24px 48px; }
+.requestLead { margin: 0 0 16px; max-width: 460px; font-size: 16px; line-height: 1.6; color: var(--rx-text-soft); }
+.contact { display: grid; gap: 6px; font-style: normal; font-size: 15px; color: var(--rx-text-soft); }
+.contact a { color: #116eb1; font-weight: 600; }
+
+/* Intermediate widths keep the narrow side index; tablet and below use a sticky strip. */
+@media (max-width: 1023px) {
+  .layout { grid-template-columns: 1fr; gap: 0; }
+  .index { top: var(--rx-header-height, 68px); z-index: 5; padding-block: 8px; background: rgba(255, 255, 255, 0.96); border-bottom: 1px solid var(--rx-border); }
+  .indexLabel { display: none; }
+  .index ul { display: flex; gap: 8px; overflow-x: auto; }
+  .index a { padding: 10px 14px; border-left: 0; border-bottom: 3px solid transparent; white-space: nowrap; }
+  .index a.indexOn { border-bottom-color: #116eb1; }
+  .steps { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+@media (max-width: 639px) {
+  .offer { grid-template-columns: minmax(0, 1fr) auto; }
+  .offerText { grid-column: 1; grid-row: 2; }
+  .offerGo { grid-column: 2; grid-row: 1; }
+  .steps { grid-template-columns: 1fr; }
+}
+@media (prefers-reduced-motion: reduce) { html { scroll-behavior: auto; } }
