@@ -11,16 +11,12 @@ export interface MenuTaxonomyTarget {
 // Destination page -> taxonomy branch it lists.
 export const menuTaxonomy: Record<string, MenuTaxonomyTarget> = {
   "/education/stem-steam": { category: "educational", path: ["learning", "stem-steam"] },
-  "/education/think-move-code": { category: "commerce", path: ["books", "think-move-code"] },
-  "/education/books": { category: "commerce", path: ["books"] },
-  "/education/coding-robotics": { category: "educational", path: ["technology"] },
+  "/think-move-code": { category: "commerce", path: ["books", "think-move-code"] },
   "/education/teacher-parent-resources": { category: "resource", path: ["resources"] },
 
   "/explore/experiences": { category: "interactive", path: ["experiences"] },
   "/explore/project-lab": { category: "educational", path: ["projects"] },
   "/explore/virtual-lab": { category: "interactive", path: ["virtual-labs"] },
-  "/explore/stem-games": { category: "interactive", path: ["experiences", "games"] },
-  "/explore/stem-quizzes": { category: "interactive", path: ["experiences", "stem-quizzes"] },
   "/explore/stem-challenges": { category: "interactive", path: ["competitions"] },
 
   // RhinoCode landing page. Only this one page is mapped: the studios are
@@ -139,7 +135,7 @@ export const navigation: NavigationItem[] = [
             },
             {
               label: "Think • Move • Code",
-              href: "/education/think-move-code",
+              href: "/think-move-code",
               description:
                 "Rhinox's progressive learning journey for young learners.",
             },
@@ -148,18 +144,6 @@ export const navigation: NavigationItem[] = [
         {
           title: "LEARNING",
           items: [
-            {
-              label: "Books",
-              href: "/education/books",
-              description:
-                "Curriculum aligned books, workbooks and activity resources.",
-            },
-            {
-              label: "Coding & Robotics",
-              href: "/education/coding-robotics",
-              description:
-                "Coding, robotics, computational thinking and maker learning.",
-            },
             {
               label: "Teacher & Parent Resources",
               href: "/education/teacher-parent-resources",
@@ -198,11 +182,6 @@ export const navigation: NavigationItem[] = [
               href: "/explore/project-lab",
               description: "Build practical STEM projects and learn by making.",
             },
-            {
-              label: "STEM Lab Designer",
-              href: "/explore/lab-designer",
-              description: "Explore and design laboratory learning environments.",
-            },
           ],
         },
         {
@@ -218,21 +197,11 @@ export const navigation: NavigationItem[] = [
               href: "/explore/virtual-lab",
               description: "WAEC/NECO-style practicals in physics, chemistry and biology with CBT, calculations and records.",
             },
-            {
-              label: "STEM Games",
-              href: "/explore/stem-games",
-              description: "Learn through purposeful STEM based games and challenges.",
-            },
           ],
         },
         {
-          title: "TEST & CHALLENGE",
+          title: "CHALLENGE",
           items: [
-            {
-              label: "STEM Quizzes",
-              href: "/explore/stem-quizzes",
-              description: "Test understanding and reinforce important concepts.",
-            },
             {
               label: "STEM Challenges",
               href: "/explore/stem-challenges",
@@ -340,12 +309,6 @@ export const navigation: NavigationItem[] = [
               href: "/schools/coding-robotics",
               description:
                 "Coding and robotics programmes for schools and institutions.",
-            },
-            {
-              label: "Books & Publishing",
-              href: "/education/books",
-              description:
-                "Rhinox STEM books, workbooks and activity books for schools.",
             },
           ],
         },

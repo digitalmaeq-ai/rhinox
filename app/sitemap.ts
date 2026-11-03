@@ -21,7 +21,6 @@ const STATIC_PATHS = [
   "/experiences",
   "/explore",
   "/explore/experiences",
-  "/explore/lab-designer",
   "/explore/stem-games",
   "/explore/virtual-lab",
   "/resources",

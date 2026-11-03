@@ -58,6 +58,10 @@ const nextConfig: NextConfig = {
       { source: "/coding-robotics/arduino-studio", destination: "/coding-robotics/code-studio/arduino", permanent: false },
       // Learn moved to the Think • Move • Code! home (its lessons now sit inside each week).
       { source: "/coding-robotics/code-studio/learn", destination: "/think-move-code", permanent: false },
+      // Menu restructure: pages that repeated another page now lead to it.
+      { source: "/education/think-move-code", destination: "/think-move-code", permanent: false },
+      { source: "/education/coding-robotics", destination: "/coding-robotics", permanent: false },
+      { source: "/education/books", destination: "/shop/books", permanent: false },
       // Book QR codes (lib/tmc/short-links.ts). Temporary, so they can be re-pointed later.
       ...SHORT_LINKS.map((link) => ({ ...link, permanent: false })),
     ];

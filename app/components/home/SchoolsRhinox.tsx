@@ -52,14 +52,6 @@ const stories: Record<string, Story> = {
     points: ["Think, Move, Code! lesson series", "Robotics kits and project guides", "Ready for clubs and competitions"],
     cta: "See coding & robotics",
   },
-  "/education/books": {
-    tag: "Publishing",
-    title: "Books that carry the learning",
-    accent: "into every classroom.",
-    text: "Rhinox publishes STEM books, workbooks and activity books, including the Think • Move • Code series, so schools can pair hands-on programmes with quality print resources.",
-    points: ["Think • Move • Code series", "STEM workbooks and activity books", "Supplied for schools and institutions"],
-    cta: "Browse Rhinox books",
-  },
   "/schools/teacher-training": {
     tag: "Educators",
     title: "Confident teachers make",
@@ -83,7 +75,6 @@ const icons: Record<string, string> = {
   "/schools/stem-school-solutions": "M3 10l9-5 9 5-9 5-9-5ZM7 12.5V17c0 1.2 2.2 2.5 5 2.5s5-1.3 5-2.5v-4.5",
   "/schools/laboratory-solutions": "M9 3h6M10 3v6l-5 9a2 2 0 0 0 1.7 3h10.6a2 2 0 0 0 1.7-3l-5-9V3M7.5 14h9",
   "/schools/coding-robotics": "M8 6 3 12l5 6M16 6l5 6-5 6M14 4l-4 16",
-  "/education/books": "M5 4h10a3 3 0 0 1 3 3v13H8a3 3 0 0 1-3-3ZM5 17a3 3 0 0 1 3-3h10",
   "/schools/teacher-training": "M4 5h16v11H4ZM8 20h8M12 16v4M9 9h6",
 };
 const fallbackIcon = "M12 3l8 4v5c0 5-3.5 8-8 9-4.5-1-8-4-8-9V7Z";

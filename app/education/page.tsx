@@ -28,26 +28,26 @@ const items: ShowcaseItem[] = [
   {
     title: "Think • Move • Code",
     text: "The Think, Move, Code! book series and the coding and robotics activities that go with it.",
-    href: "/education/think-move-code",
+    href: "/think-move-code",
     image: "/images/hero/coding.jpg",
     alt: "Lines of code on a screen",
-    tag: count("/education/think-move-code"),
+    tag: count("/think-move-code"),
   },
   {
     title: "Books",
     text: "Rhinox books, workbooks and activity books for practical learning.",
-    href: "/education/books",
+    href: "/shop/books",
     image: "/images/hero/classroom.jpg",
     alt: "Learners reading a book beside a microscope",
-    tag: count("/education/books"),
+    tag: count("/shop/books"),
   },
   {
     title: "Coding & Robotics",
     text: "Coding, computational thinking and robotics projects and experiences.",
-    href: "/education/coding-robotics",
+    href: "/coding-robotics",
     image: "/images/journey/journey-robotics.jpg",
     alt: "Young people building a robotics project together",
-    tag: count("/education/coding-robotics"),
+    tag: count("/coding-robotics"),
   },
   {
     title: "Teacher & Parent Resources",
@@ -87,7 +87,7 @@ export default function EducationPage() {
         lead="Explore STEM and STEAM education, the Think, Move, Code! series, books, coding, robotics and resources for teachers and parents."
         actions={[
           { label: "Try an experience", href: "/explore/experiences" },
-          { label: "Browse books", href: "/education/books", secondary: true },
+          { label: "Browse books", href: "/shop/books", secondary: true },
         ]}
         image="/images/hero/classroom.jpg"
         alt="Learners working together in a bright classroom"

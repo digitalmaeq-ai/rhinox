@@ -169,7 +169,7 @@ export default function TmcHome() {
                   </Link>
                 </li>
                 <li>
-                  <Link href="/education/books">
+                  <Link href="/shop/books">
                     <strong>The books</strong>
                     <span>Activity books and workbooks</span>
                   </Link>
