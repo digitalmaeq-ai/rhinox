@@ -45,11 +45,25 @@ const KW = 1e-14; // ionic product of water, 25 °C
 // pH of a strong monoprotic acid of concentration c, including water's own H+ (exact).
 const strongAcidPh = (c) => -Math.log10((c + Math.sqrt(c * c + 4 * KW)) / 2);
 const strongBasePh = (c) => 14 + Math.log10((c + Math.sqrt(c * c + 4 * KW)) / 2);
-// pH of a weak monoprotic acid (Ka, concentration c), exact quadratic plus water.
-const weakAcidPh = (c, ka) => {
-  const x = (-ka + Math.sqrt(ka * ka + 4 * ka * c)) / 2;
-  return -Math.log10(x + KW / x);
-};
+// pH of a weak monoprotic acid (Ka, total concentration c) with water's own ionisation included.
+// Charge balance: [H⁺] = [A⁻] + [OH⁻], with [A⁻] = c·Ka / ([H⁺] + Ka) and [OH⁻] = Kw / [H⁺], so
+//   [H⁺] = c·Ka / ([H⁺] + Ka) + Kw / [H⁺].
+// g(h) = h − c·Ka/(h + Ka) − Kw/h is strictly increasing for h > 0 (h and −Kw/h rise, −c·Ka/(h+Ka)
+// rises), so there is exactly one positive root. It is found by bisection on log10(h), which stays
+// positive by construction and is stable from c = 1 mol/dm³ down to c ≈ 1e-12.
+function weakAcidPh(c, ka) {
+  let lo = -14; // log10[H⁺] bracket: g < 0 at 1e-14 for any c, ka, and g > 0 at 10^1 = 10
+  let hi = 1;
+  for (let i = 0; i < 200; i++) {
+    const mid = (lo + hi) / 2;
+    const h = 10 ** mid;
+    if (h - (c * ka) / (h + ka) - KW / h > 0) hi = mid;
+    else lo = mid;
+  }
+  return -(lo + hi) / 2;
+}
+// The same weak acid WITHOUT water autoionisation (plain x²/(c−x) = Ka). Used only to show why water matters.
+const weakAcidPhIgnoringWater = (c, ka) => -Math.log10((-ka + Math.sqrt(ka * ka + 4 * ka * c)) / 2);
 const SUPERSCRIPT = { "⁰": "0", "¹": "1", "²": "2", "³": "3", "⁴": "4", "⁵": "5", "⁶": "6", "⁷": "7", "⁸": "8", "⁹": "9", "⁻": "-" };
 // "3.2 × 10⁻³" -> { mantissa: 3.2, exponent: -3 }
 function parseSci(text) {
@@ -123,6 +137,34 @@ baseline("a weak acid changes by less than a strong acid on tenfold dilution (re
   const modelWeak = ph("cola", 1) - ph("cola", 0);
   const modelStrong = ph("hcl", 1) - ph("hcl", 0);
   assert.ok(modelWeak > 0 && modelWeak < modelStrong);
+});
+
+baseline("weak-acid reference solver: the root is positive, finite and satisfies [H⁺] = C·Ka/([H⁺]+Ka) + Kw/[H⁺] from 1 down to 1e-12 mol/dm³", () => {
+  for (const ka of [1.8e-5, 6.3e-5, 1e-3]) {
+    for (let exponent = 0; exponent >= -12; exponent--) {
+      const c = 10 ** exponent;
+      const value = weakAcidPh(c, ka);
+      assert.ok(Number.isFinite(value) && value > 0 && value < 14, `C=${c} Ka=${ka}: pH ${value}`);
+      const h = 10 ** -value;
+      const rhs = (c * ka) / (h + ka) + KW / h;
+      assert.ok(Math.abs(h - rhs) / h < 1e-9, `C=${c} Ka=${ka}: residual ${Math.abs(h - rhs) / h}`);
+    }
+  }
+});
+baseline("weak-acid reference solver agrees with the plain quadratic at 0.1 mol/dm³ (pH 2.8753, water negligible) and with the strong-acid formula as Ka → very large", () => {
+  near(weakAcidPh(0.1, 1.8e-5), 2.8753, 0.0005); // x = 1.3326e-3 from x²/(0.1−x) = Ka
+  near(weakAcidPh(0.1, 1.8e-5), weakAcidPhIgnoringWater(0.1, 1.8e-5), 1e-6);
+  for (const c of [0.1, 1e-3, 1e-6]) near(weakAcidPh(c, 1e9), strongAcidPh(c), 1e-4, `C=${c}`);
+});
+baseline("water autoionisation matters when dilute: 1e-7 mol/dm³ ethanoic acid is pH ≈ 6.8 (an acid, below 7); ignoring water gives about 7.0, no longer acidic, which is wrong", () => {
+  const withWater = weakAcidPh(1e-7, 1.8e-5);
+  const withoutWater = weakAcidPhIgnoringWater(1e-7, 1.8e-5);
+  assert.ok(withWater < 7, `with water ${withWater}`);
+  assert.ok(withWater > 6.7 && withWater < 6.9, `with water ${withWater}`);
+  assert.ok(withoutWater >= 7 - 0.01, `without water ${withoutWater}`);
+  assert.ok(withoutWater - withWater > 0.15, `difference ${withoutWater - withWater}`);
+  // At 0.1 mol/dm³ water changes nothing, at 1e-7 it changes the answer by more than 0.15 pH units.
+  assert.ok(Math.abs(weakAcidPh(0.1, 1.8e-5) - weakAcidPhIgnoringWater(0.1, 1.8e-5)) < 1e-6);
 });
 
 // ---- Bounds and monotonicity ---------------------------------------------------------------
@@ -217,7 +259,11 @@ baseline("litmus, methyl orange and phenolphthalein conclusions agree with the c
     if (p.colourWord === "colourless") assert.match(p.conclusion, /^Colourless/);
   }
 });
-baseline("classification: pH below 6.5 acidic, above 7.5 alkaline, otherwise neutral", () => {
+// The 6.5–7.5 "neutral" band is this app's classification convention, NOT a universal chemical
+// definition: chemically, neutral at 25 °C means pH exactly 7 ([H⁺] = [OH⁻]), and acid/alkali are
+// defined by pH below/above 7. The test freezes the convention so a change is noticed; it does not
+// endorse it (see AB-03 in the Phase 2A audit, which concerns where the boundaries sit).
+baseline("[pin] application design convention (not a chemical definition): pH below 6.5 is labelled acidic, above 7.5 alkaline, 6.5 to 7.5 neutral", () => {
   assert.deepEqual([0, 6.49, 6.5, 7, 7.5, 7.51, 14].map(A.kindOf), ["acidic", "acidic", "neutral", "neutral", "neutral", "alkaline", "alkaline"]);
 });
 baseline("hydrochloric acid, vinegar, water, soap and sodium hydroxide are classified acid, acid, neutral, alkaline, alkaline", () => {
