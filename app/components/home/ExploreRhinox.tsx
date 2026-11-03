@@ -923,11 +923,7 @@ function ExploreRhinoxInner() {
           </div>
 
           <p>
-            Explore the complete Rhinox ecosystem
-            through experiences, virtual labs, projects,
-            learning, technology, competitions, books,
-            resources, kits, laboratory products
-            and services.
+            Experiences, virtual labs, projects, books, kits and services in one place.
           </p>
         </div>
 
