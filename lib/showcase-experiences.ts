@@ -58,7 +58,7 @@ export const showcaseEntries: ShowcaseEntry[] = [
 ];
 
 /** How long a pair stays on screen before the next pair rotates in. */
-export const SHOWCASE_ROTATE_MS = 16000;
+export const SHOWCASE_ROTATE_MS = 30000;
 
 /**
  * Picks which two entries to show. `start` is the rotation counter: pair 0
