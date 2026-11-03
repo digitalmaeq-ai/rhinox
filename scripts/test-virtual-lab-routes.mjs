@@ -7,7 +7,7 @@
 // /explore/virtual-lab/<slug> address, and checks unknown and archived slugs.
 import assert from "node:assert/strict";
 import { readdirSync } from "node:fs";
-import { experienceHref } from "../lib/studio-routes.ts";
+import { STUDIO_ROUTES, experienceHref } from "../lib/studio-routes.ts";
 
 const BASE = process.env.BASE_URL ?? "http://localhost:3000";
 const CONTENT = "content/experiences";
@@ -83,6 +83,16 @@ await check("archived or draft experiences return 404", async () => {
       const res = await get(path);
       assert.equal(res.status, 404, `${path} (status "${e.status}") gave HTTP ${res.status}, expected 404`);
     }
+  }
+});
+
+await check("a live experience with a studio route still redirects to its studio page", async () => {
+  for (const [slug, href] of Object.entries(STUDIO_ROUTES)) {
+    const res = await get(`/experiences/${slug}`);
+    assert.ok([307, 308].includes(res.status), `/experiences/${slug} gave HTTP ${res.status}, expected a redirect`);
+    assert.equal(new URL(res.headers.get("location"), BASE).pathname, href);
+    const studio = await get(href);
+    assert.equal(studio.status, 200, `${href} gave HTTP ${studio.status}`);
   }
 });
 

@@ -118,4 +118,20 @@ check("7. unknown, draft and archived slugs are not served (source guard; the ro
   assert.match(page, /isLiveContent\(experience\)/, "the experience page must only serve live experiences");
 });
 
+check("8. an unpublished experience cannot bypass the live check through a studio route", () => {
+  const page = readFileSync("app/experiences/[slug]/page.tsx", "utf8");
+  const body = page.slice(page.indexOf("export default async function ExperiencePage"));
+  const live = body.indexOf("!isLiveContent(experience)");
+  const redirectAt = body.indexOf("redirect(STUDIO_ROUTES");
+  assert.ok(live !== -1 && redirectAt !== -1, "could not find the live check or the studio redirect in the page");
+  assert.ok(live < redirectAt, "the studio-route redirect runs before the live-content check, so an unpublished experience with a studio route would redirect instead of returning 404");
+  // Every studio route must point at a live experience and an existing page.
+  for (const [slug, href] of Object.entries(STUDIO_ROUTES)) {
+    const experience = experiences.find((e) => e.slug === slug);
+    assert.ok(experience, `studio route "${slug}" has no experience`);
+    assert.equal(experience.status, "active", `studio route "${slug}" belongs to an experience that is "${experience.status}", so its page would be unreachable`);
+    assert.ok(existsSync(`app${href}/page.tsx`), `studio page missing at ${href}`);
+  }
+});
+
 console.log(`\n${passed} checks passed; ${published.length} published labs, ${registryEntries.length} specs, ${sceneEntries.length} scenes.`);

@@ -36,16 +36,17 @@ export default async function ExperiencePage({
 }: PageProps) {
   const { slug } = await params;
 
-  // Experiences with a studio page open there.
-  if (STUDIO_ROUTES[slug]) redirect(STUDIO_ROUTES[slug]);
-
   const experience =
     getInteractiveExperienceBySlug(slug);
 
   // Unknown, draft and archived experiences are not served, even by direct URL.
+  // This check comes first so a studio route can never expose an unpublished one.
   if (!experience || !isLiveContent(experience)) {
     notFound();
   }
+
+  // Live experiences with a studio page open there.
+  if (STUDIO_ROUTES[slug]) redirect(STUDIO_ROUTES[slug]);
 
   // Easiest-first order, shared with the Experiences list.
   const neighbours = getExperienceNeighbours(experience.id);
