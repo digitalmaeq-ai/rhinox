@@ -1,6 +1,6 @@
 import { notFound, redirect } from "next/navigation";
 
-import { N1_BASE, NURSERY_1_TERMS } from "@/lib/tmc/nursery-1";
+import { NURSERY_1_TERMS } from "@/lib/tmc/nursery-1";
 
 interface TermPageProps {
   params: Promise<{ term: string }>;
@@ -16,5 +16,5 @@ export function generateStaticParams() {
 export default async function TermPage({ params }: TermPageProps) {
   const { term } = await params;
   if (!/^term-[1-3]$/.test(term)) notFound();
-  redirect(`${N1_BASE}#${term}`);
+  redirect(`/think-move-code#${term}`);
 }

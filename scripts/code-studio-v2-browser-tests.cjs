@@ -1,12 +1,12 @@
 #!/usr/bin/env node
 /* eslint-disable @typescript-eslint/no-require-imports -- standalone Node script run by hand with a global Playwright */
-// Real-browser journey tests for the Nursery 1 Term 1 Week 1 lesson.
+// Real-browser journey tests for the Nursery 1 Term 1 Week 1 lesson (opened from its week).
 // Usage (app already built and running):
 //   CHROMIUM_PATH=/path/to/chromium node scripts/code-studio-v2-browser-tests.cjs http://localhost:3100
 // Playwright is not a project dependency; run with a globally installed copy (NODE_PATH).
 const { chromium } = require("playwright");
 const BASE = (process.argv[2] || "http://localhost:3000").replace(/\/$/, "");
-const URL = BASE + "/coding-robotics/code-studio/learn";
+const URL = BASE + "/think-move-code/nursery-1/term-1/week-1/lesson";
 let passed = 0, failed = 0;
 function check(name, ok, detail) {
   if (ok) { passed++; console.log("  ok   " + name); } else { failed++; console.log("  FAIL " + name + (detail ? " :: " + detail : "")); }
@@ -26,7 +26,6 @@ async function open(browser, viewport, opts = {}) {
 }
 const next = (p) => p.getByRole("button", { name: /Next step|Finish activity|Skip optional build/ });
 async function toCodeStep(p) {
-  await p.getByRole("button", { name: /Start my lesson/ }).click();
   await next(p).click();                                            // think -> move
   await p.getByRole("button", { name: "I tried the movement challenge" }).click();
   await next(p).click();                                            // move -> code
@@ -47,7 +46,7 @@ async function journey(browser, label, viewport, opts) {
   console.log("\n== " + label);
   // A. independent success, adult confirms
   let { ctx, page: p, errors, failedReqs } = await open(browser, viewport, opts);
-  check("learning home shows reviewed lesson", await p.getByRole("button", { name: /Start my lesson/ }).isVisible());
+  check("the week's lesson opens straight at step 1", await p.getByText("STEP 1 OF 6").isVisible());
   await toCodeStep(p);
   check("Next is disabled before the sequence is solved", await next(p).isDisabled());
   await order(p, WRONG);
@@ -116,9 +115,10 @@ async function journey(browser, label, viewport, opts) {
 async function keyboard(browser) {
   console.log("\n== keyboard only");
   const { ctx, page: p } = await open(browser, { width: 1280, height: 800 });
-  await p.getByRole("button", { name: /Start my lesson/ }).focus();
+  check("lesson is open at step 1", await p.getByText(/STEP 1 OF 6/).isVisible());
+  await next(p).focus();
   await p.keyboard.press("Enter");
-  check("lesson opens with the keyboard", await p.getByText(/STEP 1 OF 6/).isVisible());
+  check("the next step opens with the keyboard", await p.getByText(/STEP 2 OF 6/).isVisible());
   const focusVisible = await p.evaluate(() => { document.querySelector("button")?.focus(); const el = document.activeElement; return !!el && el !== document.body; });
   check("keyboard focus lands on a control", focusVisible);
   await p.keyboard.press("Tab");

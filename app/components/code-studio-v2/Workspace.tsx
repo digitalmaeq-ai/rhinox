@@ -168,7 +168,7 @@ export default function Workspace() {
   return (
     <main className={styles.page}>
       <header className={styles.topbar}>
-        <Link href="/coding-robotics/code-studio/learn" className={styles.back}>← Back to learning</Link>
+        <Link href="/think-move-code" className={styles.back}>← Back to Think • Move • Code!</Link>
         <Link href="/" className={styles.brand}><span className={styles.brandMark}>R</span><span>RHINOX <small>CODE STUDIO</small></span></Link>
         <span className={styles.level}>BEGINNER WORKSPACE</span>
       </header>

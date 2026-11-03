@@ -26,6 +26,6 @@ for (let term = 1; term <= 3; term += 1) {
 
 export const SHORT_LINKS: ShortLink[] = [
   ...nursery1,
-  // Bare /q opens the Nursery 1 page list.
-  { source: "/q", destination: "/think-move-code/nursery-1" },
+  // Bare /q opens the Think • Move • Code! home.
+  { source: "/q", destination: "/think-move-code" },
 ];

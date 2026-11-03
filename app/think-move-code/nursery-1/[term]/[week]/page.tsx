@@ -5,7 +5,6 @@ import { notFound } from "next/navigation";
 
 import styles from "../../../tmc.module.css";
 import {
-  N1_BASE,
   NURSERY_1_TERMS,
   NURSERY_1_WEEKS,
   TEACHER_FILES,
@@ -16,6 +15,7 @@ import {
   weekAssets,
   weekPath,
 } from "@/lib/tmc/nursery-1";
+import { interactiveLessonFor, nursery1LessonPath } from "@/lib/tmc/lessons";
 
 interface WeekPageProps {
   params: Promise<{ term: string; week: string }>;
@@ -62,6 +62,7 @@ export default async function WeekPage({ params }: WeekPageProps) {
   const termTitle = NURSERY_1_TERMS.find((entry) => entry.term === item.term)?.title ?? "";
   const { previous, next } = neighbours(item);
   const showcase = item.week === 13;
+  const lesson = interactiveLessonFor(item);
 
   return (
     <main className={styles.page}>
@@ -69,10 +70,10 @@ export default async function WeekPage({ params }: WeekPageProps) {
         <nav aria-label="Breadcrumb">
           <ol className={styles.crumbs}>
             <li>
-              <Link href={N1_BASE}>Think • Move • Code! Nursery 1</Link>
+              <Link href="/think-move-code">Think • Move • Code! Nursery 1</Link>
             </li>
             <li>
-              <Link href={`${N1_BASE}#term-${item.term}`}>Term {item.term}</Link>
+              <Link href={`/think-move-code#term-${item.term}`}>Term {item.term}</Link>
             </li>
             <li aria-current="page">Week {item.week}</li>
           </ol>
@@ -121,7 +122,7 @@ export default async function WeekPage({ params }: WeekPageProps) {
           <h2 id="games" className={styles.sectionTitle}>
             Games
           </h2>
-          <p className={styles.sectionLead}>Two short games to play together after the lesson.</p>
+          <p className={styles.sectionLead}>Short games to play together after the lesson.</p>
           <div className={styles.actions}>
             <Link className={styles.action} href={`${weekPath(item)}/play/pictures`}>
               <Icon path={ICONS.game} />
@@ -137,6 +138,15 @@ export default async function WeekPage({ params }: WeekPageProps) {
                 <span>Help Ayo on the screen</span>
               </span>
             </Link>
+            {lesson ? (
+              <Link className={styles.action} href={nursery1LessonPath(item)}>
+                <Icon path={ICONS.game} />
+                <span className={styles.actionText}>
+                  <strong>Lesson with RhinoBot</strong>
+                  <span>{lesson.theme}, step by step</span>
+                </span>
+              </Link>
+            ) : null}
           </div>
           <p className={styles.note}>Optional: about 5 minutes is plenty. The lesson never needs a screen.</p>
         </section>

@@ -56,6 +56,8 @@ const nextConfig: NextConfig = {
     return [
       // Arduino Studio first lived at its own path; keep old links working.
       { source: "/coding-robotics/arduino-studio", destination: "/coding-robotics/code-studio/arduino", permanent: false },
+      // Learn moved to the Think • Move • Code! home (its lessons now sit inside each week).
+      { source: "/coding-robotics/code-studio/learn", destination: "/think-move-code", permanent: false },
       // Book QR codes (lib/tmc/short-links.ts). Temporary, so they can be re-pointed later.
       ...SHORT_LINKS.map((link) => ({ ...link, permanent: false })),
     ];

@@ -1,7 +1,6 @@
 import type { Metadata } from "next";
 
 import StudioOverview, { type ResourceRow } from "@/app/components/studio-shell/StudioOverview";
-import { CURRICULUM_ACTIVITIES } from "@/lib/code-studio-v2/curriculum";
 import { ARDUINO_EXERCISES } from "@/lib/code-studio/exercises-arduino";
 import { EXERCISES } from "@/lib/code-studio/exercises";
 import { WEB_EXERCISES } from "@/lib/code-studio/exercises-web";
@@ -18,9 +17,9 @@ function resourceRows(): ResourceRow[] {
   return [
     {
       id: "learn",
-      title: "Guided lessons",
-      detail: `${CURRICULUM_ACTIVITIES.length} curriculum-linked lessons`,
-      href: "/coding-robotics/code-studio/learn",
+      title: "Think • Move • Code! lessons and games",
+      detail: "Open the Nursery 1 weeks, term by term",
+      href: "/think-move-code",
     },
     ...[...python.entries()].map(([group, count]) => ({
       id: `python-${group}`,

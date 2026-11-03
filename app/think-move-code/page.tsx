@@ -1,8 +1,12 @@
-import { redirect } from "next/navigation";
+import type { Metadata } from "next";
 
-import { N1_BASE } from "@/lib/tmc/nursery-1";
+import TmcHome from "./TmcHome";
 
-// Nursery 1 is the first book with week pages; the series page comes later.
+export const metadata: Metadata = {
+  title: "Think • Move • Code! | Rhinox Scientifica",
+  description: "Printable cards, games, parent notes and teacher packs for every week of Think • Move • Code! Nursery 1.",
+};
+
 export default function ThinkMoveCodePage() {
-  redirect(N1_BASE);
+  return <TmcHome />;
 }

@@ -184,7 +184,7 @@ export function GuidedUnavailable() {
         <section className={extra.unavailable} aria-labelledby="guided-unavailable-title">
           <h1 id="guided-unavailable-title">This activity is not ready yet</h1>
           <p>We could not open this coding activity. You can still do the lesson on paper or with a grown-up.</p>
-          <Link href="/coding-robotics/code-studio/learn" className={styles.runButton}>Back to learning</Link>
+          <Link href="/think-move-code" className={styles.runButton}>Back to learning</Link>
         </section>
       </div>
     </main>

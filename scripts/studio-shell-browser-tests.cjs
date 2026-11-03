@@ -20,7 +20,6 @@ const ROUTES = {
   robot: "/coding-robotics/robot-lab",
   game: "/coding-robotics/game-creator",
   projects: "/coding-robotics/my-projects",
-  learn: "/coding-robotics/code-studio/learn",
 };
 const LAPTOPS = [[1366, 768], [1440, 900], [1536, 864]];
 const MAIN_CONTROL = {

@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import ChoiceExercise from "./ChoiceExercise";
 
 import type { CurriculumActivity } from "@/lib/code-studio-v2/curriculum";
@@ -37,10 +38,24 @@ function activityText(activity: CurriculumActivity, key: StepKey): string {
   }
 }
 
-export default function LearningHome({ activities }: { activities: readonly CurriculumActivity[] }) {
-  const [selectedActivityId, setSelectedActivityId] = useState(activities.find((item) => isReviewedInteractiveLesson(item.id))?.id ?? activities[0]?.id ?? "");
+/**
+ * With `focusActivityId` the page opens straight into that one lesson (it is shown inside its
+ * week on the Think • Move • Code! pages) and "back" goes to `exitHref` instead of a lesson list.
+ */
+export default function LearningHome({
+  activities,
+  focusActivityId,
+  exitHref,
+}: {
+  activities: readonly CurriculumActivity[];
+  focusActivityId?: string;
+  exitHref?: string;
+}) {
+  const router = useRouter();
+  const focused = focusActivityId && isReviewedInteractiveLesson(focusActivityId) ? activities.find((item) => item.id === focusActivityId) : undefined;
+  const [selectedActivityId, setSelectedActivityId] = useState(focused?.id ?? activities.find((item) => isReviewedInteractiveLesson(item.id))?.id ?? activities[0]?.id ?? "");
   const activity = activities.find((item) => item.id === selectedActivityId) ?? activities[0];
-  const [stage, setStage] = useState<Stage>("home");
+  const [stage, setStage] = useState<Stage>(focused ? "lesson" : "home");
   const [stepIndex, setStepIndex] = useState(0);
   const [done, setDone] = useState(false);
   const step = STEPS[stepIndex];
@@ -81,9 +96,15 @@ export default function LearningHome({ activities }: { activities: readonly Curr
             <span>RHINOX <small>CODE STUDIO</small></span>
           </Link>
           <div className={styles.topActions}>
-            <span className={styles.previewPill}>V2 learning preview</span>
-            <Link className={styles.exitLink} href="/coding-robotics/code-studio/workspace">Beginner Workspace ↗</Link>
-            <Link className={styles.exitLink} href="/coding-robotics/code-studio">Python Studio ↗</Link>
+            {exitHref ? (
+              <Link className={styles.exitLink} href={exitHref}>← Back to the week page</Link>
+            ) : (
+              <>
+                <span className={styles.previewPill}>V2 learning preview</span>
+                <Link className={styles.exitLink} href="/coding-robotics/code-studio/workspace">Beginner Workspace ↗</Link>
+                <Link className={styles.exitLink} href="/coding-robotics/code-studio">Python Studio ↗</Link>
+              </>
+            )}
           </div>
         </header>
 
@@ -158,7 +179,8 @@ export default function LearningHome({ activities }: { activities: readonly Curr
             done={done}
             onBack={backStep}
             onNext={nextStep}
-            onExit={() => setStage("home")}
+            onExit={() => (exitHref ? router.push(exitHref) : setStage("home"))}
+            inWeek={Boolean(exitHref)}
             content={activityText(activity, step.key)}
           />
         )}
@@ -170,7 +192,7 @@ export default function LearningHome({ activities }: { activities: readonly Curr
 }
 
 function LessonView({
-  activity, stepIndex, stepKey, stepTitle, stepIcon, done, onBack, onNext, onExit, content,
+  activity, stepIndex, stepKey, stepTitle, stepIcon, done, onBack, onNext, onExit, inWeek, content,
 }: {
   activity: CurriculumActivity;
   stepIndex: number;
@@ -181,6 +203,8 @@ function LessonView({
   onBack: () => void;
   onNext: () => void;
   onExit: () => void;
+  /** True when the lesson is shown inside a week page, so "back" means that page. */
+  inWeek: boolean;
   content: string;
 }) {
   const lessonSpec = getLessonSpec(activity.id);
@@ -261,7 +285,7 @@ function LessonView({
   return (
     <section className={styles.lessonView}>
       <div className={styles.lessonTop}>
-        <button className={styles.backLink} onClick={onExit}>← Learning home</button>
+        <button className={styles.backLink} onClick={onExit}>← {inWeek ? "Back to the week page" : "Learning home"}</button>
         <span>{activity.level} · Term {activity.term} · Week {activity.week}</span>
       </div>
       <div className={styles.lessonProgress}>
@@ -289,7 +313,7 @@ function LessonView({
             <textarea id="lesson-reflection" value={learnerReflection} onChange={(event) => setLearnerReflection(event.target.value.slice(0, 500))} maxLength={500} rows={3} placeholder="I learned that instructions need to be in the right order..." />
             <small>{learnerReflection.length}/500 characters · stays in this session</small>
           </div>
-          <button className={styles.primaryButton} onClick={onExit}>Back to my learning <span aria-hidden="true">→</span></button>
+          <button className={styles.primaryButton} onClick={onExit}>{inWeek ? "Back to the week page" : "Back to my learning"} <span aria-hidden="true">→</span></button>
         </div>
       ) : (
         <div className={styles.lessonGrid}>
