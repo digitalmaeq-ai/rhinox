@@ -13,7 +13,7 @@ All paths are relative to `app/components/interactive/simlab/` unless stated.
 
 | Model | Verdict | Headline |
 |---|---|---|
-| Titration | **Scientifically strong.** | The charge-balance solver matches independent closed-form answers to <0.01 pH at every reference point tested, and 607,500 sampled points across all 63 acid/base/concentration/pipette combinations were finite and monotonic. Defects are in the *explanatory text*, input validation and indicator-verdict thresholds, not in the pH maths. |
+| Titration | **Scientifically strong.** | The charge-balance solver matches independent closed-form answers to <0.01 pH at every reference point tested, and 607,500 sampled points across all 243 acid/base/concentration/pipette systems were finite and monotonic. Defects are in the *explanatory text*, input validation and indicator-verdict thresholds, not in the pH maths. |
 | Electrolysis | **Faraday maths correct; cell behaviour oversimplified.** | Q = It, electron stoichiometry, masses and gas volumes are right and conserve charge across both electrodes. The weak points are a single 2 V "on" threshold for every cell, a hint that shows the wrong explanation for copper electrodes in non-copper electrolytes, the `"water"` id/name, and chlorine safety information that only appears on a secondary tab. |
 | Acids and bases | **Weakest of the three.** | The fixed "0.5 pH per tenfold dilution for every non-strong sample" rule is wrong for several samples (baking soda, milk of magnesia, bleach). Indicator text confuses *pH* with *acid strength*, and milk (pH 6.5) is classed "neutral" while the lab's own note and CBT call it slightly acidic. |
 
@@ -37,7 +37,7 @@ Counts: **0 critical, 4 high, 12 medium, 14 low/info (30 in total), plus 57 prop
 | ID | Model | Defect | Evidence | Fix |
 |---|---|---|---|---|
 | **EL-01** | Electrolysis | **Chlorine safety is not shown where chlorine is produced.** The only warning ("Chlorine is poisonous: use a fume cupboard or very small amounts.") is one bullet in the *Notes → Safety* tab (`ElectrolysisDashboard.tsx` ~L343). Selecting brine and switching on shows nothing; the `hint`, the Brine tour step, the 3D scene and the 2D apparatus carry no warning. The product description says "Pale green-yellow gas **with a sharp smell**", which invites sniffing. The chlorine test reads "Bleaches damp blue litmus paper", but damp blue litmus first turns red, then bleaches. | `electrolysis-chem.ts` L95; `electrolysis.tsx` hint; `tours.ts` L76 | Persistent, non-colour-only warning (icon + text, `role="status"`) whenever the anode product is Cl₂, in the dashboard *and* above the apparatus. Rewrite: "Chlorine is toxic. Never smell it. Teacher demonstration or fume cupboard only." Change the test to "damp litmus paper turns red, then is bleached white". Add a tour caveat. |
-| **AB-01** | Acids/bases | **Fixed 0.5-pH dilution step is wrong for several samples.** `effectivePh` uses 1.0 per tenfold dilution for `strong: true` and 0.5 for everything else. 0.5 is the right limit for a *simple weak acid or base at moderate dilution*, but not for: **baking soda** (NaHCO₃ is amphoteric, pH ≈ ½(pKa₁+pKa₂) ≈ 8.3–8.4 almost independent of concentration; the model falls 8.3 → 7.1); **milk of magnesia** (a saturated Mg(OH)₂ suspension holds pH ≈ 10.5 while solid remains; the model falls 10.5 → 8.5); **bleach** (mixture of NaOCl and NaOH, not a simple weak base); **milk** (protein/phosphate buffer). Even true weak acids drift from 0.5 toward 1.0 as ionisation approaches completion: probe for 0.83 M ethanoic acid gives 2.41, 2.92, 3.42, 3.95, 4.52 against the model's vinegar 2.90, 3.40, 3.90, 4.40, 4.90 (error grows to 0.4). | Probe output, Section 6.1 | Replace `strong: boolean` with a `behaviour` field and compute: strong → exact (with Kw); simple weak acid/base → exact quadratic from `c` and `Ka`/`Kb`; buffered/amphoteric/saturated-solid → *no change on dilution* (with a note explaining why); see Section 5.1. |
+| **AB-01** | Acids/bases | **Fixed 0.5-pH dilution step is wrong for several samples.** `effectivePh` uses 1.0 per tenfold dilution for `strong: true` and 0.5 for everything else. 0.5 is the right limit for a *simple weak acid or base at moderate dilution*, but not for: **baking soda** (NaHCO₃ is amphoteric, pH ≈ ½(pKa₁+pKa₂) ≈ 8.3–8.4 almost independent of concentration; the model falls 8.3 → 7.1); **milk of magnesia** (a saturated Mg(OH)₂ suspension holds pH ≈ 10.5 while solid remains; the model falls 10.5 → 8.5); **bleach** (mixture of NaOCl and NaOH, not a simple weak base); **milk** (protein/phosphate buffer). Even true weak acids drift from 0.5 toward 1.0 as ionisation approaches completion: probe for 0.83 M ethanoic acid gives 2.41, 2.92, 3.42, 3.95, 4.52 against the model's vinegar 2.90, 3.40, 3.90, 4.40, 4.90 (error grows to 0.4). | Probe output, Section 6.1 | Replace `strong: boolean` with a `behaviour` field and compute: strong → exact (with Kw); simple weak acid/base → numerically solved equilibrium with water autoionisation from `c` and `Ka`/`Kb` (Section 5.1); buffered/amphoteric/saturated-solid → *no change on dilution* (with a note explaining why); see Section 5.1. |
 | **EL-02** | Electrolysis | **Hint shows the wrong explanation for copper electrodes in non-copper electrolytes.** In `electrolysis.tsx`, any `electrode === "copper"` returns "With copper electrodes the anode dissolves **and copper is deposited on the cathode**". For `water`, `brine`, `dilute-brine` the cathode product is hydrogen, which the readings correctly show. Display and calculation disagree. | Probe: `water`+copper → cathode H₂ 74.6 cm³ | Build the hint from `outcome()`: describe the actual anode and cathode product. |
 | **EL-03** | Electrolysis | **One 2 V threshold for every cell.** `MIN_VOLTS = 2` and `isOn` ignore electrolyte and electrode. Real minimum voltages differ widely: copper refining (Cu anode, Cu cathode) runs at a few tenths of a volt; silver plating below about 1 V; water and dilute H₂SO₄ about 1.5–2 V in practice (1.23 V thermodynamic); chlorine from brine needs more than 2 V in practice (about 2.2 V thermodynamic, higher with overpotential). The supply voltage otherwise has **no effect** on products, current or rate: current is set independently by a slider, voltage only gates on/off. | `electrolysis-chem.ts` L13, L112 | Either (a) per-system `minVolts` shown on the slider, flagged as indicative, or (b) reframe as a constant-current supply ("compliance voltage") and say so. Always state that rate depends on **current** (Q = It), not voltage. Values need teacher sign-off before use. |
 
@@ -72,7 +72,7 @@ Counts: **0 critical, 4 high, 12 medium, 14 low/info (30 in total), plus 57 prop
 | **TI-07** | Titration | Indicator verdict thresholds (end point within 1.5 % of Vₑ; width ≤ 3 %/6 %) are design choices. Bromothymol blue with ethanoic acid / NaOH comes out "poor" (error +0.22 cm³, 0.9 %); most teachers would call it unsuitable. Document or tighten (for example 0.4 %, about two burette divisions). |
 | **TI-08** | Titration | `indicatorReport` costs about 40 ms worst case (many solves). Memoise per (params, indicator). |
 | **TI-09** | Titration | Bracket log₁₀[H⁺] ∈ [−16, 1.5] limits output to pH −1.5…16 and fails silently outside. Unreachable with current limits, but add an assertion. |
-| **EL-07** | Electrolysis | `chargeC` accepts negative current/time; `GAS_FULL = 200 cm³` caps the tube drawing while the readout can reach 1,250 cm³ (3 A × 30 min). |
+| **EL-07** | Electrolysis | `chargeC` accepts negative current/time; `GAS_FULL = 200 cm³` caps the tube drawing while the readout can reach 671.5 cm³ of hydrogen (3 A × 30 min = 5,400 C). |
 | **EL-08** | Electrolysis | The O₂ half-equation uses OH⁻ (WAEC convention), though in acid the OH⁻ concentration is tiny; 2H₂O → O₂ + 4H⁺ + 4e⁻ is more accurate. No net equation is shown. Optional "advanced" line. |
 | **EL-09** | Electrolysis | The 3D scene does not fade the CuSO₄ colour or thin the Cu anode, while the 2D SVG does (`fade`, `wear`). Visual parity gap, not a calculation error. |
 | **EL-10** | Electrolysis | `FARADAY = 96500` vs 96,485.33 (0.016 % higher). Fine for WAEC-style work; tests must use the model's constant. |
@@ -93,7 +93,7 @@ Counts: **0 critical, 4 high, 12 medium, 14 low/info (30 in total), plus 57 prop
 **Corrected model (proposed):**
 - Strong acid, concentration `c`: `[H⁺] = (c + √(c² + 4Kw)) / 2`.
 - Strong base: `[OH⁻]` likewise, `pH = 14 − pOH`.
-- Weak acid: `x² / (c − x) = Ka`, with `[H⁺] = x + Kw/x` for very dilute cases; weak base the same with `Kb`.
+- Weak acid: solve the combined charge balance `[H⁺] = c·Ka / ([H⁺] + Ka) + Kw / [H⁺]` numerically (bisection on log₁₀[H⁺]; the function is strictly increasing, so there is exactly one positive root). The plain quadratic `x² / (c − x) = Ka` is only the limit where water's own ionisation is negligible. Weak base: the same with `Kb` and [OH⁻].
 - Buffered, amphoteric or saturated-solid samples: pH fixed under dilution (and say why).
 
 **Sample pH assumptions:**
@@ -206,7 +206,7 @@ type Behaviour =
   | { kind: "neutral" };
 ```
 - Strong: `h = (c + √(c² + 4Kw)) / 2` (acid); `oh` likewise for base.
-- Weak acid: solve `h = x + Kw/x`, `x = (−Ka + √(Ka² + 4Ka·c))/2`.
+- Weak acid: solve `h = c·Ka / (h + Ka) + Kw / h` numerically for `h > 0`. Water autoionisation matters when dilute: 10⁻⁷ mol/dm³ ethanoic acid is pH ≈ 6.8, whereas ignoring water gives about 7.0 (no longer acidic). This is the reference used by the Phase 2B tests.
 - After `n` tenfold dilutions: `c_n = c / 10ⁿ`. No hard clamp is needed once Kw is included (strong acid at 10⁻⁸ M gives pH 6.98 naturally).
 - Fixed: pH unchanged; display "Dilution barely changes this liquid because …".
 - State in the UI: "Weak acids change by less than one pH unit per tenfold dilution (about 0.5 at moderate concentration)."
@@ -275,7 +275,7 @@ Tolerances are absolute unless stated. `F = 96,500`, `Vm = 24,000 cm³`.
 | AB-F2 | `hcl`, n = 1…4 | 2, 3, 4, 5 | 0.01 | strong tenfold = +1 |
 | AB-F3 | `naoh`, n = 1…4 | 12, 11, 10, 9 | 0.01 | |
 | AB-F4 | strong acid at c = 10⁻⁸ M | 6.98 | 0.02 | water limit (needs 5.1 model) |
-| AB-F5 | `vinegar` (ethanoic, c, Ka) | exact quadratic | 0.02 | after 5.1 |
+| AB-F5 | `vinegar` (ethanoic, c, Ka) | numerically solved `[H⁺] = c·Ka/([H⁺]+Ka) + Kw/[H⁺]` | 0.02 | after 5.1 |
 | AB-F6 | `ammonia`, n = 1 | step 0.4–0.55 | — | weak step < 1 |
 | AB-F7 | `soda`, n = 0…4 | unchanged | 0.05 | amphoteric (after 5.1) |
 | AB-F8 | `antacid`, n = 0…4 | unchanged | 0.05 | saturated solid |
@@ -299,7 +299,7 @@ Tolerances are absolute unless stated. `F = 96,500`, `Vm = 24,000 cm³`.
 | TI-F6 | CH₃COOH/NaOH pH at 2·Vₑ (1:1 buffer), Vₑ | 4.745, 8.722 | 0.01 |
 | TI-F7 | CH₃COOH/NH₃ pH at Vₑ | 7.000 | 0.01 |
 | TI-F8 | H₂SO₄/NaOH at 0, 6.25, 12.5, 12.6, 13, 25 | 13.000, 12.602, 7.315, 3.902, 3.199, 1.743 | 0.002 |
-| TI-F9 | Monotone non-increasing, all 63 combinations, 0–50 in 0.05 steps | no increase > 1e-9 | — |
+| TI-F9 | Monotone non-increasing, all 243 systems (3 acids × 3 bases × 3 `cA` × 3 `cB` × 3 `vB`), 0–50 in 0.05 steps | no increase > 1e-9 | — |
 | TI-F10 | Finite pH everywhere in the grid | true | — |
 | TI-F11 | Charge-balance residual at returned `[H⁺]` | \|f\| < 1e-9 × scale | — |
 | TI-F12 | Solver agreement with independent 300-iteration bisection | < 1e-6 pH | — |
