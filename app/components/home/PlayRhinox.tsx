@@ -11,8 +11,8 @@ import { formatYears, yearsFromAgeGroups } from "@/lib/year-groups";
 import styles from "./PlayRhinox.module.css";
 
 /**
- * The Play stage: a category bar, one large "now playing" stage and an
- * "up next" rail. Nothing here is typed by hand: items, counts and links come
+ * The Play section: two columns side by side. The left shows the open
+ * experience large; the right holds the heading, categories and an accordion. Nothing here is typed by hand: items, counts and links come
  * from the shared content source, and only live items appear. It steps
  * through the items of a category on its own, then moves to the next
  * category, and pauses while the visitor is pointing at or focused on it.
@@ -226,111 +226,105 @@ export default function PlayRhinox() {
     );
   }
 
-  const meta = metaLine(item);
-
   return (
     <section className={`rx-play ${styles.play}`} id="play" aria-labelledby="rhinox-play-title">
       <div className={`rx-container ${styles.inner}`}>
-        <header className={styles.head}>
-          <div>
-            <span className="rx-eyebrow">Play</span>
-            <h2 id="rhinox-play-title" className={styles.title}>
-              Learn by doing,
-              <span> starting right now</span>
-            </h2>
-          </div>
-          <p className={styles.intro}>
-            Interactive experiences, games and virtual labs across coding, robotics, maths and science, all in one
-            window. Pick something and start in a click.
-          </p>
-        </header>
-
         <div
-          className={styles.window}
+          className={styles.split}
           onMouseEnter={() => setPaused(true)}
           onMouseLeave={() => setPaused(false)}
           onFocus={() => setPaused(true)}
           onBlur={() => setPaused(false)}
         >
-          <div className={styles.chips} role="tablist" aria-label="Kinds of experience">
-            {tabs.map((entry, index) => (
-              <button
-                key={entry.id}
-                type="button"
-                role="tab"
-                aria-selected={index === tabIndex}
-                className={`${styles.chip} ${index === tabIndex ? styles.chipActive : ""}`}
-                onClick={() => chooseTab(index)}
-              >
-                {entry.label}
-              </button>
-            ))}
-          </div>
-
-          <div className={styles.grid}>
-            <article key={`${tab.id}-${item.id}`} className={styles.stage} aria-live="polite">
-              <div className={styles.stageCopy}>
-                <span className={styles.badge}>
-                  <i aria-hidden="true" />
-                  {formatLabel(item)}
-                </span>
-                <h3 className={styles.stageTitle}>{item.title}</h3>
-                <p className={styles.stageText}>{describe(item)}</p>
-                {meta.length > 0 && (
-                  <ul className={styles.pills}>
-                    {meta.map((part) => (
-                      <li key={part}>{part}</li>
-                    ))}
-                  </ul>
-                )}
-                <Link href={getExperienceHref(item)} className={styles.play_btn}>
-                  <svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor" aria-hidden="true">
-                    <path d="M8 5v14l11-7Z" />
-                  </svg>
-                  {ctaFor(item) === "Play" ? "Play now" : "Start now"}
-                </Link>
-              </div>
-
-              <div className={styles.device} aria-hidden="true">
-                <Picture item={item} icon={tab.icon} sizes="(max-width: 900px) 100vw, 620px" className={styles.deviceScreen} />
-              </div>
-            </article>
-
-            <aside className={styles.rail} aria-label={`Up next in ${tab.label}`}>
-              <div className={styles.railHead}>
-                <strong>Up next</strong>
-                <span>{tab.label}</span>
-              </div>
-              <ol className={styles.railList}>
-                {tab.items.map((entry, index) => {
-                  const on = index === itemIndex;
-                  const info = metaLine(entry).slice(-2).join(" · ");
-                  return (
-                    <li key={entry.id}>
-                      <button
-                        type="button"
-                        className={`${styles.railItem} ${on ? styles.railItemOn : ""}`}
-                        aria-current={on ? "true" : undefined}
-                        onClick={() => setItemIndex(index)}
-                      >
-                        <Picture item={entry} icon={tab.icon} sizes="96px" className={styles.thumb} />
-                        <span className={styles.railBody}>
-                          <strong>{entry.title}</strong>
-                          <small>{[formatLabel(entry), info].filter(Boolean).join(" · ")}</small>
-                        </span>
-                        {on && !calm && <span className={styles.timer} style={{ animationDuration: `${ITEM_MS}ms`, animationPlayState: paused ? "paused" : "running" }} aria-hidden="true" />}
-                      </button>
-                    </li>
-                  );
-                })}
-              </ol>
-              <Link href={SEE_ALL} className={styles.seeAll}>
-                See all experiences
-                <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-                  <path d="M5 12h14M13 6l6 6-6 6" />
+          {/* Left column: the experience that is open, shown large. */}
+          <article key={`${tab.id}-${item.id}`} className={styles.stage} aria-live="polite">
+            <span className={styles.badge}>
+              <i aria-hidden="true" />
+              {formatLabel(item)}
+            </span>
+            <div className={styles.device} aria-hidden="true">
+              <Picture item={item} icon={tab.icon} sizes="(max-width: 900px) 100vw, 640px" className={styles.deviceScreen} />
+            </div>
+            <div className={styles.stageFoot}>
+              <h3 className={styles.stageTitle}>{item.title}</h3>
+              <Link href={getExperienceHref(item)} className={styles.play_btn}>
+                <svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor" aria-hidden="true">
+                  <path d="M8 5v14l11-7Z" />
                 </svg>
+                {ctaFor(item) === "Play" ? "Play now" : "Start now"}
               </Link>
-            </aside>
+            </div>
+          </article>
+
+          {/* Right column: heading, categories and an accordion of what is up next. */}
+          <div className={styles.side}>
+            <header className={styles.head}>
+              <span className="rx-eyebrow">Play</span>
+              <h2 id="rhinox-play-title" className={styles.title}>
+                Learn by doing,
+                <span> starting right now</span>
+              </h2>
+              <p className={styles.intro}>Experiences, games and virtual labs. Pick one and start in a click.</p>
+            </header>
+
+            <div className={styles.chips} role="tablist" aria-label="Kinds of experience">
+              {tabs.map((entry, index) => (
+                <button
+                  key={entry.id}
+                  type="button"
+                  role="tab"
+                  aria-selected={index === tabIndex}
+                  className={`${styles.chip} ${index === tabIndex ? styles.chipActive : ""}`}
+                  onClick={() => chooseTab(index)}
+                >
+                  {entry.label}
+                </button>
+              ))}
+            </div>
+
+            <ol className={styles.accordion} aria-label={`Up next in ${tab.label}`}>
+              {tab.items.map((entry, index) => {
+                const on = index === itemIndex;
+                const info = metaLine(entry);
+                return (
+                  <li key={entry.id} className={`${styles.row} ${on ? styles.rowOn : ""}`}>
+                    <button
+                      type="button"
+                      id={`play-row-${entry.id}`}
+                      className={styles.rowHead}
+                      aria-expanded={on}
+                      aria-controls={`play-panel-${entry.id}`}
+                      onClick={() => setItemIndex(index)}
+                    >
+                      <Picture item={entry} icon={tab.icon} sizes="64px" className={styles.thumb} />
+                      <span className={styles.rowTitle}>
+                        <strong>{entry.title}</strong>
+                        <small>{formatLabel(entry)}</small>
+                      </span>
+                      <span className={styles.chev} aria-hidden="true" />
+                      {on && !calm && <span className={styles.timer} style={{ animationDuration: `${ITEM_MS}ms`, animationPlayState: paused ? "paused" : "running" }} aria-hidden="true" />}
+                    </button>
+                    <div id={`play-panel-${entry.id}`} role="region" aria-labelledby={`play-row-${entry.id}`} className={styles.panel} hidden={!on}>
+                      <p>{describe(entry)}</p>
+                      {info.length > 0 && (
+                        <ul className={styles.pills}>
+                          {info.map((part) => (
+                            <li key={part}>{part}</li>
+                          ))}
+                        </ul>
+                      )}
+                    </div>
+                  </li>
+                );
+              })}
+            </ol>
+
+            <Link href={SEE_ALL} className={styles.seeAll}>
+              See all experiences
+              <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                <path d="M5 12h14M13 6l6 6-6 6" />
+              </svg>
+            </Link>
           </div>
         </div>
       </div>
