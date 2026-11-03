@@ -250,6 +250,8 @@ The site has about 662 radius declarations with at least ten distinct values (12
 | `--rx-radius-lg` | 14 px | Large media, dialogs, the one feature panel on a page |
 | `--rx-radius-pill` | 999 px | Chips, filters and badges only |
 
+**Implementation names.** `--rx-radius-*` is already used across the site (including Think • Move • Code!), so the new values are added under new names, `--rx-corner-sm`, `--rx-corner-md`, `--rx-corner-lg` and `--rx-corner-pill`, in `app/design-tokens.css`. The `--rx-radius-*` tokens are not edited until nothing reads them (section 7.2). The same applies to shadows: `--rx-elev-sm`, `--rx-elev-md` and `--rx-elev-lg` stand for the values below.
+
 Retired: 5, 8, 9, 12, 16, 18, 22, 24 and 28 px. A card on a card, or a photograph inside a bordered card, uses one radius step and never two stacked large radii.
 
 ### 4.6 Shadows
