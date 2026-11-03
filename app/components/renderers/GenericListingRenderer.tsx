@@ -1,9 +1,8 @@
 import Link from "next/link";
 
 import type { ContentItem } from "@/lib/content";
-import { getListingPresentation } from "@/lib/listing-presentation";
 
-import ContentHero from "../content/ContentHero";
+import PageHeader from "../PageHeader";
 import ContentList from "../content/ContentList";
 import { toRow } from "../content/rows";
 import styles from "../content/content.module.css";
@@ -13,37 +12,31 @@ interface GenericListingRendererProps {
   heading: string;
   description: string;
   items: ContentItem[];
-  /** The section's URL path, used to choose its photograph and tagline. */
+  /** The section's URL path. Kept for callers; the compact header needs no photograph. */
   path?: string;
   /** Optional pointer shown above the list. */
   notice?: { text: string; href: string; label: string };
 }
 
-// The listing page for every content section: a compact photo hero, then
-// a filterable list of rows (no cards). Used by the generic content engine
+// The listing page for every content section: a compact header (title, one
+// line, count), then a filterable list of rows (no cards). Used by the generic content engine
 // (app/[...path]/page.tsx).
 export default function GenericListingRenderer({
   eyebrow,
   heading,
   description,
   items,
-  path = "",
   notice,
 }: GenericListingRendererProps) {
-  const look = getListingPresentation(path);
   const rows = items.map(toRow);
 
   return (
     <main style={{ background: "var(--rx-white)" }}>
-      <ContentHero
+      <PageHeader
         eyebrow={eyebrow}
-        lineOne={heading}
-        lineTwo={look.lineTwo}
+        title={heading}
         lead={description}
-        image={look.image}
-        alt={look.alt}
-        chips={look.chips}
-        meta={rows.length ? [{ value: `${rows.length} ${rows.length === 1 ? "item" : "items"}` }] : []}
+        count={rows.length ? `${rows.length} ${rows.length === 1 ? "item" : "items"}` : undefined}
       />
 
       <section className={styles.listing}>
