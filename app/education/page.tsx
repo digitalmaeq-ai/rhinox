@@ -1,119 +1,131 @@
 import type { Metadata } from "next";
+import Link from "next/link";
 
-import HubShowcase, { type ShowcaseItem } from "../components/hub/HubShowcase";
-import { HubClosing, HubHero, HubHighlights, HubSectionHead } from "../components/hub/HubParts";
-import styles from "../components/hub/hub.module.css";
+import Accordion, { type AccordionItem } from "../components/Accordion";
+import Breadcrumbs from "../components/Breadcrumbs";
+import PageHeader from "../components/PageHeader";
+import { getContentHref } from "@/lib/content-registry";
+import { getSectionByPath, getSectionItems } from "@/lib/content-sections";
 import { getDestinationItems } from "@/lib/menu-destinations";
+import { isLiveContent } from "@/lib/interactive-experiences";
+import styles from "./education.module.css";
 
 export const metadata: Metadata = {
   title: "Education | Rhinox Scientifica",
   description:
-    "STEM and STEAM learning, Think, Move, Code!, books, coding and robotics, and resources for teachers and parents.",
+    "Choose where to start: STEM and STEAM learning, Think, Move, Code!, and resources for teachers and parents.",
 };
 
-function count(href: string): string | undefined {
+function countLabel(href: string): string | undefined {
   const n = getDestinationItems(href)?.length ?? 0;
   return n > 0 ? `${n} ${n === 1 ? "item" : "items"}` : undefined;
 }
 
-const items: ShowcaseItem[] = [
+// The three real destinations. Counts are read from the same source as the menu.
+const INDEX = [
   {
     title: "STEM & STEAM Education",
     text: "Lessons, activities and hands-on experiences in science, mathematics, engineering and more.",
     href: "/education/stem-steam",
-    image: "/images/journey/journey-science.jpg",
-    alt: "A teacher and a young learner at a chalkboard of equations",
-    tag: count("/education/stem-steam"),
   },
   {
-    title: "Think • Move • Code",
+    title: "Think • Move • Code!",
     text: "The Think, Move, Code! book series and the coding and robotics activities that go with it.",
     href: "/education/think-move-code",
-    image: "/images/hero/coding.jpg",
-    alt: "Lines of code on a screen",
-    tag: count("/education/think-move-code"),
-  },
-  {
-    title: "Books",
-    text: "Rhinox books, workbooks and activity books for practical learning.",
-    href: "/education/books",
-    image: "/images/hero/classroom.jpg",
-    alt: "Learners reading a book beside a microscope",
-    tag: count("/education/books"),
-  },
-  {
-    title: "Coding & Robotics",
-    text: "Coding, computational thinking and robotics projects and experiences.",
-    href: "/education/coding-robotics",
-    image: "/images/journey/journey-robotics.jpg",
-    alt: "Young people building a robotics project together",
-    tag: count("/education/coding-robotics"),
   },
   {
     title: "Teacher & Parent Resources",
     text: "Teaching guides, worksheets, assessments and ideas for learning at home.",
     href: "/education/teacher-parent-resources",
-    image: "/images/hero/stem-lab.jpg",
-    alt: "A bright STEM laboratory ready for a class",
-    tag: count("/education/teacher-parent-resources"),
   },
 ];
 
-const highlights = [
-  {
-    title: "Learn by doing",
-    text: "Every topic has an interactive experience to try, not just a page to read.",
-    icon: "M12 3v4M12 17v4M3 12h4M17 12h4M12 8l1.5 2.5L16 12l-2.5 1.5L12 16l-1.5-2.5L8 12l2.5-1.5Z",
-  },
-  {
-    title: "Built for the classroom",
-    text: "Aligned to what learners study, with notes, tasks and practice questions.",
-    icon: "M5 4h10a3 3 0 0 1 3 3v13H8a3 3 0 0 1-3-3ZM5 17a3 3 0 0 1 3-3h10M9 8h5",
-  },
-  {
-    title: "Support for adults too",
-    text: "Teacher guides and parent resources make it easy to help at school and at home.",
-    icon: "M3 9l9-5 9 5-9 5Zm4 3v5c0 1.5 2.2 3 5 3s5-1.5 5-3v-5",
-  },
-];
+function adultsAccordion(): AccordionItem[] {
+  const section = getSectionByPath("/education/teacher-parent-resources");
+  const items = section ? getSectionItems(section).filter(isLiveContent) : [];
+  const groups = [
+    { id: "teacher", title: "Teacher resources", types: ["teacher-resource"] },
+    { id: "parent", title: "Parent resources", types: ["parent-resource"] },
+    { id: "worksheets", title: "Worksheets and assessments", types: ["worksheet", "assessment"] },
+  ];
+  return groups
+    .map((group) => ({ group, list: items.filter((item) => group.types.includes(item.contentType)) }))
+    .filter(({ list }) => list.length > 0)
+    .map(({ group, list }) => ({
+      id: group.id,
+      title: `${group.title} (${list.length})`,
+      content: (
+        <ul className={styles.adultList}>
+          {list.map((item) => (
+            <li key={`${item.contentType}-${item.slug}`}>
+              <Link href={getContentHref(item)}>{item.title}</Link>
+            </li>
+          ))}
+        </ul>
+      ),
+    }));
+}
 
 export default function EducationPage() {
+  const adults = adultsAccordion();
   return (
-    <main style={{ background: "var(--rx-white)" }}>
-      <HubHero
+    <main className={styles.page}>
+      <div className={`rx-container ${styles.crumbs}`}>
+        <Breadcrumbs items={[{ label: "Home", href: "/" }, { label: "Education" }]} />
+      </div>
+      <PageHeader
         eyebrow="Rhinox education"
-        lineOne="Learning that"
-        lineTwo="starts with doing."
-        lead="Explore STEM and STEAM education, the Think, Move, Code! series, books, coding, robotics and resources for teachers and parents."
-        actions={[
-          { label: "Try an experience", href: "/explore/experiences" },
-          { label: "Browse books", href: "/education/books", secondary: true },
-        ]}
-        image="/images/hero/classroom.jpg"
-        alt="Learners working together in a bright classroom"
-        chips={["STEM & STEAM", "Coding", "Robotics", "Books"]}
+        title="Learning that starts with doing"
+        lead="Choose where to start. Each one opens a library of lessons, activities and resources."
       />
 
-      <section className={styles.showcaseSection}>
+      <section className={styles.indexSection} aria-label="Where to start">
         <div className="rx-container">
-          <HubSectionHead eyebrow="Explore education" lineOne="Choose where to" lineTwo="start." />
-          <HubShowcase items={items} />
+          <ol className={styles.index}>
+            {INDEX.map((row, i) => {
+              const count = countLabel(row.href);
+              return (
+                <li key={row.href}>
+                  <Link href={row.href} className={styles.row}>
+                    <span className={styles.num} aria-hidden="true">{i + 1}</span>
+                    <span className={styles.text}>
+                      <span className={styles.rowTitle}>{row.title}</span>
+                      <span className={styles.desc}>{row.text}</span>
+                      {count && <span className={styles.countMobile}>{count}</span>}
+                    </span>
+                    {count && <span className={styles.count}>{count}</span>}
+                    <span className={styles.arrow} aria-hidden="true">{"→"}</span>
+                  </Link>
+                </li>
+              );
+            })}
+          </ol>
+          <p className={styles.also}>
+            Also see: <Link href="/shop/books">Rhinox books in the Shop</Link> <span aria-hidden="true">·</span>{" "}
+            <Link href="/coding-robotics">Coding &amp; Robotics</Link>
+          </p>
         </div>
       </section>
 
-      <HubHighlights items={highlights} />
+      {adults.length > 0 && (
+        <section className={styles.adults} aria-labelledby="adults-title">
+          <div className={`rx-container ${styles.adultsInner}`}>
+            <div>
+              <p className={styles.eyebrow}>For adults</p>
+              <h2 id="adults-title" className={styles.adultsTitle}>Teacher and parent resources</h2>
+              <p className={styles.adultsLead}>Guides, worksheets and assessments to help at school and at home.</p>
+            </div>
+            <Accordion items={adults} defaultOpen={[adults[0].id]} />
+          </div>
+        </section>
+      )}
 
-      <HubClosing
-        kicker="Teaching a class?"
-        lineOne="Let's help you"
-        lineTwo="bring it to life."
-        lead="Talk to us about training, kits and resources for your school."
-        actions={[
-          { label: "Teacher training", href: "/schools/teacher-training" },
-          { label: "Contact Rhinox", href: "/contact", secondary: true },
-        ]}
-        image="/images/hero/stem-lab.jpg"
-      />
+      <section className={styles.closing} aria-label="Teacher training">
+        <div className={`rx-container ${styles.closingInner}`}>
+          <p>Teaching a class? Talk to us about training.</p>
+          <Link href="/schools/teacher-training" className="rx-button rx-button-primary">Teacher training</Link>
+        </div>
+      </section>
     </main>
   );
 }
