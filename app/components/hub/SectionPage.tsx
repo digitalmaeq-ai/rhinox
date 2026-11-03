@@ -3,6 +3,7 @@ import Link from "next/link";
 import { getContentHref } from "@/lib/content-registry";
 import { getSectionByPath, getSectionItems } from "@/lib/content-sections";
 
+import PageHeader from "../PageHeader";
 import { HubClosing, HubHero, HubSectionHead, HubSteps } from "./HubParts";
 import type { SectionConfig } from "./pageData";
 import styles from "./hub.module.css";
@@ -26,20 +27,12 @@ export default function SectionPage({ config }: { config: SectionConfig }) {
   const section = config.catalog ? getSectionByPath(config.catalog.path) : null;
   const items = section ? getSectionItems(section) : [];
 
-  return (
-    <main style={{ background: "var(--rx-white)" }}>
-      <HubHero
-        eyebrow={config.eyebrow}
-        lineOne={config.lineOne}
-        lineTwo={config.lineTwo}
-        lead={config.lead}
-        actions={config.actions}
-        image={config.image}
-        alt={config.alt}
-        chips={config.chips}
-      />
+  // Library pages (Resources) open on a compact header and show their items
+  // first. The other pages keep the full hero and the original order.
+  const isLibrary = Boolean(config.catalog?.path.startsWith("/resources/"));
 
-      <section className={styles.showcaseSection}>
+  const intro = (
+    <section className={styles.showcaseSection}>
         <div className={`rx-container ${styles.split}`}>
           <div className={styles.splitHead}>
             <p className={`rx-eyebrow ${styles.eyebrow}`}>{config.intro.eyebrow}</p>
@@ -67,7 +60,10 @@ export default function SectionPage({ config }: { config: SectionConfig }) {
           </ul>
         </div>
       </section>
+  );
 
+  const catalogue = (
+    <>
       {config.catalog ? (
         <section className={styles.catalogSection} id="catalogue">
           <div className="rx-container">
@@ -105,6 +101,33 @@ export default function SectionPage({ config }: { config: SectionConfig }) {
           </div>
         </section>
       ) : null}
+    </>
+  );
+
+  return (
+    <main style={{ background: "var(--rx-white)" }}>
+      {isLibrary ? (
+        <PageHeader
+          eyebrow={config.eyebrow}
+          title={config.title}
+          lead={config.lead}
+          count={config.catalog && items.length > 0 ? `${items.length} ${items.length === 1 ? "item" : "items"}` : undefined}
+        />
+      ) : (
+        <HubHero
+          eyebrow={config.eyebrow}
+          lineOne={config.lineOne}
+          lineTwo={config.lineTwo}
+          lead={config.lead}
+          actions={config.actions}
+          image={config.image}
+          alt={config.alt}
+          chips={config.chips}
+      />
+      )}
+
+      {isLibrary ? catalogue : intro}
+      {isLibrary ? intro : catalogue}
 
       {config.steps ? (
         <section className={styles.stepsSection}>

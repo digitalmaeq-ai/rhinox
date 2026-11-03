@@ -1,0 +1,73 @@
+/* Compact page header (family F4: library and listing pages).
+   White, one hairline, no photograph, no pattern, no gradient. */
+
+.header {
+  padding: 28px 0 22px;
+  background: var(--rx-white, #fff);
+  border-bottom: 1px solid var(--rx-border);
+}
+
+/* The late global .rx-container rule adds 48px of vertical padding; this header controls its own spacing. */
+.header > .inner { min-width: 0; padding-block: 0; }
+
+.back {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-height: 44px;
+  margin: -8px 0 4px;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--rx-action);
+  text-decoration: none;
+}
+.back:hover { color: var(--rx-action-hover); text-decoration: underline; }
+.back:focus-visible { outline: 2px solid var(--rx-action); outline-offset: 2px; border-radius: var(--rx-corner-sm); }
+
+.eyebrow {
+  margin: 0 0 8px;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--rx-text-soft);
+}
+
+.row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 4px 16px;
+}
+
+.title {
+  margin: 0;
+  font-family: var(--rx-font-display);
+  font-weight: 700;
+  font-size: clamp(28px, 3vw, 38px);
+  line-height: 1.1;
+  letter-spacing: -0.03em;
+  color: var(--rx-heading);
+}
+
+.count {
+  margin: 0;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--rx-text-soft);
+  font-variant-numeric: tabular-nums;
+}
+
+.lead {
+  max-width: 680px;
+  margin: 10px 0 0;
+  font-size: 16px;
+  line-height: 1.6;
+  color: var(--rx-text);
+}
+
+.slot { margin-top: 16px; }
+
+@media (min-width: 1024px) {
+  .header { padding: 36px 0 26px; }
+}

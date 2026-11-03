@@ -40,7 +40,7 @@ export default function Footer() {
             <div className={styles.ctaCopy}>
               <span className={styles.eyebrow}>Rhinox Scientifica</span>
               <h2 className={styles.ctaTitle}>
-                Let&rsquo;s build what
+                Let&rsquo;s build what{" "}
                 <span>they learn next.</span>
               </h2>
               <p>Books, kits, laboratories and practical STEM programmes for learners, families, teachers and schools.</p>
