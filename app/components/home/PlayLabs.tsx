@@ -11,6 +11,7 @@ import { parseLevel, runProgram, type Block } from "@/lib/maze-coder/engine";
 import { mazeLevels } from "@/lib/maze-coder/levels";
 import MazeBoard from "@/app/components/interactive/maze-coder/MazeBoard";
 
+import Lab3DPreview from "./Lab3DPreview";
 import { AcidBasePreview, CircuitPreview, ElectrolysisPreview, TitrationPreview } from "./LabPreviews";
 import styles from "./PlayLabs.module.css";
 
@@ -159,13 +160,13 @@ function Preview({ kind, reducedMotion }: { kind: ShowcaseEntry["preview"]; redu
     case "maze-coder":
       return <MazePreview active />;
     case "titration":
-      return <TitrationPreview />;
+      return <Lab3DPreview kind="titration" label="3D titration: acid runs from a burette into a flask until the indicator changes colour" reducedMotion={reducedMotion} fallback={<TitrationPreview />} />;
     case "acid-base":
-      return <AcidBasePreview />;
+      return <Lab3DPreview kind="acids-bases" label="3D beaker of liquid tested with universal indicator against a pH colour chart" reducedMotion={reducedMotion} fallback={<AcidBasePreview />} />;
     case "electrolysis":
-      return <ElectrolysisPreview />;
+      return <Lab3DPreview kind="electrolysis" label="3D electrolysis cell with bubbles rising from two electrodes" reducedMotion={reducedMotion} fallback={<ElectrolysisPreview />} />;
     case "circuit":
-      return <CircuitPreview />;
+      return <Lab3DPreview kind="electric-circuit" label="3D electric circuit with two cells and two lit bulbs" reducedMotion={reducedMotion} fallback={<CircuitPreview />} />;
     default:
       return <GenericPreview />;
   }
@@ -270,7 +271,7 @@ export default function PlayLabs() {
                     ))}
                   </ul>
                   <Link href={getExperienceHref(item)} className={styles.play}>
-                    Play now
+                    Open lab
                     <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.6" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6" /></svg>
                   </Link>
                 </div>
