@@ -23,12 +23,12 @@ export interface StudioEntry {
 export const STUDIO_ENTRIES: readonly StudioEntry[] = [
   {
     id: "learn",
-    name: "Learn: guided lessons",
+    name: "Think • Move • Code!",
     category: "Learning",
     difficulty: "Beginner",
-    level: "Nursery to Year 6",
-    description: "Curriculum-led lessons, one step at a time, with RhinoBot as your guide.",
-    href: "/coding-robotics/code-studio/learn",
+    level: "Nursery 1",
+    description: "Lessons, printable cards, games and teacher packs for every week of the book, with RhinoBot lessons inside the weeks.",
+    href: "/think-move-code",
   },
   {
     id: "workspace",

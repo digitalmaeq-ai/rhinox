@@ -26,12 +26,7 @@ export const NAV_GROUPS: NavGroup[] = [
     heading: "Start",
     items: [
       { label: "Overview", href: "/coding-robotics/studio", hint: "All tools, your projects and learning resources" },
-      {
-        label: "Learn",
-        href: "/coding-robotics/code-studio/learn",
-        alsoActive: ["/coding-robotics/code-studio/guided"],
-        hint: "Guided, curriculum-led lessons",
-      },
+      { label: "Think • Move • Code!", href: "/think-move-code", hint: "Lessons, games and printables for the book (opens the main site)" },
     ],
   },
   {

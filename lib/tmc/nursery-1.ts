@@ -25,12 +25,17 @@ export const TEACHER_FILES = [
   { suffix: "QR-Code.png", title: "QR code for this week", detail: "To print on a class poster or newsletter" },
 ] as const;
 
-/** Whole-year downloads listed on the Nursery 1 page. */
+/** Files that belong to one term, kept in that term's Week 13 folder (card packs are in /all). */
+export const termFiles = (term: number) => ({
+  cards: `/tmc/n1/all/TMC-N1-Term${term}-Printable-Card-Pack.pdf`,
+  stickers: `/tmc/n1/t${term}-w13/TMC-N1-Term${term}-Step-Star-Stickers.pdf`,
+  badge: `/tmc/n1/t${term}-w13/step-thinker-term${term}-badge.png`,
+});
+
+/** Whole-year downloads listed on the Think • Move • Code! home. */
 export const YEAR_FILES = [
-  { href: "/tmc/n1/all/TMC-N1-Term1-Printable-Card-Pack.pdf", title: "Term 1 card pack", detail: "All Term 1 printable cards in one PDF" },
-  { href: "/tmc/n1/all/TMC-N1-Term2-Printable-Card-Pack.pdf", title: "Term 2 card pack", detail: "All Term 2 printable cards in one PDF" },
-  { href: "/tmc/n1/all/TMC-N1-Term3-Printable-Card-Pack.pdf", title: "Term 3 card pack", detail: "All Term 3 printable cards in one PDF" },
-  { href: "/tmc/n1/all/TMC-N1-Question-Bank-All-Weeks.xlsx", title: "Question bank, all 39 weeks", detail: "Excel, with filters. Also as a Word file", extra: { href: "/tmc/n1/all/TMC-N1-Question-Bank-All-Weeks.docx", label: "Word" } },
+  { href: "/tmc/n1/all/TMC-N1-Question-Bank-All-Weeks.xlsx", title: "Question bank, all 39 weeks", detail: "Excel, with filters", extra: { href: "/tmc/n1/all/TMC-N1-Question-Bank-All-Weeks.docx", label: "Word" } },
+  { href: "/tmc/n1/t3-w13/step-thinker-year-badge.png", title: "Step Thinker Year badge", detail: "Image, for the end of the year" },
 ] as const;
 
 export const shortLink =(week: Pick<TmcWeek, "term" | "week">) =>
