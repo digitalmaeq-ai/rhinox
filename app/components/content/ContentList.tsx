@@ -19,12 +19,20 @@ export interface ListRow {
   ink: string;
   metaTop?: string;
   metaBottom?: string;
+  /** Optional numbers used only for sorting. */
+  minutes?: number;
+  levelRank?: number;
 }
+
+type SortId = "featured" | "az" | "shortest" | "easiest" | "hardest";
+type View = "cards" | "list";
 
 export default function ContentList({ rows }: { rows: ListRow[] }) {
   const [type, setType] = useState("all");
   const [subject, setSubject] = useState("all");
   const [query, setQuery] = useState("");
+  const [sort, setSort] = useState<SortId>("featured");
+  const [view, setView] = useState<View>("cards");
 
   const types = useMemo(() => {
     const m = new Map<string, { label: string; n: number }>();
@@ -41,17 +49,43 @@ export default function ContentList({ rows }: { rows: ListRow[] }) {
   }, [rows]);
 
   const q = query.trim().toLowerCase();
-  const shown = rows.filter(
+  const filtered = rows.filter(
     (r) =>
       (type === "all" || r.type === type) &&
       (subject === "all" || r.subjects.includes(subject)) &&
       (!q || r.title.toLowerCase().includes(q) || r.description.toLowerCase().includes(q)),
   );
 
+  const hasMinutes = rows.some((r) => r.minutes !== undefined);
+  const hasLevels = rows.some((r) => r.levelRank !== undefined);
+  const sortOptions: { id: SortId; label: string }[] = [
+    { id: "featured", label: "Default order" },
+    { id: "az", label: "A to Z" },
+    ...(hasMinutes ? [{ id: "shortest" as const, label: "Shortest first" }] : []),
+    ...(hasLevels
+      ? [
+          { id: "easiest" as const, label: "Easiest first" },
+          { id: "hardest" as const, label: "Hardest first" },
+        ]
+      : []),
+  ];
+
+  const shown = useMemo(() => {
+    const list = [...filtered];
+    const byTitle = (a: ListRow, b: ListRow) => a.title.localeCompare(b.title);
+    // Rows with no value for the chosen sort go last.
+    const num = (v: number | undefined, dir: 1 | -1) => (v === undefined ? Number.POSITIVE_INFINITY : v * dir);
+    if (sort === "az") list.sort(byTitle);
+    else if (sort === "shortest") list.sort((a, b) => num(a.minutes, 1) - num(b.minutes, 1) || byTitle(a, b));
+    else if (sort === "easiest") list.sort((a, b) => num(a.levelRank, 1) - num(b.levelRank, 1) || byTitle(a, b));
+    else if (sort === "hardest") list.sort((a, b) => num(a.levelRank, -1) - num(b.levelRank, -1) || byTitle(a, b));
+    return list;
+  }, [filtered, sort]);
+
   const showSubjects = rows.length > 8 && subjects.length > 1;
   const showSearch = rows.length > 12;
   const showTypes = types.length > 1;
-  const showBar = showSubjects || showSearch || showTypes;
+  const showBar = showSubjects || showSearch || showTypes || rows.length > 3;
 
   return (
     <>
@@ -90,11 +124,67 @@ export default function ContentList({ rows }: { rows: ListRow[] }) {
           <span className={styles.count} role="status" aria-live="polite">
             {shown.length} {shown.length === 1 ? "result" : "results"}
           </span>
+          <label className={styles.sort}>
+            <span>Sort</span>
+            <select value={sort} onChange={(e) => setSort(e.target.value as SortId)}>
+              {sortOptions.map((o) => (
+                <option key={o.id} value={o.id}>
+                  {o.label}
+                </option>
+              ))}
+            </select>
+          </label>
+          <div className={styles.viewToggle} role="group" aria-label="Layout">
+            <button type="button" aria-pressed={view === "cards"} className={view === "cards" ? styles.viewOn : ""} onClick={() => setView("cards")}>
+              Cards
+            </button>
+            <button type="button" aria-pressed={view === "list"} className={view === "list" ? styles.viewOn : ""} onClick={() => setView("list")}>
+              List
+            </button>
+          </div>
         </div>
       )}
 
       {shown.length === 0 ? (
         <p className={styles.empty}>Nothing matches. Try a different filter.</p>
+      ) : view === "cards" ? (
+        <ul className={styles.cards} key={`cards-${type}-${subject}-${sort}`}>
+          {shown.map((r, i) => (
+            <li key={r.id} className={styles.cardItem} style={{ ["--i" as string]: Math.min(i, 14) }}>
+              <Link href={r.href} className={styles.card} style={{ ["--tint" as string]: r.tint || DEFAULT_TONE.tint, ["--ink" as string]: r.ink || DEFAULT_TONE.ink }}>
+                <span className={styles.cardArt} aria-hidden="true">
+                  <svg className={styles.cardGlyph} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+                    <path d={pathFor(r.type, r.subjects)} />
+                  </svg>
+                  <svg className={styles.cardWatermark} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1" strokeLinecap="round" strokeLinejoin="round">
+                    <path d={pathFor(r.type, r.subjects)} />
+                  </svg>
+                </span>
+                <span className={styles.cardBody}>
+                  <span className={styles.kicker}>
+                    <span>{r.typeLabel}</span>
+                    {r.subjectLabels.slice(0, 1).map((s) => (
+                      <span key={s}>{s}</span>
+                    ))}
+                  </span>
+                  <h2 className={styles.cardTitle}>{r.title}</h2>
+                  <p className={styles.cardText}>{r.description}</p>
+                </span>
+                <span className={styles.cardFoot}>
+                  <span className={styles.cardMeta}>
+                    {r.metaTop && <strong>{r.metaTop}</strong>}
+                    {r.metaBottom && <span>{r.metaBottom}</span>}
+                  </span>
+                  <span className={styles.cardGo} aria-hidden="true">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+                      <path d="M5 12h14M13 6l6 6-6 6" />
+                    </svg>
+                  </span>
+                </span>
+              </Link>
+            </li>
+          ))}
+        </ul>
       ) : (
         <ul className={styles.rows}>
           {shown.map((r) => (
