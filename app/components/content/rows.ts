@@ -10,6 +10,8 @@ export function pretty(value: string): string {
   return s.charAt(0).toUpperCase() + s.slice(1);
 }
 
+const LEVEL_RANK: Record<string, number> = { beginner: 1, intermediate: 2, advanced: 3 };
+
 type Loose = ContentItem & {
   subjects?: string[];
   ageGroups?: string[];
@@ -43,5 +45,7 @@ export function toRow(item: ContentItem): ListRow {
     ink: tone.ink,
     metaTop: top,
     metaBottom: bottom,
+    minutes: it.durationMinutes,
+    levelRank: it.difficulty ? LEVEL_RANK[it.difficulty.toLowerCase()] : undefined,
   };
 }
