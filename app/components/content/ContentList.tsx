@@ -24,6 +24,8 @@ export interface ListRow {
   levelRank?: number;
 }
 
+const SUBJECT_LIMIT = 8;
+
 type SortId = "featured" | "az" | "shortest" | "easiest" | "hardest";
 type View = "cards" | "list";
 
@@ -33,6 +35,7 @@ export default function ContentList({ rows }: { rows: ListRow[] }) {
   const [query, setQuery] = useState("");
   const [sort, setSort] = useState<SortId>("featured");
   const [view, setView] = useState<View>("cards");
+  const [moreSubjects, setMoreSubjects] = useState(false);
 
   const types = useMemo(() => {
     const m = new Map<string, { label: string; n: number }>();
@@ -55,6 +58,12 @@ export default function ContentList({ rows }: { rows: ListRow[] }) {
       (subject === "all" || r.subjects.includes(subject)) &&
       (!q || r.title.toLowerCase().includes(q) || r.description.toLowerCase().includes(q)),
   );
+
+  // Long subject lists collapse to the biggest few; the chosen subject always stays visible.
+  const subjectsShown =
+    moreSubjects || subjects.length <= SUBJECT_LIMIT
+      ? subjects
+      : subjects.filter(([id], i) => i < SUBJECT_LIMIT || id === subject);
 
   const hasMinutes = rows.some((r) => r.minutes !== undefined);
   const hasLevels = rows.some((r) => r.levelRank !== undefined);
@@ -109,13 +118,20 @@ export default function ContentList({ rows }: { rows: ListRow[] }) {
           )}
           {showSubjects && (
             <ul className={styles.pills} aria-label="Filter by subject">
-              {[["all", { label: "All subjects", n: rows.length }] as const, ...subjects].map(([id, s]) => (
+              {[["all", { label: "All subjects", n: rows.length }] as const, ...subjectsShown].map(([id, s]) => (
                 <li key={id}>
                   <button type="button" aria-pressed={subject === id} className={`${styles.pill} ${subject === id ? styles.pillOn : ""}`} onClick={() => setSubject(id)}>
                     {s.label}{id !== "all" && <em>{s.n}</em>}
                   </button>
                 </li>
               ))}
+              {subjects.length > SUBJECT_LIMIT && (
+                <li>
+                  <button type="button" className={styles.pillMore} aria-expanded={moreSubjects} onClick={() => setMoreSubjects((v) => !v)}>
+                    {moreSubjects ? "Fewer subjects" : `More subjects (${subjects.length - SUBJECT_LIMIT})`}
+                  </button>
+                </li>
+              )}
             </ul>
           )}
           {showSearch && (

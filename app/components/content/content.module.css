@@ -367,3 +367,10 @@
   .card:hover, .card:focus-visible { transform: none; }
   .card:hover .cardGlyph, .card:hover .cardWatermark, .card:hover .cardGo { transform: none; }
 }
+
+.pillMore {
+  min-height: 34px; padding: 0 13px; border: 1px dashed var(--rx-border-strong); border-radius: 999px;
+  background: transparent; font: inherit; font-size: 13px; font-weight: 600; color: var(--rx-blue); cursor: pointer;
+}
+.pillMore:hover { background: var(--rx-surface-blue); }
+.pillMore:focus-visible { outline: 2px solid var(--rx-blue); outline-offset: 2px; }
