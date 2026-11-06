@@ -840,3 +840,24 @@
     }
   }
 }
+
+/* ---------- Calm header (replaces the photo hero and glass card) ---------- */
+.hero {
+  background: #f3f7fb;
+  padding: clamp(40px, 5vw, 64px) 0 clamp(36px, 4.5vw, 56px);
+}
+.heroInner {
+  grid-template-columns: minmax(0, 1fr);
+}
+.heroMain {
+  max-width: 760px;
+}
+.heroTitle {
+  font-size: clamp(34px, 4.4vw, 56px);
+  line-height: 1.08;
+  letter-spacing: -0.03em;
+}
+.heroLead {
+  font-size: 17px;
+  line-height: 1.65;
+}
