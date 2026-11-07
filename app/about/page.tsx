@@ -56,7 +56,6 @@ export default function AboutPage() {
     <main className={styles.page}>
       {/* ---------- Hero ---------- */}
       <section className={styles.hero}>
-        <div className={styles.heroBackdrop} aria-hidden="true" />
 
         <div className={`rx-container ${styles.heroInner}`}>
           <div className={styles.heroMain}>
@@ -83,35 +82,7 @@ export default function AboutPage() {
               </Link>
             </div>
           </div>
-
-          <aside className={styles.heroCard}>
-            <p className={styles.heroCardTop}>
-              <span className={styles.dot} aria-hidden="true" />
-              What we stand for
-            </p>
-            <div className={styles.heroCardBody}>
-              <span className={styles.badge}>R</span>
-              <h2 className={styles.heroCardTitle}>
-                <span>Think. Move. Code.</span>
-                <span className={styles.muted}>Build. Create.</span>
-              </h2>
-              <p>
-                Rhinox helps learners understand ideas, apply knowledge, build
-                solutions and create with confidence.
-              </p>
-            </div>
-            <p className={styles.heroCardFoot}>
-              <span />
-              Lagos, Nigeria
-            </p>
-          </aside>
         </div>
-
-        <p className={styles.heroStrip}>
-          <span />
-          Discover • Learn • Practise • Build • Create
-          <span />
-        </p>
       </section>
 
       {/* ---------- Who we are ---------- */}
