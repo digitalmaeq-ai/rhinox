@@ -1,0 +1,79 @@
+.page { background: #fff; color: var(--rx-text); }
+.page h1, .page h2, .page h3 { font-family: var(--rx-font-display); color: var(--rx-heading); }
+.crumbs { padding-block: 12px 0; }
+.crumbs > nav { margin: 0; }
+.eyebrow { margin: 0 0 8px; font-size: 12px; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; color: var(--rx-text-soft); }
+
+.head { margin-top: 8px; background: linear-gradient(180deg, #eaf3ff, #fff); }
+.head > .headInner { padding-block: clamp(24px, 3.4vw, 42px) clamp(16px, 2vw, 24px); max-width: 860px; margin-inline: auto; text-align: center; }
+.head h1 { margin: 0; font-size: clamp(30px, 4vw, 50px); line-height: 1.05; letter-spacing: -0.04em; text-wrap: balance; }
+.head h1 span { color: var(--rx-blue); }
+.lead { margin: 12px auto 0; max-width: 620px; font-size: 16px; line-height: 1.65; }
+.actions { display: flex; flex-wrap: wrap; justify-content: center; gap: 10px; margin-top: 18px; }
+
+.road > .roadInner { padding-block: clamp(14px, 2vw, 24px); }
+.roadHead { display: flex; flex-wrap: wrap; align-items: end; justify-content: space-between; gap: 10px 24px; margin-bottom: 14px; }
+.roadHead h2 { margin: 0; font-size: clamp(22px, 2.4vw, 28px); letter-spacing: -0.03em; }
+.legend { display: flex; flex-wrap: wrap; gap: 6px 14px; margin: 0; padding: 0; list-style: none; font-size: 13px; }
+.legend li { display: inline-flex; align-items: center; gap: 6px; }
+.chip { display: inline-grid; place-items: center; width: 20px; height: 20px; border-radius: 6px; font-size: 11px; font-weight: 800; border: 1px solid transparent; }
+
+/* Week kinds differ by letter, fill and border style, not colour alone. */
+.learn { background: #fff; border-color: var(--rx-border-strong); color: var(--rx-heading); }
+.practice { background: #eaf3ff; border-color: #b9d6fb; color: #0b4fa3; }
+.revision { background: #f3f7fb; border-color: var(--rx-border-strong); border-style: dashed; color: var(--rx-heading); }
+.project { background: var(--rx-blue); border-color: var(--rx-blue); color: #fff; }
+.assessment { background: #fff4d9; border-color: #f0c35a; color: #5c3b00; }
+.showcase { background: var(--rx-accent); border-color: #d98f00; color: #3a2400; }
+
+.lanes { display: grid; gap: 12px; }
+.lane { display: grid; grid-template-columns: 200px minmax(0, 1fr); gap: 16px; align-items: center; padding: 14px 16px; border: 1px solid var(--rx-border); border-radius: 16px; background: #fff; box-shadow: var(--rx-shadow-sm); }
+.laneLabel h3 { margin: 2px 0; font-size: 17px; letter-spacing: -0.02em; }
+.laneLabel p { margin: 0; font-size: 13px; color: var(--rx-text-soft); }
+.termNum { font-size: 11px; font-weight: 800; letter-spacing: 0.1em; text-transform: uppercase; color: var(--rx-blue); }
+.weeks { display: grid; grid-template-columns: repeat(13, minmax(0, 1fr)); gap: 6px; margin: 0; padding: 0; list-style: none; }
+.week { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px; min-height: 52px; border: 1px solid; border-radius: 10px; text-decoration: none; transition: transform 0.15s ease; }
+.week:hover { transform: translateY(-2px); box-shadow: var(--rx-shadow-sm); }
+.week:focus-visible { outline: 2px solid var(--rx-blue); outline-offset: 2px; }
+.wn { font-family: var(--rx-font-display); font-size: 16px; font-weight: 800; line-height: 1; }
+.wk { font-size: 10px; font-weight: 800; opacity: 0.75; }
+.hint { margin: 10px 0 0; font-size: 13px; color: var(--rx-text-soft); }
+.srOnly { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+
+.pack { background: #f3f7fb; border-block: 1px solid var(--rx-border); }
+.pack > .packInner { padding-block: clamp(22px, 3vw, 34px); display: grid; grid-template-columns: minmax(0, 0.8fr) minmax(0, 1.4fr); gap: clamp(20px, 4vw, 48px); align-items: start; }
+.packInner h2 { margin: 0 0 6px; font-size: clamp(22px, 2.4vw, 28px); letter-spacing: -0.03em; }
+.packInner p { margin: 0; line-height: 1.6; }
+.files { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; margin: 0; padding: 0; list-style: none; }
+.files li { display: grid; grid-template-columns: 28px 1fr; column-gap: 10px; padding: 10px 12px; background: #fff; border: 1px solid var(--rx-border); border-radius: 12px; }
+.fi { grid-row: span 2; display: grid; place-items: center; width: 28px; height: 28px; border-radius: 50%; background: var(--rx-accent); color: #3a2400; font-size: 13px; font-weight: 800; }
+.files strong { font-size: 14px; color: var(--rx-heading); }
+.files li > span:not(.fi) { font-size: 13px; line-height: 1.45; color: var(--rx-text-soft); }
+
+.who > .whoInner { padding-block: clamp(22px, 3vw, 34px); }
+.whoInner h2 { margin: 0 0 12px; font-size: clamp(22px, 2.4vw, 28px); letter-spacing: -0.03em; }
+.whoGrid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); }
+.whoItem { padding: 0 20px; border-left: 3px solid var(--rx-border); }
+.whoItem:first-child { padding-left: 16px; border-left-color: var(--rx-blue); }
+.whoItem:nth-child(2) { border-left-color: var(--rx-accent); }
+.whoItem h3 { margin: 0 0 4px; font-size: 18px; }
+.whoItem p { margin: 0; line-height: 1.6; }
+
+.cta { padding-bottom: clamp(22px, 3vw, 36px); }
+.cta > .ctaInner { padding: 22px 26px; display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 14px; border-radius: 16px; background: var(--rx-blue); color: #fff; }
+.ctaInner h2 { margin: 0; font-size: 22px; color: #fff; }
+.ctaInner p { margin: 4px 0 0; color: #e6f0ff; }
+.ctaInner :global(.rx-button) { background: #fff; color: var(--rx-blue); border-color: #fff; }
+
+@media (max-width: 900px) {
+  .lane { grid-template-columns: minmax(0, 1fr); }
+  .weeks { grid-template-columns: repeat(7, minmax(0, 1fr)); }
+  .pack > .packInner { grid-template-columns: minmax(0, 1fr); }
+  .whoGrid { grid-template-columns: minmax(0, 1fr); gap: 14px; }
+  .whoItem, .whoItem:first-child { padding-left: 14px; }
+}
+@media (max-width: 560px) {
+  .files { grid-template-columns: minmax(0, 1fr); }
+  .weeks { grid-template-columns: repeat(5, minmax(0, 1fr)); }
+}
+@media (prefers-reduced-motion: reduce) { .week { transition: none; } .week:hover { transform: none; } }

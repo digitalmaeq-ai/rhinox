@@ -1,0 +1,47 @@
+.page { background: #fff; color: var(--rx-text); }
+.page h1, .page h2, .page h3 { font-family: var(--rx-font-display); color: var(--rx-heading); }
+.crumbs { padding-block: 12px 0; }
+.crumbs > nav { margin: 0; }
+.eyebrow { margin: 0 0 8px; font-size: 12px; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; color: var(--rx-text-soft); }
+
+.head { margin-top: 8px; border-bottom: 1px solid var(--rx-border); background: #f3f7fb; }
+.head > .headInner { padding-block: clamp(20px, 3vw, 34px); display: grid; grid-template-columns: minmax(0, 1.3fr) minmax(0, 1fr); gap: 20px 48px; align-items: end; }
+.head h1 { margin: 0; font-size: clamp(28px, 3.8vw, 46px); line-height: 1.06; letter-spacing: -0.04em; }
+.head h1 span { color: var(--rx-blue); }
+.lead { margin: 0; line-height: 1.65; font-size: 16px; }
+
+/* Three cards climbing like stairs: each starts lower on the left and ends higher on the right. */
+.stairs > .stairsInner { padding-block: clamp(22px, 3vw, 36px); }
+.stairs ol { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 16px; align-items: end; margin: 0; padding: 0; list-style: none; }
+.stairs li { display: flex; align-items: stretch; }
+.step1 { min-height: 340px; }
+.step2 { min-height: 410px; }
+.step3 { min-height: 480px; }
+.card { display: flex; flex-direction: column; gap: 10px; width: 100%; padding: 20px; border: 1px solid var(--rx-border); border-top: 5px solid var(--rx-blue-light); border-radius: 16px; background: #fff; box-shadow: var(--rx-shadow-sm); }
+.step2 .card { border-top-color: var(--rx-blue); background: #f7fbff; }
+.step3 .card { border-top-color: var(--rx-accent); background: linear-gradient(180deg, #fffaf0, #fff 55%); }
+.level { font-size: 11px; font-weight: 800; letter-spacing: 0.1em; text-transform: uppercase; color: var(--rx-blue); }
+.card h2 { margin: 0; font-size: 22px; line-height: 1.15; letter-spacing: -0.03em; }
+.card p { margin: 0; line-height: 1.6; }
+.skills { display: flex; flex-wrap: wrap; gap: 6px; margin: 0; padding: 0; list-style: none; }
+.skills li { padding: 3px 10px; border: 1px solid var(--rx-border-strong); border-radius: 999px; font-size: 12px; font-weight: 600; background: #fff; }
+.links { display: grid; gap: 6px; margin-top: auto; padding-top: 6px; }
+.links a { font-weight: 700; font-size: 14px; color: var(--rx-blue); text-decoration: none; }
+.links a:hover { text-decoration: underline; }
+.links a:focus-visible { outline: 2px solid var(--rx-blue); outline-offset: 2px; }
+
+.needs { background: #f3f7fb; border-block: 1px solid var(--rx-border); }
+.needs > .needsInner { padding-block: clamp(18px, 2.4vw, 28px); display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 24px; }
+.needs h3 { margin: 0 0 4px; font-size: 17px; }
+.needs p { margin: 0; font-size: 14px; line-height: 1.55; color: var(--rx-text); }
+.needs .needsInner > div { padding-left: 14px; border-left: 3px solid var(--rx-accent); }
+
+.cta > .ctaInner { padding-block: clamp(20px, 3vw, 32px); display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 12px 24px; }
+.ctaInner p { margin: 0; max-width: 560px; font-weight: 600; color: var(--rx-heading); }
+
+@media (max-width: 900px) {
+  .head > .headInner { grid-template-columns: minmax(0, 1fr); }
+  .stairs ol { grid-template-columns: minmax(0, 1fr); align-items: stretch; }
+  .step1, .step2, .step3 { min-height: 0; }
+  .needs > .needsInner { grid-template-columns: minmax(0, 1fr); }
+}

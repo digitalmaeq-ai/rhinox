@@ -1,8 +1,10 @@
 import type { Metadata } from "next";
 
-import { HubClosing, HubHero, HubSectionHead, HubSteps } from "../../components/hub/HubParts";
-import hub from "../../components/hub/hub.module.css";
+import Link from "next/link";
+
+import Breadcrumbs from "../../components/Breadcrumbs";
 import StemClubsForm from "./StemClubsForm";
+import styles from "./clubs.module.css";
 
 export const metadata: Metadata = {
   title: "Rhinox STEM Clubs | Rhinox Scientifica",
@@ -69,108 +71,124 @@ const faqs = [
   },
 ];
 
+const STATUS = [
+  { label: "Intended", text: "A pilot with five to ten schools in a single area.", state: "yes" },
+  { label: "Open now", text: "Schools can express interest. It commits you to nothing.", state: "yes" },
+  { label: "Not decided", text: "Area, timing and costs. We share these with interested schools first.", state: "no" },
+  { label: "Not confirmed", text: "Inter-school challenge categories, events, dates, venues and prizes.", state: "no" },
+];
+
 export default function StemClubsPage() {
   return (
-    <main style={{ background: "var(--rx-white)" }}>
-      <HubHero
-        eyebrow="Schools · Rhinox STEM Clubs"
-        lineOne="Hands-on STEM clubs"
-        lineTwo="for schools."
-        lead="Rhinox STEM Clubs help schools run practical science, coding, robotics and engineering activities, with inter-school challenges being developed. We are now inviting schools to express interest in a pilot."
-        actions={[
-          { label: "Express interest", href: "#interest-form" },
-          { label: "Talk to us", href: "/contact", secondary: true },
-        ]}
-        image="/images/journey/journey-robotics.jpg"
-        alt="Young people building a robotics project"
-        chips={["Primary", "Junior Secondary", "Senior Secondary"]}
-      />
+    <main className={styles.page}>
+      <div className={`rx-container ${styles.crumbs}`}>
+        <Breadcrumbs items={[{ label: "Home", href: "/" }, { label: "Schools & Institutions", href: "/schools" }, { label: "STEM Clubs" }]} />
+      </div>
 
-      <section className={hub.stepsSection}>
-        <div className="rx-container">
-          <HubSectionHead eyebrow="What schools gain" lineOne="Learning that learners" lineTwo="can see and touch." />
-          <HubSteps steps={gains} />
+      <header className={styles.head}>
+        <div className={`rx-container ${styles.headInner}`}>
+          <div>
+            <p className={styles.eyebrow}>Rhinox STEM Clubs · Pilot</p>
+            <h1>Hands-on STEM clubs <span>for schools.</span></h1>
+            <p className={styles.lead}>
+              Rhinox STEM Clubs help schools run practical science, coding, robotics and engineering activities, with inter-school challenges being developed. We are now inviting schools to express interest in a pilot.
+            </p>
+            <div className={styles.actions}>
+              <a href="#interest-form" className="rx-button rx-button-primary">Express interest</a>
+              <Link href="/contact" className="rx-button rx-button-secondary">Talk to us</Link>
+            </div>
+          </div>
+          <section className={styles.board} aria-labelledby="board-title">
+            <h2 id="board-title">Where the pilot stands</h2>
+            <ul>
+              {STATUS.map((s) => (
+                <li key={s.label}>
+                  <span className={`${styles.pill} ${s.state === "yes" ? styles.pillYes : styles.pillNo}`}>
+                    <span aria-hidden="true">{s.state === "yes" ? "\u2713" : "?"}</span>{s.label}
+                  </span>
+                  <span>{s.text}</span>
+                </li>
+              ))}
+            </ul>
+          </section>
+        </div>
+      </header>
+
+      <section className={styles.gains} aria-labelledby="gains-title">
+        <div className={`rx-container ${styles.gainsInner}`}>
+          <h2 id="gains-title" className={styles.h2}>What schools gain</h2>
+          <div className={styles.gainRow}>
+            {gains.map((g, i) => (
+              <div key={g.title}><span className={styles.num}>{i + 1}</span><h3>{g.title}</h3><p>{g.text}</p></div>
+            ))}
+          </div>
         </div>
       </section>
 
-      <section className={hub.showcaseSection}>
-        <div className="rx-container">
-          <HubSectionHead eyebrow="Inside the school" lineOne="Intra-school activities" lineTwo="that run all year." />
-          <p style={{ maxWidth: 680, lineHeight: 1.7 }}>
-            Each club meets within the school, guided by an adult coordinator. Learners work in small teams on practical activities and share what they
-            discover with their classmates.
-          </p>
-          <ul style={{ display: "flex", flexWrap: "wrap", gap: 10, padding: 0, margin: "20px 0 0", listStyle: "none" }}>
-            {activities.map((activity) => (
-              <li key={activity} style={{ padding: "8px 14px", border: "1px solid #cfe0f7", borderRadius: 999, background: "#f3f8ff", fontSize: 14 }}>
-                {activity}
-              </li>
-            ))}
+      <section className={styles.inside} aria-labelledby="inside-title">
+        <div className={`rx-container ${styles.insideInner}`}>
+          <div>
+            <h2 id="inside-title" className={styles.h2}>Inside the school, all year</h2>
+            <p>
+              Each club meets within the school, guided by an adult coordinator. Learners work in small teams on practical activities and share what they discover with their classmates.
+            </p>
+          </div>
+          <ul className={styles.tiles}>
+            {activities.map((a) => <li key={a}>{a}</li>)}
           </ul>
         </div>
       </section>
 
-      <section className={hub.stepsSection}>
-        <div className="rx-container">
-          <HubSectionHead eyebrow="Between schools" lineOne="Inter-school challenges" lineTwo="under development." />
-          <p style={{ maxWidth: 680, lineHeight: 1.7 }}>
-            We are developing challenges and competitions in which clubs from different schools can take part. Competition categories are programme areas
-            under development, and no events, dates, venues or prizes have been confirmed.
+      <section className={styles.divs} aria-labelledby="div-title">
+        <div className={`rx-container ${styles.divsInner}`}>
+          <h2 id="div-title" className={styles.h2}>A place for every age group</h2>
+          <div className={styles.divGrid}>
+            {divisions.map((d, i) => (
+              <div key={d.title} className={styles[`div${i + 1}`]}><h3>{d.title}</h3><p>{d.text}</p></div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      <section className={styles.between} aria-labelledby="between-title">
+        <div className={`rx-container ${styles.betweenInner}`}>
+          <h2 id="between-title">Inter-school challenges: under development</h2>
+          <p>
+            We are developing challenges and competitions in which clubs from different schools can take part. Competition categories are programme areas under development, and no events, dates, venues or prizes have been confirmed.
           </p>
         </div>
       </section>
 
-      <section className={hub.showcaseSection}>
-        <div className="rx-container">
-          <HubSectionHead eyebrow="Divisions" lineOne="A place for every" lineTwo="age group." />
-          <HubSteps steps={divisions} />
-        </div>
-      </section>
-
-      <section className={hub.quoteSection} id="interest-form" style={{ scrollMarginTop: 80 }}>
-        <div className={`rx-container ${hub.quoteInner}`}>
-          <div className={hub.splitHead}>
-            <p className={`rx-eyebrow ${hub.eyebrow}`}>Join the pilot</p>
-            <h2 className={hub.sectionTitle}>
-              <span>Express interest</span>
-              <span className={hub.muted}>in the pilot.</span>
-            </h2>
-            <p style={{ lineHeight: 1.7, marginTop: 16 }}>
-              We plan to work with five to ten schools in one area. Tell us about your school and we will be in touch.
-            </p>
-            <HubSteps steps={steps} />
-          </div>
-          <div className={hub.quotePanel}>
+      <section className={styles.join} id="interest-form">
+        <div className={`rx-container ${styles.joinInner}`}>
+          <aside className={styles.joinSide}>
+            <h2 className={styles.h2}>Express interest in the pilot</h2>
+            <p>We plan to work with five to ten schools in one area. Tell us about your school and we will be in touch.</p>
+            <ol>
+              {steps.map((s, i) => (
+                <li key={s.title}><span className={styles.num}>{i + 1}</span><div><strong>{s.title}</strong><span>{s.text}</span></div></li>
+              ))}
+            </ol>
+          </aside>
+          <div className={styles.formPanel}>
             <StemClubsForm />
           </div>
         </div>
       </section>
 
-      <section className={hub.stepsSection}>
-        <div className="rx-container">
-          <HubSectionHead eyebrow="Questions" lineOne="Frequently asked" lineTwo="questions." />
-          <div style={{ maxWidth: 780 }}>
-            {faqs.map((faq) => (
-              <details key={faq.q} style={{ borderBottom: "1px solid #dbe6f5", padding: "14px 0" }}>
-                <summary style={{ cursor: "pointer", fontWeight: 600 }}>{faq.q}</summary>
-                <p style={{ marginTop: 10, lineHeight: 1.7 }}>{faq.a}</p>
+      <section className={styles.faq} aria-labelledby="faq-title">
+        <div className={`rx-container ${styles.faqInner}`}>
+          <h2 id="faq-title" className={styles.h2}>Frequently asked questions</h2>
+          <div>
+            {faqs.map((f) => (
+              <details key={f.q}>
+                <summary>{f.q}</summary>
+                <p>{f.a}</p>
               </details>
             ))}
           </div>
         </div>
       </section>
-
-      <HubClosing
-        kicker="Questions first?"
-        lineOne="Talk to the"
-        lineTwo="Rhinox team."
-        lead="We are glad to explain the pilot before your school decides."
-        actions={[
-          { label: "Contact Rhinox", href: "/contact" },
-          { label: "Back to schools", href: "/schools", secondary: true },
-        ]}
-        image="/images/hero/classroom.jpg"
-      />
     </main>
   );
 }
