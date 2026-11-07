@@ -149,7 +149,7 @@ export function Flow({ points, count = 10, speed = 0.1, color = "#facc15", size 
 
 // The lab bench: a dark epoxy worktop with a polished edge, sitting in an
 // endless studio floor that fades into the background.
-export function Floor({ size = [24, 14] as [number, number], y = 0, color = "#141c2c" }: { size?: [number, number]; y?: number; color?: string }) {
+export function Floor({ size = [24, 14] as [number, number], y = 0, color = "#3b4b64" }: { size?: [number, number]; y?: number; color?: string }) {
   return (
     <group position={[0, y, 0]}>
       <mesh rotation-x={-Math.PI / 2} position={[0, -0.02, 0]} receiveShadow>
