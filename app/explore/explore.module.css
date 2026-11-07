@@ -1,0 +1,64 @@
+.jump {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px 14px;
+  margin-bottom: 18px;
+}
+
+.jumpLabel {
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--rx-text-soft);
+}
+
+.jump ul {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.jump a {
+  display: inline-flex;
+  align-items: center;
+  min-height: 36px;
+  padding: 0 14px;
+  border-radius: 999px;
+  background: var(--rx-surface-blue);
+  color: var(--rx-blue);
+  font-size: 13px;
+  font-weight: 600;
+  text-decoration: none;
+  transition: background var(--rx-fast), color var(--rx-fast);
+}
+
+.jump a:hover {
+  background: var(--rx-blue);
+  color: #fff;
+}
+
+.jump a:focus-visible {
+  outline: 3px solid #f59e0b;
+  outline-offset: 2px;
+}
+
+.shopNote {
+  margin: 28px 0 0;
+  font-size: 14px;
+  color: var(--rx-text-soft);
+}
+
+.shopNote a {
+  color: var(--rx-blue);
+  font-weight: 600;
+  text-decoration: none;
+}
+
+.shopNote a:hover {
+  text-decoration: underline;
+}
