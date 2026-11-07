@@ -70,7 +70,6 @@ export default function SupportPage() {
   return (
     <main className={styles.page}>
       <section className={`${styles.hero} ${styles.heroTight}`}>
-        <div className={styles.heroBackdrop} aria-hidden="true" />
         <div className={`rx-container ${styles.heroInner}`}>
           <div className={styles.heroMain}>
             <p className={`rx-eyebrow ${styles.eyebrow}`}>Support</p>
@@ -88,27 +87,6 @@ export default function SupportPage() {
               <a href="#faq" className="rx-button rx-button-secondary">Read the FAQ</a>
             </div>
           </div>
-
-          <aside className={styles.heroCard}>
-            <p className={styles.heroCardTop}>
-              <span className={styles.dot} aria-hidden="true" />
-              Talk to a person
-            </p>
-            <div className={styles.heroCardBody}>
-              <span className={styles.badge}>R</span>
-              <h2 className={styles.heroCardTitle}>
-                <span>Questions about</span>
-                <span className={styles.muted}>your learners?</span>
-              </h2>
-              <p>
-                Email or call the Rhinox team and tell us what you need.
-              </p>
-            </div>
-            <p className={styles.heroCardFoot}>
-              <span />
-              {contactDetails.email}
-            </p>
-          </aside>
         </div>
       </section>
 

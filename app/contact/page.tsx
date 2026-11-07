@@ -18,7 +18,6 @@ export default function ContactPage() {
     <main className={styles.page}>
       {/* ---------- Hero ---------- */}
       <section className={styles.hero}>
-        <div className={styles.heroBackdrop} aria-hidden="true" />
 
         <div className={`rx-container ${styles.heroInner}`}>
           <div className={styles.heroMain}>
@@ -46,43 +45,7 @@ export default function ContactPage() {
               </div>
             </div>
           </div>
-
-          <aside className={styles.heroCard}>
-            <p className={styles.heroCardTop}>
-              <span className={styles.dot} aria-hidden="true" />
-              Start a conversation
-            </p>
-
-            <div className={styles.heroCardBody}>
-              <span className={styles.badge}>R</span>
-              <h2 className={styles.heroCardTitle}>
-                <span>Have a learning</span>
-                <span className={styles.muted}>project in mind?</span>
-              </h2>
-              <p>
-                Tell us what you are teaching, building or planning. Our team
-                can help you shape the right STEM path for your learners.
-              </p>
-              <a href="#contact-form" className={styles.cardLink}>
-                Go to the enquiry form
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-                  <path d="M12 5v14M6 13l6 6 6-6" />
-                </svg>
-              </a>
-            </div>
-
-            <p className={styles.heroCardFoot}>
-              <span />
-              STEM consultation
-            </p>
-          </aside>
         </div>
-
-        <p className={styles.heroStrip}>
-          <span />
-          Discover • Learn • Practise • Build • Create
-          <span />
-        </p>
       </section>
 
       {/* ---------- Details + form ---------- */}
