@@ -10,9 +10,9 @@ export { NURSERY_1_TERMS, NURSERY_1_WEEKS, TMC_VIDEOS, YOUTUBE_CHANNEL_URL };
 
 /** One colour per term, reused by every Resources page so a term always looks the same. */
 export const TERM_COLOURS: Record<number, { name: string; main: string; soft: string; ink: string }> = {
-  1: { name: "Blue", main: "#1e6fdc", soft: "#e3eefc", ink: "#0f3a78" },
-  2: { name: "Green", main: "#1e9d4b", soft: "#dff5e6", ink: "#0d5428" },
-  3: { name: "Purple", main: "#7a4fd6", soft: "#eee7fb", ink: "#3b1f7a" },
+  1: { name: "Blue", main: "#0f6fde", soft: "#e4effd", ink: "#0b3f7e" },
+  2: { name: "Sky", main: "#1593b8", soft: "#e0f3f9", ink: "#0a5068" },
+  3: { name: "Indigo", main: "#4f63d9", soft: "#e8ebfc", ink: "#26338f" },
 };
 
 export interface WeekPack {
@@ -111,7 +111,7 @@ export const badges: BadgeInfo[] = [
     term: null,
     idea: "The year badge, for the end of Nursery 1.",
     skills: ["Steps and order (Term 1)", "Patterns (Term 2)", "Problem solving (Term 3)"],
-    colour: { main: "#e39a00", soft: "#fff4d6", ink: "#6b4400" },
+    colour: { main: "#d98b18", soft: "#fff3d9", ink: "#6b4400" },
   },
 ];
 
