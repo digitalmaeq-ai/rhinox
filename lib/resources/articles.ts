@@ -63,7 +63,7 @@ function packGuide(): Article {
     ] },
     { type: "p", text: "All of these are free on the Free Downloads page." },
   ];
-  return { slug: "how-to-use-a-weekly-pack", title: "How to use a weekly pack", dek: "Six files per week. Here is what each one is for and where to start.", category: "For teachers", minutes: minutes(blocks), accent: "#e5484d", blocks };
+  return { slug: "how-to-use-a-weekly-pack", title: "How to use a weekly pack", dek: "Six files per week. Here is what each one is for and where to start.", category: "For teachers", minutes: minutes(blocks), accent: "#a85f00", blocks };
 }
 
 function tipsGuide(): Article {
@@ -72,7 +72,7 @@ function tipsGuide(): Article {
     { type: "p", text: "Each weekly teacher guide ends with a short tip. These are a few from Term 1 that work well all year." },
     ...picks.flatMap<Block>((w) => [{ type: "h2", text: `Week ${w.week}: ${w.title}` }, { type: "p", text: w.tip }]),
   ];
-  return { slug: "teaching-tips-from-term-1", title: "Four teaching tips from Term 1", dek: "Small things to say and do that help young children learn to think in steps.", category: "For teachers", minutes: minutes(blocks), accent: "#7a4fd6", blocks };
+  return { slug: "teaching-tips-from-term-1", title: "Four teaching tips from Term 1", dek: "Small things to say and do that help young children learn to think in steps.", category: "For teachers", minutes: minutes(blocks), accent: "#4f63d9", blocks };
 }
 
 function homeGuide(): Article {
@@ -86,7 +86,7 @@ function homeGuide(): Article {
     { type: "h2", text: "When your child makes a mistake" },
     { type: "p", text: w1.tip },
   ];
-  return { slug: "coding-at-home-without-a-screen", title: "Coding at home without a screen", dek: "Three games and a few words that start your child on the road to coding.", category: "For parents", minutes: minutes(blocks), accent: "#1e9d4b", blocks };
+  return { slug: "coding-at-home-without-a-screen", title: "Coding at home without a screen", dek: "Three games and a few words that start your child on the road to coding.", category: "For parents", minutes: minutes(blocks), accent: "#1593b8", blocks };
 }
 
 export const guides: Article[] = [homeGuide(), packGuide(), tipsGuide(), termGuide(1), termGuide(2), termGuide(3)];
