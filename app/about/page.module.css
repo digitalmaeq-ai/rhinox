@@ -835,3 +835,9 @@
   font-size: 17px;
   line-height: 1.65;
 }
+
+/* Compact section rhythm */
+.hero > .heroInner { padding-block: 0; }
+.story, .offer, .approach, .closing { padding-block: clamp(28px, 3.4vw, 44px); }
+.hero { padding: clamp(28px, 3.4vw, 44px) 0 clamp(26px, 3vw, 38px); }
+.heroTitle { font-size: clamp(30px, 3.8vw, 46px); }

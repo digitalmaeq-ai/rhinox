@@ -124,3 +124,8 @@
   .slide { flex-basis: 62%; }
   .railBtns { display: none; }
 }
+
+/* Compact spacing */
+.hero { padding: clamp(24px, 3.5vw, 44px) 0 0; }
+.hero > .heroInner { padding-block: 0; }
+.page > .shelf { padding-top: clamp(16px, 2.4vw, 28px); padding-bottom: clamp(28px, 4vw, 48px); }

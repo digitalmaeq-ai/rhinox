@@ -1005,3 +1005,11 @@
   .heroMedia { display: none; }
 }
 .hero > .heroInner { padding-block: 0; }
+
+/* Compact section rhythm for hub sub-pages */
+.showcaseSection,
+.stepsSection,
+.feature,
+.catalogSection { padding-block: clamp(28px, 3.4vw, 44px); }
+.closing { padding: clamp(28px, 3.4vw, 44px) 0 clamp(32px, 4vw, 52px); }
+.quoteSection { padding-top: clamp(20px, 3vw, 36px); padding-bottom: clamp(28px, 4vw, 48px); }
