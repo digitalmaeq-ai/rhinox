@@ -1,0 +1,55 @@
+/* Certificates: ivory paper, gold rules, navy ink, a serif voice.
+   The only quiet, formal page in the set. */
+.page { --gold: #b8892b; --navy: #14233f; background: #f7f1e1; color: var(--navy); }
+.page h1, .page h2, .page h3 { font-family: Georgia, "Times New Roman", serif; font-weight: 700; color: inherit; }
+
+.hero { background: var(--navy); color: #f7f1e1; border-bottom: 4px double var(--gold); }
+.hero > .heroInner { padding-block: clamp(24px, 3.4vw, 40px); text-align: center; }
+.eyebrow { margin: 0 0 8px; font-size: 12px; font-weight: 700; letter-spacing: 0.22em; text-transform: uppercase; color: #e5c06a; }
+.title { margin: 0; font-size: clamp(30px, 4vw, 48px); line-height: 1.1; letter-spacing: -0.01em; }
+.title em { color: #e5c06a; font-style: italic; }
+.lead { max-width: 600px; margin: 12px auto 0; font-size: 16px; line-height: 1.65; color: #d8d2bf; }
+
+.maker { padding: clamp(20px, 3vw, 36px) 0; }
+.maker > .makerInner { padding-block: 0; display: grid; grid-template-columns: 300px minmax(0, 1fr); gap: 28px; align-items: start; }
+.form { padding: 20px; background: #fffdf6; border: 1px solid #e3d6b0; border-radius: 6px; box-shadow: 0 10px 30px rgba(20, 35, 63, 0.08); }
+.formTitle { margin: 0 0 12px; font-size: 20px; }
+.choices { margin: 0 0 12px; padding: 0; border: 0; display: grid; grid-template-columns: 1fr 1fr; gap: 6px; }
+.choices legend { padding: 0; margin-bottom: 6px; font-size: 12px; font-weight: 700; letter-spacing: 0.12em; text-transform: uppercase; color: #7a6330; }
+.choice { display: flex; align-items: center; justify-content: center; min-height: 40px; border: 1.5px solid #d9c892; border-radius: 4px; font-size: 14px; font-weight: 700; cursor: pointer; background: #fff; }
+.choice input { position: absolute; opacity: 0; pointer-events: none; }
+.choiceOn { background: var(--navy); color: #f7f1e1; border-color: var(--navy); }
+.choice:focus-within { outline: 3px solid var(--gold); outline-offset: 2px; }
+.field { display: block; margin-bottom: 12px; }
+.field span { display: block; margin-bottom: 4px; font-size: 12px; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; color: #7a6330; }
+.field input { width: 100%; min-height: 42px; padding: 0 12px; border: 1.5px solid #d9c892; border-radius: 4px; background: #fff; font: inherit; font-size: 16px; color: var(--navy); }
+.field input:focus-visible { outline: 3px solid var(--gold); outline-offset: 1px; }
+.print { width: 100%; min-height: 46px; border: 0; border-radius: 4px; background: var(--gold); color: #fff; font: inherit; font-size: 15px; font-weight: 800; letter-spacing: 0.04em; cursor: pointer; }
+.print:hover { background: #a37719; }
+.print:focus-visible { outline: 3px solid var(--navy); outline-offset: 2px; }
+.tip { margin: 10px 0 0; font-size: 12.5px; line-height: 1.5; color: #6b5d3a; }
+
+.cert { background: #fffdf6; padding: 14px; border: 1px solid #e3d6b0; box-shadow: 0 18px 44px rgba(20, 35, 63, 0.14); aspect-ratio: 1.414 / 1; }
+.frame { position: relative; height: 100%; padding: clamp(14px, 3vw, 34px) clamp(16px, 4vw, 48px); border: 3px double var(--gold); text-align: center; display: flex; flex-direction: column; align-items: center; justify-content: space-between; background: radial-gradient(circle at 50% 0%, #fff 0%, #fffaf0 70%); }
+.corner { position: absolute; inset: 6px; border: 1px solid var(--main); opacity: 0.5; pointer-events: none; }
+.brand { margin: 0; font-family: var(--rx-font-display); font-size: clamp(11px, 1.6vw, 16px); font-weight: 800; letter-spacing: 0.1em; text-transform: uppercase; color: var(--main); }
+.certTitle { margin: 0; font-size: clamp(20px, 3.6vw, 40px); line-height: 1.1; color: var(--navy); }
+.certifies { margin: 0; font-size: clamp(10px, 1.4vw, 15px); font-style: italic; color: #6b5d3a; }
+.who { margin: 0; padding: 0 12px 2px; min-width: 50%; border-bottom: 2px solid var(--gold); font-family: Georgia, serif; font-size: clamp(22px, 4.2vw, 46px); font-style: italic; color: var(--navy); line-height: 1.15; overflow-wrap: anywhere; }
+.school { margin: 0; font-size: clamp(10px, 1.5vw, 16px); font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; color: #6b5d3a; }
+.line { max-width: 70%; margin: 0; font-size: clamp(10px, 1.5vw, 16px); line-height: 1.5; color: #3b4660; }
+.award { margin: 0; padding: 5px 18px; background: var(--main); color: #fff; font-family: var(--rx-font-display); font-size: clamp(11px, 1.8vw, 20px); font-weight: 800; letter-spacing: 0.05em; border-radius: 999px; }
+.seal { position: absolute; right: clamp(14px, 3.4vw, 40px); bottom: clamp(30px, 6vw, 70px); width: clamp(40px, 9vw, 96px); }
+.seal { aspect-ratio: 665 / 705; overflow: hidden; }
+.seal img { width: 100%; height: auto; display: block; }
+.sign { display: flex; justify-content: space-between; gap: 24px; width: 70%; font-size: clamp(9px, 1.2vw, 13px); color: #6b5d3a; }
+.sign span { flex: 1; padding-top: 4px; border-top: 1px solid #9c8a55; }
+
+.after { padding: 0 0 36px; }
+.after > .afterInner { padding-block: 0; }
+.after p { margin: 0; font-size: 15px; line-height: 1.6; color: #4a4630; }
+.after a { color: #8a5f10; font-weight: 700; }
+
+@media (max-width: 900px) {
+  .maker > .makerInner { grid-template-columns: minmax(0, 1fr); }
+}

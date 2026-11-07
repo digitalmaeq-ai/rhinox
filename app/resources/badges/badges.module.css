@@ -1,0 +1,75 @@
+/* Learning Badges: a trophy cabinet. Midnight indigo, gold and a star field;
+   each badge sits on its own glowing plinth in the colour of its term. */
+.page { background: #0f0b2e; color: #f4f1ff; }
+.page h1, .page h2, .page h3 { font-family: var(--rx-font-display); color: inherit; }
+.sr { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); }
+
+.hero { position: relative; overflow: hidden; background: radial-gradient(120% 140% at 80% 0%, #4b2fb0 0%, #1d1360 45%, #0f0b2e 100%); border-bottom: 1px solid rgba(255, 255, 255, 0.12); }
+.stars { position: absolute; inset: 0; opacity: 0.7; background-image: radial-gradient(2px 2px at 12% 30%, #fff 50%, transparent 52%), radial-gradient(1.5px 1.5px at 30% 70%, #ffd76a 50%, transparent 52%), radial-gradient(2px 2px at 58% 22%, #fff 50%, transparent 52%), radial-gradient(1.5px 1.5px at 76% 62%, #fff 50%, transparent 52%), radial-gradient(2px 2px at 90% 18%, #ffd76a 50%, transparent 52%), radial-gradient(1.5px 1.5px at 44% 88%, #fff 50%, transparent 52%); }
+.hero > .heroInner { position: relative; padding-block: 0; display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 20px; align-items: center; }
+.heroText { padding: clamp(26px, 3.6vw, 46px) 0; }
+.eyebrow { margin: 0 0 8px; font-size: 12px; font-weight: 800; letter-spacing: 0.12em; text-transform: uppercase; color: #ffd76a; }
+.title { margin: 0; font-size: clamp(32px, 4.4vw, 56px); line-height: 1.04; letter-spacing: -0.04em; }
+.title span { display: block; color: #ffd76a; }
+.lead { max-width: 520px; margin: 14px 0 0; font-size: 16px; line-height: 1.65; color: #cfc8f5; }
+
+.cabinet { display: flex; align-items: flex-end; justify-content: center; gap: 10px; padding: 18px 0 0; border-bottom: 6px solid #ffd76a; margin-bottom: 0; }
+.mini { filter: drop-shadow(0 10px 18px rgba(0, 0, 0, 0.45)); }
+.mini { aspect-ratio: 665 / 705; overflow: hidden; }
+.mini img { display: block; width: auto; height: auto; max-width: 100%; }
+.miniYear { margin-left: 8px; filter: drop-shadow(0 0 22px rgba(255, 215, 106, 0.6)); }
+
+.grid { padding: clamp(22px, 3vw, 36px) 0; }
+.grid > .gridInner { padding-block: 0; }
+.cards { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 16px; margin: 0; padding: 0; list-style: none; }
+.card { display: grid; grid-template-columns: minmax(0, 1fr); justify-items: start; gap: 14px; padding: 18px; background: linear-gradient(160deg, rgba(255, 255, 255, 0.09), rgba(255, 255, 255, 0.03)); border: 1px solid rgba(255, 255, 255, 0.16); border-radius: 22px; position: relative; overflow: hidden; }
+.card::before { content: ""; position: absolute; inset: auto -30% -50% auto; width: 70%; aspect-ratio: 1; border-radius: 50%; background: var(--main); opacity: 0.28; filter: blur(40px); }
+.cardYear { grid-column: 1 / -1; order: -1; grid-template-columns: 190px minmax(0, 1fr); gap: 22px; border-color: rgba(255, 215, 106, 0.6); }
+.card:not(.cardYear) .medal { width: 150px; }
+.medal { position: relative; align-self: start; aspect-ratio: 665 / 705; overflow: hidden; }
+.medal img { display: block; width: 100%; height: auto; filter: drop-shadow(0 12px 18px rgba(0, 0, 0, 0.5)); }
+.cardBody { position: relative; min-width: 0; }
+.sub { margin: 0; font-size: 12px; font-weight: 800; letter-spacing: 0.1em; text-transform: uppercase; color: #ffd76a; }
+.name { margin: 2px 0 0; font-size: 24px; letter-spacing: -0.03em; }
+.idea { margin: 4px 0 10px; font-size: 15px; color: #e5e0ff; }
+.skillsHead { margin: 0 0 6px; font-size: 12px; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; color: #a79fe0; }
+.skills { display: flex; flex-wrap: wrap; gap: 6px; margin: 0 0 14px; padding: 0; list-style: none; }
+.skills li { padding: 5px 11px; border-radius: 999px; font-size: 12.5px; font-weight: 600; background: var(--soft); color: var(--ink); }
+.actions { display: flex; flex-wrap: wrap; gap: 8px; }
+.btn, .btnGhost { display: inline-flex; align-items: center; min-height: 40px; padding: 0 16px; border-radius: 999px; font-size: 14px; font-weight: 700; text-decoration: none; }
+.btn { background: #ffd76a; color: #2b1a00; }
+.btn:hover { background: #ffe08a; }
+.btnGhost { border: 1.5px solid rgba(255, 255, 255, 0.4); color: #fff; }
+.btnGhost:hover { background: rgba(255, 255, 255, 0.1); }
+.btn:focus-visible, .btnGhost:focus-visible, .links a:focus-visible { outline: 3px solid #ffd76a; outline-offset: 3px; }
+
+.how { padding: 6px 0 clamp(30px, 4vw, 48px); }
+.how > .howInner { padding-block: 0; }
+.howTitle { margin: 0 0 12px; font-size: 22px; letter-spacing: -0.03em; }
+.steps { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; margin: 0; padding: 0; list-style: none; counter-reset: s; }
+.steps li { counter-increment: s; position: relative; padding: 16px 16px 16px 58px; background: rgba(255, 255, 255, 0.07); border: 1px solid rgba(255, 255, 255, 0.14); border-radius: 16px; }
+.steps li::before { content: counter(s); position: absolute; left: 14px; top: 14px; display: grid; place-items: center; width: 30px; height: 30px; border-radius: 50%; background: #ffd76a; color: #2b1a00; font-weight: 800; }
+.steps strong { display: block; font-size: 15px; }
+.steps span { display: block; margin-top: 3px; font-size: 14px; line-height: 1.5; color: #cfc8f5; }
+.note { margin: 14px 0 0; font-size: 14px; color: #cfc8f5; max-width: 680px; }
+.links { display: flex; flex-wrap: wrap; gap: 8px 20px; margin-top: 12px; }
+.links a { color: #ffd76a; font-weight: 700; text-decoration: none; }
+.links a:hover { text-decoration: underline; }
+
+@media (max-width: 900px) {
+  .hero > .heroInner { grid-template-columns: minmax(0, 1fr); }
+  .cabinet { padding-top: 0; }
+  .cards, .steps { grid-template-columns: minmax(0, 1fr); }
+  .cardYear { grid-column: auto; }
+  .card:not(.cardYear) { grid-template-columns: 110px minmax(0, 1fr); }
+  .card:not(.cardYear) .medal { width: 110px; }
+}
+@media (max-width: 520px) {
+  .card, .cardYear { grid-template-columns: 96px minmax(0, 1fr) !important; gap: 12px; padding: 14px; }
+  .card .medal { width: 96px !important; }
+  .mini { width: 76px; } .miniYear { width: 96px; }
+}
+@media (prefers-reduced-motion: no-preference) {
+  .mini { animation: rise 0.6s ease both; animation-delay: var(--d, 0s); }
+  @keyframes rise { from { opacity: 0; transform: translateY(16px); } to { opacity: 1; transform: none; } }
+}
