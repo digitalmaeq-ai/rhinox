@@ -3,8 +3,8 @@ import Link from "next/link";
 
 import Breadcrumbs from "../components/Breadcrumbs";
 import ResourcesBrowser, { type ResourceColumn, type ResourceRow } from "./ResourcesBrowser";
-import { getContentHref } from "@/lib/content-registry";
-import { getDestinationItems } from "@/lib/menu-destinations";
+import { badges, NURSERY_1_TERMS, termKits, TMC_VIDEOS, totals } from "@/lib/resources/library";
+import { getAllArticles } from "@/lib/resources/all-articles";
 import styles from "./resources.module.css";
 
 export const metadata: Metadata = {
@@ -12,29 +12,24 @@ export const metadata: Metadata = {
   description: "Search Rhinox articles, videos and free downloads, and find badges, certificates and your learning library.",
 };
 
-function column(id: ResourceRow["type"], label: string, singular: string, seeAll: string): ResourceColumn {
-  const items = (getDestinationItems(seeAll) ?? [])
-    .slice()
-    .sort((a, b) => String(b.updatedAt ?? b.createdAt ?? "").localeCompare(String(a.updatedAt ?? a.createdAt ?? "")))
-    .map((item) => ({ title: item.title, text: item.excerpt ?? item.description, href: getContentHref(item), type: id }));
-  return { id, label, singular, seeAll, items };
-}
-
-function status(href: string): string {
-  const n = getDestinationItems(href)?.length ?? 0;
-  return n > 0 ? `${n} ${n === 1 ? "item" : "items"}` : "Coming soon";
-}
+const row = (type: ResourceRow["type"], title: string, text: string, href: string): ResourceRow => ({ title, text, href, type });
 
 export default function ResourcesPage() {
-  const columns = [
-    column("articles", "Articles", "Article", "/resources/articles"),
-    column("videos", "Videos", "Video", "/resources/videos"),
-    column("downloads", "Free Downloads", "Download", "/resources/free-downloads"),
+  const articles = getAllArticles().map((x) => row("articles", x.title, x.dek, `/resources/articles/${x.slug}`));
+  const videos = TMC_VIDEOS.map((v) => row("videos", v.title, `${NURSERY_1_TERMS[v.term - 1].title}. ${v.youtubeId ? "Watch now." : "Coming soon."}`, "/resources/videos"));
+  const downloads = [
+    ...termKits.map((k) => row("downloads", `Term ${k.term} packs: ${k.title}`, "Lesson plans, printable cards, guides, review sheets and question banks for every week.", "/resources/free-downloads")),
+    row("downloads", "Step Thinker badges and Step Star stickers", "Print-ready badge images and sticker sheets for every term.", "/resources/badges"),
+  ];
+  const columns: ResourceColumn[] = [
+    { id: "articles", label: "Articles", singular: "Article", seeAll: "/resources/articles", items: articles },
+    { id: "videos", label: "Videos", singular: "Video", seeAll: "/resources/videos", items: videos },
+    { id: "downloads", label: "Free Downloads", singular: "Download", seeAll: "/resources/free-downloads", items: downloads },
   ];
   const mine = [
-    { title: "My Rhinox Library", href: "/resources/my-rhinox-library", status: "Coming soon" },
-    { title: "Badges", href: "/resources/badges", status: status("/resources/badges") },
-    { title: "Certificates", href: "/resources/certificates", status: status("/resources/certificates") },
+    { title: "My Rhinox Library", href: "/resources/my-rhinox-library", status: `${totals.weeks}-week tracker` },
+    { title: "Badges", href: "/resources/badges", status: `${badges.length} badges` },
+    { title: "Certificates", href: "/resources/certificates", status: "Print yours" },
   ];
   return (
     <main className={styles.page}>
