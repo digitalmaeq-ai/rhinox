@@ -1,0 +1,36 @@
+.page { background: #f7fafd; color: var(--rx-text); }
+.page h1, .page h2 { font-family: var(--rx-font-display); color: var(--rx-heading); }
+.crumbs { padding-block: 12px 0; }
+.crumbs > nav { margin: 0; }
+
+/* Order desk: a slim title bar, a reference column and the form, with no hero. */
+.bar { margin-top: 8px; border-block: 1px solid var(--rx-border); background: #fff; }
+.bar > .barInner { padding-block: 14px; display: flex; flex-wrap: wrap; align-items: baseline; gap: 4px 20px; }
+.bar h1 { margin: 0; font-size: clamp(24px, 3vw, 34px); letter-spacing: -0.04em; }
+.bar p { margin: 0; color: var(--rx-text-soft); }
+
+.desk { padding-block: clamp(16px, 2.4vw, 28px); display: grid; grid-template-columns: 300px minmax(0, 1fr); gap: clamp(18px, 3vw, 36px); align-items: start; }
+.side { position: sticky; top: 96px; padding: 18px; background: #fff; border: 1px solid var(--rx-border); border-radius: 16px; }
+.side h2 { margin: 0 0 8px; font-size: 14px; letter-spacing: 0.06em; text-transform: uppercase; color: var(--rx-text-soft); }
+.ask { margin: 0 0 18px; padding: 0; list-style: none; }
+.ask a { display: flex; justify-content: space-between; gap: 8px; padding: 8px 0; border-bottom: 1px solid var(--rx-border); font-size: 14px; font-weight: 600; color: var(--rx-heading); text-decoration: none; }
+.ask a:hover { color: var(--rx-blue); }
+.ask a:focus-visible { outline: 2px solid var(--rx-blue); outline-offset: 2px; }
+.ask a span { color: var(--rx-blue); }
+.next { display: grid; gap: 12px; margin: 0; padding: 0; list-style: none; }
+.next li { display: flex; gap: 10px; }
+.next li > span { display: grid; place-items: center; flex: none; width: 24px; height: 24px; border-radius: 50%; background: var(--rx-accent); color: #3a2400; font-size: 12px; font-weight: 800; }
+.next div { display: grid; }
+.next strong { font-size: 14px; color: var(--rx-heading); }
+.next em { font-style: normal; font-size: 13px; line-height: 1.45; color: var(--rx-text-soft); }
+.talk { margin: 16px 0 0; font-size: 14px; }
+.talk a { color: var(--rx-blue); font-weight: 600; }
+
+.form { scroll-margin-top: 80px; padding: clamp(16px, 2.4vw, 28px); background: #fff; border: 1px solid var(--rx-border); border-top: 4px solid var(--rx-blue); border-radius: 16px; box-shadow: var(--rx-shadow-md); }
+
+@media (max-width: 900px) {
+  .desk { grid-template-columns: minmax(0, 1fr); }
+  .side { position: static; }
+  .ask { display: flex; flex-wrap: wrap; gap: 6px; }
+  .ask a { padding: 6px 12px; border: 1px solid var(--rx-border-strong); border-radius: 999px; }
+}

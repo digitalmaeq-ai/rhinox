@@ -1,0 +1,56 @@
+.page { background: #fff; color: var(--rx-text); }
+.page h1, .page h2, .page h3 { font-family: var(--rx-font-display); color: var(--rx-heading); }
+.crumbs { padding-block: 12px 0; }
+.crumbs > nav { margin: 0; }
+.eyebrow { margin: 0 0 8px; font-size: 12px; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; color: var(--rx-text-soft); }
+
+.head { margin-top: 8px; }
+.head > .headInner { padding-block: clamp(18px, 2.6vw, 30px) 12px; }
+.head h1 { margin: 0; max-width: 780px; font-size: clamp(28px, 3.8vw, 46px); line-height: 1.06; letter-spacing: -0.04em; text-wrap: balance; }
+.head h1 span { color: var(--rx-blue); }
+.lead { max-width: 600px; margin: 10px 0 0; line-height: 1.65; }
+
+/* A syllabus: track list on the left, an open "page" for the chosen track on the right. */
+.browser > .browserInner { padding-block: 8px clamp(18px, 2.4vw, 30px); display: grid; grid-template-columns: minmax(0, 0.8fr) minmax(0, 1.5fr); gap: 18px; align-items: start; }
+.list { display: grid; gap: 8px; }
+.trk { display: grid; grid-template-columns: 34px minmax(0, 1fr); gap: 12px; align-items: start; padding: 14px; text-align: left; font: inherit; color: var(--rx-text); background: #fff; border: 1px solid var(--rx-border); border-radius: 14px; cursor: pointer; }
+.trk:hover { border-color: var(--rx-blue-light); }
+.trk strong { display: block; font-family: var(--rx-font-display); font-size: 16px; color: var(--rx-heading); }
+.trk em { display: block; margin-top: 2px; font-style: normal; font-size: 13px; line-height: 1.45; color: var(--rx-text-soft); }
+.idx { display: grid; place-items: center; width: 34px; height: 34px; border-radius: 50%; background: var(--rx-surface-blue); font-weight: 800; color: var(--rx-blue); }
+.trkOn, .trkOn:hover { border-color: var(--rx-blue); background: #eaf3ff; box-shadow: inset 4px 0 0 var(--rx-blue); }
+.trkOn .idx { background: var(--rx-accent); color: #3a2400; }
+.trk:focus-visible { outline: 2px solid var(--rx-blue); outline-offset: 2px; }
+
+.panel { padding: clamp(18px, 2.4vw, 28px); background: #fff; border: 1px solid var(--rx-border); border-top: 5px solid var(--rx-accent); border-radius: 16px; box-shadow: var(--rx-shadow-md); }
+.aud { margin: 0 0 6px; font-size: 13px; font-weight: 600; color: var(--rx-text-soft); }
+.panel h2 { margin: 0 0 14px; font-size: clamp(22px, 2.6vw, 30px); letter-spacing: -0.03em; }
+.cols { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 22px; }
+.cols h3 { margin: 0 0 8px; font-size: 14px; letter-spacing: 0.04em; text-transform: uppercase; color: var(--rx-text-soft); }
+.topics, .outcomes { margin: 0; padding: 0; list-style: none; display: grid; gap: 8px; }
+.topics li, .outcomes li { position: relative; padding-left: 26px; line-height: 1.5; }
+.topics li::before { content: ""; position: absolute; left: 2px; top: 7px; width: 10px; height: 10px; border: 2px solid var(--rx-blue); border-radius: 3px; }
+.outcomes li::before { content: "\2713"; position: absolute; left: 2px; top: 0; font-weight: 800; color: var(--rx-blue); }
+.links { display: flex; flex-wrap: wrap; gap: 8px 18px; margin-top: 18px; padding-top: 14px; border-top: 1px solid var(--rx-border); }
+.links a { font-weight: 700; font-size: 14px; color: var(--rx-blue); text-decoration: none; }
+.links a:hover { text-decoration: underline; }
+.links a:focus-visible { outline: 2px solid var(--rx-blue); outline-offset: 2px; }
+.more { margin-left: auto; }
+
+.cta > .ctaInner { padding-block: 8px clamp(22px, 3vw, 34px); display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 12px 24px; }
+.ctaInner p { margin: 0; max-width: 600px; font-weight: 600; color: var(--rx-heading); }
+
+/* Full track page */
+.track > .trackInner { padding-block: clamp(18px, 2.6vw, 30px); max-width: 860px; }
+.track h1 { margin: 0 0 8px; font-size: clamp(28px, 3.6vw, 42px); letter-spacing: -0.04em; }
+.track .panel { margin-top: 16px; }
+
+@media (max-width: 900px) {
+  .browser > .browserInner { grid-template-columns: minmax(0, 1fr); }
+  .list { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+@media (max-width: 560px) {
+  .list { grid-template-columns: minmax(0, 1fr); }
+  .cols { grid-template-columns: minmax(0, 1fr); }
+  .more { margin-left: 0; }
+}
