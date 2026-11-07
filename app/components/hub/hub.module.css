@@ -971,3 +971,37 @@
     grid-template-columns: minmax(0, 1fr);
   }
 }
+
+/* ---------- Compact premium hero (all hub sub-pages) ----------
+   Flat pale tint, one hairline, smaller type, a slim photograph.
+   Overrides the earlier tall hero without touching its markup. */
+.hero {
+  padding: clamp(28px, 3.4vw, 44px) 0 clamp(26px, 3vw, 38px);
+  background: #f3f7fb;
+  border-bottom: 1px solid var(--rx-border);
+}
+.heroBackdrop { display: none; }
+.heroInner {
+  grid-template-columns: minmax(0, 1fr) minmax(0, 0.62fr);
+  gap: clamp(24px, 4vw, 48px);
+}
+.heroTitle {
+  font-size: clamp(32px, 3.8vw, 50px);
+  line-height: 1.06;
+  letter-spacing: -0.04em;
+}
+.heroLead { margin-top: 14px; font-size: 16px; line-height: 1.6; max-width: 520px; }
+.hero .eyebrow { margin-bottom: 10px; }
+.hero .actions { margin-top: 20px; }
+.heroPhoto {
+  aspect-ratio: 16 / 10;
+  max-height: 240px;
+  box-shadow: var(--rx-shadow-sm);
+}
+.hero .chips { position: static; margin-top: 12px; }
+.hero .chips li { box-shadow: none; border: 1px solid var(--rx-border); }
+@media (max-width: 1024px) {
+  .heroInner { grid-template-columns: minmax(0, 1fr); }
+  .heroMedia { display: none; }
+}
+.hero > .heroInner { padding-block: 0; }

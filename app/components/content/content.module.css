@@ -367,3 +367,22 @@
   .card:hover, .card:focus-visible { transform: none; }
   .card:hover .cardGlyph, .card:hover .cardWatermark, .card:hover .cardGo { transform: none; }
 }
+
+/* ---------- Compact premium hero (all content detail pages) ---------- */
+.hero {
+  padding: clamp(22px, 3vw, 34px) 0 clamp(24px, 3vw, 34px);
+  background: #f3f7fb;
+  border-bottom: 1px solid var(--rx-border);
+}
+.heroGrid { display: none; }
+.heroInner { grid-template-columns: minmax(0, 1fr) minmax(0, 0.55fr); }
+.title { font-size: clamp(28px, 3.2vw, 42px); line-height: 1.06; letter-spacing: -0.04em; }
+.lead { margin-top: 12px; font-size: 15.5px; line-height: 1.6; }
+.photo { max-height: 220px; box-shadow: var(--rx-shadow-sm); }
+.mediaWrap .chips { position: static; margin-top: 10px; }
+.mediaWrap .chips li { box-shadow: none; border: 1px solid var(--rx-border); }
+@media (max-width: 900px) {
+  .heroInner { grid-template-columns: minmax(0, 1fr); }
+  .mediaWrap { display: none; }
+}
+.hero > .heroInner { padding-block: 0; }
