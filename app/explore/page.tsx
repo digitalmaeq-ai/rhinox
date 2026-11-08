@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 
-import PageHeader from "@/app/components/PageHeader";
+import ExploreHero from "@/app/components/ExploreHero";
 import ContentList from "@/app/components/content/ContentList";
 import { toRow } from "@/app/components/content/rows";
 import contentStyles from "@/app/components/content/content.module.css";
@@ -35,14 +35,24 @@ export default function ExplorePage() {
 
   return (
     <main style={{ background: "var(--rx-white)" }}>
-      <PageHeader
-        eyebrow="Explore"
-        title="Explore Rhinox"
-        lead="Find an experience, lab, game, project or resource. Search, filter by subject and sort."
-        count={`${rows.length} ${rows.length === 1 ? "item" : "items"}`}
+      <ExploreHero
+        image="/images/hero/stem-lab.jpg"
+        alt="A bright, modern STEM laboratory"
+        eyebrow="Rhinox Scientifica · Explore"
+        lineOne="Find your next"
+        lineTwo="STEM adventure."
+        lead="Experiences, virtual labs, games, projects and quizzes in one place. Search, filter by subject and sort."
+        actions={[{ label: "Browse everything", href: "#library" }, { label: "Play a game", href: "/explore/stem-games", secondary: true }]}
+        stats={[
+          { value: String(rows.length), label: rows.length === 1 ? "item" : "items" },
+          { value: String(jump.length), label: "areas to explore" },
+          { label: "Free to try in your browser" },
+        ]}
+        align="left"
+        tone="sky"
       />
 
-      <section className={contentStyles.listing}>
+      <section className={contentStyles.listing} id="library" style={{ scrollMarginTop: 80 }}>
         <div className="rx-container">
           {jump.length > 0 && (
             <nav className={styles.jump} aria-label="Explore areas">

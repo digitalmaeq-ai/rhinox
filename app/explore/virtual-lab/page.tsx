@@ -1,5 +1,4 @@
-import Link from "next/link";
-
+import ExploreHero from "@/app/components/ExploreHero";
 import ExperienceExplorer from "@/app/components/ExperienceExplorer";
 import { getExperienceSequence } from "@/lib/experience-sequence";
 import { isVirtualExperiment, toMatrixItems } from "@/lib/explore-experience-items";
@@ -19,25 +18,20 @@ export default function VirtualLabsPage() {
 
   return (
     <main>
-      <section className="rx-section" style={{ paddingTop: 28, paddingBottom: 48 }}>
+      <ExploreHero
+        image="/images/journey/journey-pixabay.jpg"
+        alt="Blue liquid being poured in a laboratory"
+        eyebrow="Explore · Virtual Labs"
+        lineOne="Run the practical."
+        lineTwo="Without the spills."
+        lead="Advanced science practicals for the secondary classroom. Run the experiment, record results, work through the tasks and test yourself."
+        actions={[{ label: "Open a lab", href: "#labs" }, { label: "Early science experiences", href: "/explore/experiences", secondary: true }]}
+        stats={[{ value: String(items.length), label: "virtual labs" }, { value: String(SUBJECT_ORDER.length), label: "subjects" }, { label: "Tasks and practice questions" }]}
+        align="center"
+        tone="sky"
+      />
+      <section id="labs" className="rx-section" style={{ paddingTop: 20, paddingBottom: 48, scrollMarginTop: 80 }}>
         <div className="rx-container">
-          <header style={{ display: "flex", flexWrap: "wrap", alignItems: "flex-end", justifyContent: "space-between", gap: "8px 32px" }}>
-            <div>
-              <p className="rx-content-meta-type" style={{ margin: "0 0 6px" }}>Explore · Virtual Labs</p>
-              <h1 style={{ margin: 0 }}>
-                <span style={{ color: "var(--rx-blue)" }}>Virtual</span> Labs
-              </h1>
-            </div>
-            <p style={{ margin: 0, maxWidth: 560, color: "var(--rx-text-muted)", fontSize: 15, lineHeight: 1.5 }}>
-              Advanced science practicals for the secondary classroom. Run the practical, record results, work through the tasks and test yourself, grouped by subject.
-            </p>
-          </header>
-
-          <p style={{ margin: "10px 0 0", fontSize: 13.5 }}>
-            Looking for games, puzzles and early science?{" "}
-            <Link href="/explore/experiences" style={{ color: "var(--rx-blue)", fontWeight: 700 }}>Explore STEM Experiences →</Link>
-          </p>
-
           <ExperienceExplorer
             items={items}
             modes={["subject", "path"]}
