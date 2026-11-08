@@ -536,7 +536,7 @@ export const NURSERY_1_WEEKS: TmcWeek[] = [
     "title": "Mini-project: Robot Says with Ayo",
     "kind": "Mini-project (term build)",
     "goal": "I can program Ayo with 3 picture cards and fix a wrong one.",
-    "learned": "This week your child’s team built a program for a cardboard Ayo: three picture cards that move him to the school gate or the market. They tested it and fixed it when cards were swapped.",
+    "learned": "This week your child’s team built a program for a cut-out Ayo: three picture cards that move him to the school gate or the market. They tested it and fixed it when cards were swapped.",
     "tryHeading": "Try this at home",
     "tryAtHome": [
       "Ask your child: “What was your Ayo program?” Let them say “first…, next…, last…”",
@@ -1134,7 +1134,7 @@ export const NURSERY_1_WEEKS: TmcWeek[] = [
     "title": "Mini-project: Ayo’s Robot Dance",
     "kind": "Mini-project (term build)",
     "goal": "I can make Ayo dance an AB pattern and say what’s next.",
-    "learned": "This week your child’s team made a robot dance for cardboard Ayo: two moves laid out three times (A B A B A B), and a pattern belt for the show.",
+    "learned": "This week your child’s team made a robot dance for cut-out Ayo: two moves laid out three times (A B A B A B), and a pattern belt for the show.",
     "tryHeading": "Try this at home",
     "tryAtHome": [
       "Ask your child: “What was your Ayo dance?” Dance it together three times.",

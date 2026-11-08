@@ -162,7 +162,7 @@ export const nursery1T2W04Quiz: QuizContent = {
     {
       "id": "q5",
       "type": "multiple-choice",
-      "question": "What shape is cardboard Ayo’s head?",
+      "question": "What shape is a ball?",
       "options": [
         {
           "id": "a",
@@ -187,7 +187,7 @@ export const nursery1T2W04Quiz: QuizContent = {
     {
       "id": "q6",
       "type": "multiple-choice",
-      "question": "What shape is cardboard Ayo’s body?",
+      "question": "What shape is a box?",
       "options": [
         {
           "id": "a",
@@ -195,7 +195,7 @@ export const nursery1T2W04Quiz: QuizContent = {
         },
         {
           "id": "b",
-          "text": "A box (square)"
+          "text": "A square"
         },
         {
           "id": "c",

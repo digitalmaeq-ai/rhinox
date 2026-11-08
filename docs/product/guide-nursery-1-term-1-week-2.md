@@ -6,7 +6,7 @@
 To put the morning in order: wake up, get dressed, walk to school. Words: morning, routine, order, before, after.
 
 ## What you need
-Three morning cards per group of 4 (wake up, get dressed, walk to school), a taped floor grid, cardboard Ayo (optional), Activity Book and crayons. No device or kit is required.
+Three morning cards per group of 4 (wake up, get dressed, walk to school), a taped floor grid, cut-out Ayo (optional), Activity Book and crayons. No device or kit is required.
 
 ## The steps
 1. **Think.** "Silly Ayo walked to school before he got dressed! What must come first?" Let 3–4 children tell their morning.
