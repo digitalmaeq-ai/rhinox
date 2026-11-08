@@ -1,6 +1,8 @@
 import type { CurriculumActivity } from "./curriculum";
 import { isExerciseDefinition, type ExerciseDefinition } from "./exercise-types.ts";
 import { isBuildRequired } from "./lesson-gates.ts";
+import { CURRICULUM_ACTIVITIES } from "./curriculum.ts";
+import { buildNursery1Spec } from "./lesson-specs-nursery-1.ts";
 export type StepKey = "think" | "move" | "code" | "build" | "create" | "check";
 
 /**
@@ -18,12 +20,39 @@ export type LessonStepSpec = {
 
 export type LessonSpecStatus = "draft" | "reviewed";
 
+/** Week-specific words and pictures the lesson screen shows around the exercises. */
+export type LessonDisplay = {
+  /** Heading above the picture-order exercise. */
+  codeTitle: string;
+  /** Small picture strip on the Think step; empty for none. */
+  thinkStrip: readonly { icon: string; label: string }[];
+  /** Picture strip on the Move step; empty for none. */
+  moveStrip: readonly { icon: string; label: string }[];
+  moveNote: string;
+  moveButton: string;
+  createHeading: string;
+  createPrompt: string;
+  createNote: string;
+  createButton: string;
+  /** The question the adult answers on the teacher check. */
+  checkQuestion: string;
+  /** Short phrase finishing "a teacher watched you …", for example "put your morning in order". */
+  checkSkill: string;
+  practises: readonly string[];
+  /** Said after a correct order, for example "You put the morning steps in the right order." */
+  orderingSuccess: string;
+  /** Emoji for an ordering card, by item id. */
+  icons: Readonly<Record<string, string>>;
+};
+
 export type InteractiveLessonSpec = {
   activityId: string;
   /** Only "reviewed" specs are served. A draft is written by a developer and needs a curriculum reviewer. */
   status: LessonSpecStatus;
   objective: string;
   successCriteria: readonly string[];
+  /** Week-specific screen text. When absent the screen shows the Nursery 1 Term 1 Week 1 wording. */
+  display?: LessonDisplay;
   estimatedMinutes: number;
   accessibility: {
     keyboardOperable: boolean;
@@ -136,7 +165,15 @@ const NURSERY_1_T1_W1: InteractiveLessonSpec = {
   },
 };
 
+/** Terms 1 to 3, Weeks 2 to 13, written from the Teacher Guide and Question Bank (lesson-specs-nursery-1.ts). */
+const NURSERY_1_OTHER_WEEKS: Record<string, InteractiveLessonSpec> = {};
+for (const activity of CURRICULUM_ACTIVITIES) {
+  const spec = buildNursery1Spec(activity);
+  if (spec) NURSERY_1_OTHER_WEEKS[spec.activityId] = spec;
+}
+
 const LESSON_SPECS: Readonly<Record<string, InteractiveLessonSpec>> = {
+  ...NURSERY_1_OTHER_WEEKS,
   [NURSERY_1_T1_W1.activityId]: NURSERY_1_T1_W1,
 };
 

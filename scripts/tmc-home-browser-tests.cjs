@@ -46,7 +46,7 @@ function check(condition, message) {
     check(await week1.getByRole("link", { name: "RhinoBot lesson" }).isVisible(), `${tag}: Week 1 shows its RhinoBot lesson`);
     const week2 = terms.nth(0).locator("ol > li").nth(1);
     await week2.locator("summary").click();
-    check((await week2.getByRole("link", { name: "RhinoBot lesson" }).count()) === 0, `${tag}: a lesson in review is not offered`);
+    check(await week2.getByRole("link", { name: "RhinoBot lesson" }).isVisible(), `${tag}: Week 2 shows its RhinoBot lesson`);
 
     // Start button sits inside its row, not over the title.
     const box = await week1.getByRole("link", { name: /^Start Week 1/ }).boundingBox();
@@ -118,8 +118,8 @@ function check(condition, message) {
   await page.getByRole("button", { name: /Back to the week page/ }).first().click();
   await page.waitForURL(/week-1$/);
   check(true, "the lesson returns to its week page");
-  const missing = await page.goto(`${BASE}/think-move-code/nursery-1/term-1/week-2/lesson`);
-  check(missing.status() === 404, "a week without a reviewed lesson has no lesson page");
+  const missing = await page.goto(`${BASE}/think-move-code/nursery-1/term-4/week-1/lesson`);
+  check(missing.status() === 404, "a week that is not in the book has no lesson page");
   // The Code Studio rail has Think • Move • Code! and no Learn.
   await page.goto(`${BASE}/coding-robotics/studio`, { waitUntil: "networkidle" });
   const rail = page.locator('nav[aria-label="Code Studio"]');

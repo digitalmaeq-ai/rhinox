@@ -5,6 +5,8 @@
  * Matrix. Add more records only through the validated workbook import process.
  * Do not infer official alignment from an exercise title or free-text lesson tag.
  */
+import { NURSERY_1_CURRICULUM } from "./curriculum-nursery-1.ts";
+
 export type CurriculumActivity = {
   id: string;
   curriculumVersion: "3.15";
@@ -32,7 +34,7 @@ export type CurriculumActivity = {
   fallback: string;
 };
 
-export const CURRICULUM_ACTIVITIES: readonly CurriculumActivity[] = [
+const CURRICULUM_SAMPLE: readonly CurriculumActivity[] = [
   {
     id: "tmc-v3-15-nursery-1-t1-w1",
     curriculumVersion: "3.15",
@@ -111,7 +113,13 @@ export const CURRICULUM_ACTIVITIES: readonly CurriculumActivity[] = [
     stretch: "Order 4–5 routine pictures",
     fallback: "Fully unplugged: needs no power, device or kit (cards, tape, boxes).",
   },
-] as const;
+];
+
+/** Nursery 1 (all 39 weeks) first, in teaching order, then the other sample records. */
+export const CURRICULUM_ACTIVITIES: readonly CurriculumActivity[] = [...CURRICULUM_SAMPLE, ...NURSERY_1_CURRICULUM].sort((a, b) => {
+  const rank = (item: CurriculumActivity) => (item.level === "Nursery 1" ? 0 : 1);
+  return rank(a) - rank(b) || a.term - b.term || a.week - b.week;
+});
 
 export function getCurriculumActivity(id: string): CurriculumActivity | undefined {
   return CURRICULUM_ACTIVITIES.find((activity) => activity.id === id);

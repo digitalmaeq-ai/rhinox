@@ -9,7 +9,7 @@ import type { CurriculumActivity } from "@/lib/code-studio-v2/curriculum";
 import { isBuildRequired } from "@/lib/code-studio-v2/lesson-gates";
 import { canAdvanceLessonStep, describeLessonOutcome, type TeacherObservation } from "@/lib/code-studio-v2/lesson-progress";
 import { canAttemptExercise, scoreOrderingAttempt } from "@/lib/code-studio-v2/exercise-types";
-import { getLessonSpec, isReviewedInteractiveLesson } from "@/lib/code-studio-v2/lesson-specs";
+import { getLessonSpec, isReviewedInteractiveLesson, type LessonDisplay } from "@/lib/code-studio-v2/lesson-specs";
 import styles from "./LearningHome.module.css";
 
 type Stage = "home" | "lesson";
@@ -24,6 +24,24 @@ const STEPS = [
 ] as const;
 
 type StepKey = (typeof STEPS)[number]["key"];
+
+/** What the screen shows for the first reviewed lesson (Nursery 1 Term 1 Week 1); later lessons bring their own. */
+const DEFAULT_DISPLAY: LessonDisplay = {
+  codeTitle: "Put the picture steps in order",
+  thinkStrip: [{ icon: "☀️", label: "Wake up" }, { icon: "🪥", label: "Brush teeth" }, { icon: "🥣", label: "Eat breakfast" }],
+  moveStrip: [{ icon: "👏", label: "Clap" }, { icon: "👣", label: "Stamp" }, { icon: "🔄", label: "Turn" }],
+  moveNote: "Ask a grown-up or classmate to call the steps. Follow them in order, then swap and make a new order.",
+  moveButton: "I tried the movement challenge",
+  createHeading: "Your turn to create",
+  createPrompt: "Draw three things you do every day. Number them 1, 2 and 3 to show the order.",
+  createNote: "Core task: complete the three-step drawing. Stretch: add a fourth step.",
+  createButton: "I completed my three-step drawing",
+  checkQuestion: "Can the child follow a 3-step instruction in the right order on their own?",
+  checkSkill: "follow 3 steps in order",
+  practises: ["Following steps in order", "Giving clear instructions", "Creating a sequence"],
+  orderingSuccess: "You put the morning steps in the right order.",
+  icons: { "wake-up": "☀️", "brush-teeth": "🪥", "eat-breakfast": "🥣" },
+};
 
 function activityText(activity: CurriculumActivity, key: StepKey): string {
   const reviewedInstruction = getLessonSpec(activity.id)?.steps[key]?.instruction;
@@ -223,6 +241,7 @@ function LessonView({
   const [creationCompleted, setCreationCompleted] = useState(false);
   const [learnerReflection, setLearnerReflection] = useState("");
 
+  const d = lessonSpec?.display ?? DEFAULT_DISPLAY;
   const orderingExercise = lessonSpec?.steps.code.exercise?.kind === "ordering"
     ? lessonSpec.steps.code.exercise
     : undefined;
@@ -233,7 +252,7 @@ function LessonView({
   const choicePointsAvailable = choiceExercise?.pointsAvailable ?? 0;
   const pictures = orderingExercise?.items.map((item) => ({
     ...item,
-    icon: item.id === "wake-up" ? "☀️" : item.id === "brush-teeth" ? "🪥" : item.id === "eat-breakfast" ? "🥣" : "🧩",
+    icon: d.icons[item.id] ?? "🧩",
   })) ?? [];
   const chosen = new Set(selectedOrder);
   const attemptsExhausted = Boolean(orderingExercise && !canAttemptExercise(orderingAttempts, orderingExercise) && orderingResult !== "correct");
@@ -277,10 +296,10 @@ function LessonView({
       ? "You finished the activity with help."
       : "Nearly there. A teacher check is still to do.";
   const finishedText = outcome.overall === "passed"
-    ? "You practised following instructions, building a sequence and showing a grown-up what you can do. These are foundations of computational thinking."
+    ? "You worked through every step and showed a grown-up what you can do. These are foundations of computational thinking."
     : outcome.overall === "completed-with-assistance"
       ? "You went through every step with a grown-up’s help. Try the picture cards again another day to practise on your own."
-      : "You went through every step. A teacher or caregiver still needs to watch you follow three steps on your own.";
+      : "You went through every step. A teacher or caregiver still needs to watch you {d.checkSkill} on your own.";
 
   return (
     <section className={styles.lessonView}>
@@ -301,11 +320,11 @@ function LessonView({
             <strong>What was recorded</strong>
             <span>Picture sequence: {outcome.sequence === "passed" ? `passed on your own (${orderingPoints} of ${orderingPointsAvailable} point)` : outcome.sequence === "completed-with-assistance" ? "completed with help, not counted as a pass (0 points)" : "not completed"}</span>
             <span>Movement and drawing: you confirmed these yourself. The app cannot check them.</span>
-            <span>Teacher check: {outcome.check === "adult-confirmed" ? "a teacher or caregiver said they watched you follow 3 steps in order. The app cannot verify who confirmed it." : outcome.check === "awaiting-teacher-confirmation" ? "still waiting. Ask a teacher or caregiver to watch you follow 3 steps." : "not done"}</span>
+            <span>Teacher check: {outcome.check === "adult-confirmed" ? `a teacher or caregiver said they watched you ${d.checkSkill}. The app cannot verify who confirmed it.` : outcome.check === "awaiting-teacher-confirmation" ? `still waiting. Ask a teacher or caregiver to watch you ${d.checkSkill}.` : "not done"}</span>
             <span>Extra practice question: {outcome.extraPractice === "passed" ? `answered correctly (${choicePoints} of ${choicePointsAvailable} point). This is practice only.` : "not passed or not tried. This is practice only."}</span>
           </div>
           <p className={styles.coreNote}>Progress is kept only in this browser session. It is not saved to an account and will be lost if you close or refresh this page.</p>
-          <div className={styles.mastery}><strong>What this activity practises</strong><span>Following steps in order</span><span>Giving clear instructions</span><span>Creating a sequence</span></div>
+          <div className={styles.mastery}><strong>What this activity practises</strong>{d.practises.map((item) => <span key={item}>{item}</span>)}</div>
           <p className={styles.masteryTarget}>{lessonSpec?.successCriteria.join(" ") ?? activity.masteryTarget}</p>
           <div className={styles.buildPanel}>
             <label htmlFor="lesson-reflection"><strong>RhinoBot asks: What did you learn?</strong></label>
@@ -327,7 +346,7 @@ function LessonView({
             <div className={styles.sidebarBadge}>Core activity</div>
           </aside>
           <article className={styles.lessonMain}>
-            <div className={styles.lessonTitleRow}><span className={styles.bigStepIcon}>{stepIcon}</span><div><span className={styles.eyebrow}>STEP {stepIndex + 1} OF {STEPS.length}</span><h1>{stepTitle}</h1></div></div>
+            <div className={styles.lessonTitleRow}><span className={styles.bigStepIcon}>{stepIcon}</span><div><span className={styles.eyebrow}>STEP {stepIndex + 1} OF {STEPS.length}</span><h1>{stepKey === "code" ? d.codeTitle : stepTitle}</h1></div></div>
             <p className={styles.instruction}>{content}</p>
             {lessonSpec?.steps[stepKey] && <p className={styles.instruction}><strong>Your task:</strong> {lessonSpec.steps[stepKey].task}</p>}
 
@@ -360,7 +379,7 @@ function LessonView({
                 </div>
                 {orderingResult && <div role="status" aria-live="polite" className={orderingResult === "correct" ? styles.feedbackSuccess : styles.feedbackTry}>
                   <strong>{orderingResult === "correct" ? "Well done! 🎉" : attemptsExhausted ? "Let’s learn from this try." : "Good try. You can try again."}</strong>
-                  <p>{orderingResult === "correct" ? `You earned ${orderingExercise.scoring.correctPoints} point. You put the morning steps in the right order.` : attemptsExhausted ? orderingExercise.fallback : orderingExercise.hint}</p>
+                  <p>{orderingResult === "correct" ? `You earned ${orderingExercise.scoring.correctPoints} point. ${d.orderingSuccess}` : attemptsExhausted ? orderingExercise.fallback : orderingExercise.hint}</p>
                   {attemptsExhausted && <p>Ask a teacher or caregiver to help you arrange the picture cards.</p>}
                 </div>}
                 {attemptsExhausted && (
@@ -380,7 +399,7 @@ function LessonView({
             {stepKey === "check" && (
               <div className={styles.buildPanel} role="group" aria-labelledby="teacher-check-title">
                 <strong id="teacher-check-title">Teacher or caregiver check</strong>
-                <p>Can the child follow a 3-step instruction in the right order on their own?</p>
+                <p>{d.checkQuestion}</p>
                 <div className={styles.buildChoices}>
                   <button type="button" className={teacherObservation === "confirmed" ? styles.buildChoiceSelected : ""} aria-pressed={teacherObservation === "confirmed"} onClick={() => setTeacherObservation("confirmed")}>Yes, I watched them do it</button>
                   <button type="button" className={teacherObservation === "deferred" ? styles.buildChoiceSelected : ""} aria-pressed={teacherObservation === "deferred"} onClick={() => setTeacherObservation("deferred")}>I will check later</button>
@@ -395,8 +414,8 @@ function LessonView({
               </>
             )}
 
-            {stepKey === "think" && <div className={styles.exampleStrip}><span>☀️</span><span>Wake up</span><b>→</b><span>🪥</span><span>Brush teeth</span><b>→</b><span>🥣</span><span>Eat breakfast</span></div>}
-            {stepKey === "move" && <div className={styles.moveChallenge}><span>👏</span><b>Clap</b><span>→</span><span>👣</span><b>Stamp</b><span>→</span><span>🔄</span><b>Turn</b><p>Ask a grown-up or classmate to call the steps. Follow them in order, then swap and make a new order.</p><button className={styles.secondaryButton} type="button" onClick={() => setMovePracticed(true)} aria-pressed={movePracticed}>{movePracticed ? "✓ I tried the movement challenge" : "I tried the movement challenge"}</button></div>}
+            {stepKey === "think" && d.thinkStrip.length > 0 && <div className={styles.exampleStrip}>{d.thinkStrip.map((item, index) => <span key={item.label} style={{ display: "contents" }}>{index > 0 && <b aria-hidden="true">→</b>}<span aria-hidden="true">{item.icon}</span><span>{item.label}</span></span>)}</div>}
+            {stepKey === "move" && <div className={styles.moveChallenge}>{d.moveStrip.map((item, index) => <span key={item.label} style={{ display: "contents" }}>{index > 0 && <span aria-hidden="true">→</span>}<span aria-hidden="true">{item.icon}</span><b>{item.label}</b></span>)}<p>{d.moveNote}</p><button className={styles.secondaryButton} type="button" onClick={() => setMovePracticed(true)} aria-pressed={movePracticed}>{movePracticed ? `✓ ${d.moveButton}` : d.moveButton}</button></div>}
             {stepKey === "build" && (
               <div className={styles.buildPanel}>
                 <div className={styles.buildPanelHeading}><span>🛠️</span><div><strong>Make your idea real</strong><p>{activity.practicalActivity}</p></div></div>
@@ -414,7 +433,7 @@ function LessonView({
               </div>
             )}
 
-            {stepKey === "create" && <div className={styles.createPrompt}><span>🎨</span><div><strong>Your turn to create</strong><p>Draw three things you do every day. Number them 1, 2 and 3 to show the order.</p><small>Core task: complete the three-step drawing. Stretch: add a fourth step.</small><p><button className={styles.secondaryButton} type="button" onClick={() => setCreationCompleted((value) => !value)} aria-pressed={creationCompleted}>{creationCompleted ? "✓ I completed my three-step drawing" : "I completed my three-step drawing"}</button></p></div></div>}
+            {stepKey === "create" && <div className={styles.createPrompt}><span>🎨</span><div><strong>{d.createHeading}</strong><p>{d.createPrompt}</p><small>{d.createNote}</small><p><button className={styles.secondaryButton} type="button" onClick={() => setCreationCompleted((value) => !value)} aria-pressed={creationCompleted}>{creationCompleted ? `✓ ${d.createButton}` : d.createButton}</button></p></div></div>}
 
             {stepKey !== "check" && <button className={styles.hintButton} onClick={() => setShowHint((shown) => !shown)}>{showHint ? "Hide hint" : "Need a hint?"}</button>}
             {showHint && <div className={styles.hintBox}><strong>RhinoBot’s hint</strong><p>{lessonSpec?.steps[stepKey].hint ?? "Choose one small step and try again."}</p></div>}
