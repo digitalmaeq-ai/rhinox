@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useState } from "react";
 
+import ExploreHero from "@/app/components/ExploreHero";
 import type { LabProduct, VirtualLab } from "@/lib/schools/data";
 import styles from "./lab.module.css";
 
@@ -24,16 +25,18 @@ export default function LabPlanner({ equipment, labs }: { equipment: LabProduct[
 
   return (
     <>
-      <header className={styles.head}>
-        <div className={`rx-container ${styles.headInner}`}>
-          <div>
-            <p className={styles.eyebrow}>Laboratory Solutions</p>
-            <h1>Build a laboratory <span>that gets used.</span></h1>
-            <p className={styles.lead}>Choose a stage to see how we work, then choose a subject to see the real equipment and virtual labs available today.</p>
-          </div>
-          <Link href="/schools/request-a-quote" className="rx-button rx-button-primary">Request a quote</Link>
-        </div>
-      </header>
+      <ExploreHero
+        image="/images/hero/stem-lab.jpg"
+        alt="A bright, modern school science laboratory"
+        eyebrow="Laboratory Solutions"
+        lineOne="Build a laboratory"
+        lineTwo="that gets used."
+        lead="Choose a stage to see how we work, then choose a subject to see the real equipment and virtual labs available today."
+        actions={[{ label: "Request a quote", href: "/schools/request-a-quote" }, { label: "See what is available", href: "#catalog", secondary: true }]}
+        stats={[{ value: String(equipment.length), label: "equipment items" }, { value: String(labs.length), label: "virtual labs" }, { value: "4", label: "stages: plan to support" }]}
+        align="left"
+        tone="sky"
+      />
 
       <section className={styles.stepper} aria-label="How we build a laboratory">
         <div className={`rx-container ${styles.stepInner}`}>
@@ -51,7 +54,7 @@ export default function LabPlanner({ equipment, labs }: { equipment: LabProduct[
         </div>
       </section>
 
-      <section className={styles.catalog} aria-labelledby="cat-title">
+      <section id="catalog" className={styles.catalog} aria-labelledby="cat-title" style={{ scrollMarginTop: 80 }}>
         <div className={`rx-container ${styles.catInner}`}>
           <div className={styles.catHead}>
             <h2 id="cat-title">What is available now</h2>

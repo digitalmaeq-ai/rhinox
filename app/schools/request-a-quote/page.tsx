@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 
 import Breadcrumbs from "../../components/Breadcrumbs";
+import ExploreHero from "../../components/ExploreHero";
 import QuoteForm from "./QuoteForm";
 import styles from "./quote.module.css";
 
@@ -34,12 +35,18 @@ export default function RequestAQuotePage() {
         <Breadcrumbs items={[{ label: "Home", href: "/" }, { label: "Schools & Institutions", href: "/schools" }, { label: "Request a Quote" }]} />
       </div>
 
-      <div className={styles.bar}>
-        <div className={`rx-container ${styles.barInner}`}>
-          <h1>Request a quote</h1>
-          <p>Tell us what your institution needs and we will reply with a clear quotation.</p>
-        </div>
-      </div>
+      <ExploreHero
+        image="/images/journey/journey-pixabay.jpg"
+        alt="Blue liquid being poured in a laboratory"
+        eyebrow="Schools · Request a quote"
+        lineOne="Tell us what your"
+        lineTwo="institution needs."
+        lead="Books, kits, laboratory equipment, laboratory setup, coding and robotics, teacher training or a full STEM programme: ask for a quotation in one place."
+        actions={[{ label: "Fill in the form", href: "#quote-form" }, { label: "Talk to us instead", href: "/contact", secondary: true }]}
+        stats={[{ value: "8", label: "things you can ask for" }, { value: "3", label: "simple steps" }]}
+        align="center"
+        tone="amber"
+      />
 
       <div className={`rx-container ${styles.desk}`}>
         <aside className={styles.side} aria-label="What you can ask for">

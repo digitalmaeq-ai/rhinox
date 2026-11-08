@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 
 import Breadcrumbs from "../../components/Breadcrumbs";
+import ExploreHero from "../../components/ExploreHero";
 import styles from "./pathway.module.css";
 
 export const metadata: Metadata = {
@@ -54,17 +55,21 @@ export default function Page() {
         <Breadcrumbs items={[{ label: "Home", href: "/" }, { label: "Schools & Institutions", href: "/schools" }, { label: "Coding & Robotics" }]} />
       </div>
 
-      <header className={styles.head}>
-        <div className={`rx-container ${styles.headInner}`}>
-          <div>
-            <p className={styles.eyebrow}>Coding &amp; Robotics</p>
-            <h1>A coding pathway <span>that climbs with your learners.</span></h1>
-          </div>
-          <p className={styles.lead}>Each stage builds on the last, so a child who starts with movement games can finish school writing real programs.</p>
-        </div>
-      </header>
+      <ExploreHero
+        image="/images/hero/coding.jpg"
+        alt="Lines of code on a screen"
+        imagePosition="30% 50%"
+        eyebrow="Coding & Robotics for schools"
+        lineOne="A coding pathway"
+        lineTwo="that climbs with your learners."
+        lead="Each stage builds on the last, so a child who starts with movement games can finish school writing real programs."
+        actions={[{ label: "See the pathway", href: "#pathway" }, { label: "Request a quote", href: "/schools/request-a-quote", secondary: true }]}
+        panel={{ image: "/images/play/experience-rhinobot-programming-lab.jpg", alt: "The RhinoBot Robot Lab, where learners program a robot with blocks", label: "RhinoBot Robot Lab", href: "/coding-robotics/robot-lab" }}
+        align="right"
+        tone="amber"
+      />
 
-      <section className={styles.stairs} aria-label="The coding pathway">
+      <section id="pathway" className={styles.stairs} aria-label="The coding pathway" style={{ scrollMarginTop: 80 }}>
         <div className={`rx-container ${styles.stairsInner}`}>
           <ol>
             {STAGES.map((s, i) => (

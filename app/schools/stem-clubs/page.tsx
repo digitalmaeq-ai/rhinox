@@ -1,8 +1,8 @@
 import type { Metadata } from "next";
 
-import Link from "next/link";
 
 import Breadcrumbs from "../../components/Breadcrumbs";
+import ExploreHero from "../../components/ExploreHero";
 import StemClubsForm from "./StemClubsForm";
 import styles from "./clubs.module.css";
 
@@ -85,34 +85,32 @@ export default function StemClubsPage() {
         <Breadcrumbs items={[{ label: "Home", href: "/" }, { label: "Schools & Institutions", href: "/schools" }, { label: "STEM Clubs" }]} />
       </div>
 
-      <header className={styles.head}>
-        <div className={`rx-container ${styles.headInner}`}>
-          <div>
-            <p className={styles.eyebrow}>Rhinox STEM Clubs · Pilot</p>
-            <h1>Hands-on STEM clubs <span>for schools.</span></h1>
-            <p className={styles.lead}>
-              Rhinox STEM Clubs help schools run practical science, coding, robotics and engineering activities, with inter-school challenges being developed. We are now inviting schools to express interest in a pilot.
-            </p>
-            <div className={styles.actions}>
-              <a href="#interest-form" className="rx-button rx-button-primary">Express interest</a>
-              <Link href="/contact" className="rx-button rx-button-secondary">Talk to us</Link>
-            </div>
-          </div>
-          <section className={styles.board} aria-labelledby="board-title">
-            <h2 id="board-title">Where the pilot stands</h2>
-            <ul>
-              {STATUS.map((s) => (
-                <li key={s.label}>
-                  <span className={`${styles.pill} ${s.state === "yes" ? styles.pillYes : styles.pillNo}`}>
-                    <span aria-hidden="true">{s.state === "yes" ? "\u2713" : "?"}</span>{s.label}
-                  </span>
-                  <span>{s.text}</span>
-                </li>
-              ))}
-            </ul>
-          </section>
-        </div>
-      </header>
+      <ExploreHero
+        image="/images/journey/journey-robotics.jpg"
+        alt="Young people building a robotics project together"
+        eyebrow="Rhinox STEM Clubs · Pilot"
+        lineOne="Hands-on STEM clubs"
+        lineTwo="for schools."
+        lead="Rhinox STEM Clubs help schools run practical science, coding, robotics and engineering activities, with inter-school challenges being developed. We are now inviting schools to express interest in a pilot."
+        actions={[{ label: "Express interest", href: "#interest-form" }, { label: "Talk to us", href: "/contact", secondary: true }]}
+        aside={
+            <section className={styles.board} aria-labelledby="board-title">
+          <h2 id="board-title">Where the pilot stands</h2>
+          <ul>
+            {STATUS.map((s) => (
+              <li key={s.label}>
+                <span className={`${styles.pill} ${s.state === "yes" ? styles.pillYes : styles.pillNo}`}>
+                  <span aria-hidden="true">{s.state === "yes" ? "\u2713" : "?"}</span>{s.label}
+                </span>
+                <span>{s.text}</span>
+              </li>
+            ))}
+          </ul>
+        </section>
+        }
+        align="left"
+        tone="sky"
+      />
 
       <section className={styles.gains} aria-labelledby="gains-title">
         <div className={`rx-container ${styles.gainsInner}`}>

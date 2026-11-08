@@ -14,7 +14,7 @@
 .actions { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 18px; }
 
 /* Status board: says plainly what is decided and what is not. */
-.board { padding: 18px; background: #fff; border: 1px solid var(--rx-border); border-radius: 16px; box-shadow: var(--rx-shadow-md); }
+.board { color: var(--rx-text); text-align: left; padding: 18px; background: #fff; border: 1px solid var(--rx-border); border-radius: 16px; box-shadow: var(--rx-shadow-md); }
 .board h2 { margin: 0 0 10px; font-size: 17px; }
 .board ul { display: grid; gap: 10px; margin: 0; padding: 0; list-style: none; }
 .board li { display: grid; grid-template-columns: 118px minmax(0, 1fr); gap: 10px; align-items: start; font-size: 14px; line-height: 1.5; }

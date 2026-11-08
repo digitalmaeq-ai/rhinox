@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 
 import Breadcrumbs from "../components/Breadcrumbs";
+import ExploreHero from "../components/ExploreHero";
 import { contactDetails, telHref } from "../contact/contact-details";
 import { schoolFacts } from "@/lib/schools/data";
 import Chooser from "./Chooser";
@@ -28,31 +29,24 @@ export default function SchoolsPage() {
         <Breadcrumbs items={[{ label: "Home", href: "/" }, { label: "Schools & Institutions" }]} />
       </div>
 
-      <header className={styles.top}>
-        <div className={`rx-container ${styles.topInner}`}>
-          <div className={styles.topText}>
-            <p className={styles.eyebrow}>Schools &amp; institutions</p>
-            <h1 className={styles.h1}>STEM for your whole school, <span>from a single partner.</span></h1>
-            <p className={styles.lead}>
-              A complete Nursery 1 coding programme, practical laboratories, coding and robotics pathways, teacher training and school clubs. Tell us what your school needs and we will come back with a clear, practical proposal.
-            </p>
-            <div className={styles.actions}>
-              <Link href="/schools/request-a-quote" className="rx-button rx-button-primary">Request a quote</Link>
-              <Link href="/contact" className="rx-button rx-button-secondary">Talk to us</Link>
-            </div>
-          </div>
-          <Chooser />
-        </div>
-      </header>
-
-      <section className={styles.facts} aria-label="What is ready now">
-        <div className={`rx-container ${styles.factsInner}`}>
-          <p><strong>{f.weeks}</strong><span>weeks of Nursery 1 lessons, free to download</span></p>
-          <p><strong>{f.labs}</strong><span>virtual science labs for secondary classes</span></p>
-          <p><strong>3</strong><span>browser coding studios, no installation</span></p>
-          <p><strong>{f.equipment}</strong><span>laboratory equipment items in the shop</span></p>
-        </div>
-      </section>
+      <ExploreHero
+        image="/images/journey/journey-pexels.jpg"
+        alt="Students working with laboratory apparatus"
+        eyebrow="Schools & Institutions"
+        lineOne="STEM for your whole school,"
+        lineTwo="from a single partner."
+        lead="A complete Nursery 1 coding programme, practical laboratories, coding and robotics pathways, teacher training and school clubs. Tell us what your school needs."
+        actions={[{ label: "Request a quote", href: "/schools/request-a-quote" }, { label: "Talk to us", href: "/contact", secondary: true }]}
+        stats={[
+          { value: String(f.weeks), label: "weeks of Nursery 1 lessons" },
+          { value: String(f.labs), label: "virtual science labs" },
+          { value: "3", label: "browser coding studios" },
+          { value: String(f.equipment), label: "equipment items in the shop" },
+        ]}
+        aside={<Chooser />}
+        align="left"
+        tone="amber"
+      />
 
       <section className={styles.bento} aria-labelledby="offer-title">
         <div className={`rx-container ${styles.bentoInner}`}>
