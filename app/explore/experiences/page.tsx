@@ -1,5 +1,6 @@
 import Link from "next/link";
 
+import ExploreHero from "@/app/components/ExploreHero";
 import ExperienceExplorer from "@/app/components/ExperienceExplorer";
 import { getExperienceSequence } from "@/lib/experience-sequence";
 import { isOwnPageContent, isVirtualExperiment, toMatrixItems } from "@/lib/explore-experience-items";
@@ -14,20 +15,20 @@ export default function ExploreExperiencesPage() {
 
   return (
     <main>
-      <section className="rx-section" style={{ paddingTop: 28, paddingBottom: 48 }}>
+      <ExploreHero
+        image="/images/journey/journey-robotics.jpg"
+        alt="Learners building a small project together"
+        eyebrow="Explore · STEM Experiences"
+        lineOne="Learn by doing."
+        lineTwo="One task at a time."
+        lead="Hands-on challenges, grouped by learning path, subject or format, each listed from easiest to hardest."
+        actions={[{ label: "Start exploring", href: "#experiences" }, { label: "Virtual labs", href: "/explore/virtual-lab", secondary: true }]}
+        stats={[{ value: String(items.length), label: "experiences" }, { label: "Easiest to hardest" }, { label: "Plays in your browser" }]}
+        align="right"
+        tone="amber"
+      />
+      <section id="experiences" className="rx-section" style={{ paddingTop: 20, paddingBottom: 48, scrollMarginTop: 80 }}>
         <div className="rx-container">
-          <header style={{ display: "flex", flexWrap: "wrap", alignItems: "flex-end", justifyContent: "space-between", gap: "8px 32px" }}>
-            <div>
-              <p className="rx-content-meta-type" style={{ margin: "0 0 6px" }}>Explore</p>
-              <h1 style={{ margin: 0 }}>
-                Explore <span style={{ color: "var(--rx-blue)" }}>STEM</span> Experiences
-              </h1>
-            </div>
-            <p style={{ margin: 0, maxWidth: 520, color: "var(--rx-text-muted)", fontSize: 15, lineHeight: 1.5 }}>
-              Short hands-on challenges, grouped by learning path, subject or format, each one listed from easiest to hardest.
-            </p>
-          </header>
-
           <Link
             href="/explore/virtual-lab"
             style={{

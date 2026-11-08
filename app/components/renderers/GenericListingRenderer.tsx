@@ -2,6 +2,9 @@ import Link from "next/link";
 
 import type { ContentItem } from "@/lib/content";
 
+import { EXPLORE_HEROES } from "@/lib/explore-heroes";
+
+import ExploreHero from "../ExploreHero";
 import PageHeader from "../PageHeader";
 import ContentList from "../content/ContentList";
 import { toRow } from "../content/rows";
@@ -27,19 +30,28 @@ export default function GenericListingRenderer({
   description,
   items,
   notice,
+  path,
 }: GenericListingRendererProps) {
   const rows = items.map(toRow);
+  const hero = path ? EXPLORE_HEROES[path] : undefined;
 
   return (
     <main style={{ background: "var(--rx-white)" }}>
-      <PageHeader
-        eyebrow={eyebrow}
-        title={heading}
-        lead={description}
-        count={rows.length ? `${rows.length} ${rows.length === 1 ? "item" : "items"}` : undefined}
-      />
+      {hero ? (
+        <ExploreHero
+          {...hero}
+          stats={[...(rows.length ? [{ value: String(rows.length), label: rows.length === 1 ? hero.noun.replace(/s$/, "") : hero.noun }] : []), ...hero.extraStats]}
+        />
+      ) : (
+        <PageHeader
+          eyebrow={eyebrow}
+          title={heading}
+          lead={description}
+          count={rows.length ? `${rows.length} ${rows.length === 1 ? "item" : "items"}` : undefined}
+        />
+      )}
 
-      <section className={styles.listing}>
+      <section className={styles.listing} id="library" style={{ scrollMarginTop: 80 }}>
         <div className="rx-container">
           {notice && (
             <p className={styles.notice}>
