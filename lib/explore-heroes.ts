@@ -39,7 +39,7 @@ export const EXPLORE_HEROES: Record<string, ExploreHeroConfig> = {
     eyebrow: "Explore · STEM Quizzes",
     lineOne: "Check what you know.",
     lineTwo: "Then go further.",
-    lead: "Short, scored quizzes with instant feedback, so you can see what has stuck and what to revisit.",
+    lead: "Short quizzes to check what has stuck, from read-aloud checks for the youngest learners to quizzes that go further.",
     actions: [{ label: "Start a quiz", href: "#library" }, { label: "Play a game", href: "/explore/stem-games", secondary: true }],
     align: "center",
     tone: "sky",

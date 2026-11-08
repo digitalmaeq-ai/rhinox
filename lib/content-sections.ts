@@ -309,7 +309,7 @@ export function getSectionByPath(path: string): ContentSection | null {
 export function getSectionItems(section: ContentSection): ContentItem[] {
   const own = section.shopCategory
     ? getProductsByShopCategory(section.shopCategory)
-    : section.contentTypes.flatMap((type) => getContentByType(type));
+    : section.contentTypes.flatMap((type) => getContentByType(type)).filter((item) => item.status !== "draft");
   if (!section.includeExperiences) return own;
 
   const test = section.includeExperiences;
@@ -330,7 +330,8 @@ export function getSectionItemBySlug(
   for (const type of [...section.contentTypes, ...(section.alsoResolve ?? [])]) {
     const item = getContentBySlug(type, slug);
 
-    if (!item) {
+    // Drafts are written but not yet live: they have no listing and no page.
+    if (!item || item.status === "draft") {
       continue;
     }
 
