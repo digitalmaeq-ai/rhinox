@@ -125,8 +125,8 @@ export const DRAFT_NURSERY_1_T1_W2: InteractiveLessonSpec = {
       },
     },
     build: {
-      instruction: "Optional this week: stand cardboard Ayo on a box beside the card row.",
-      task: "Optional: make or place a cardboard Ayo beside the cards.",
+      instruction: "Optional this week: stand cut-out Ayo on a box beside the card row.",
+      task: "Optional: make or place a cut-out Ayo beside the cards.",
       evidence: "Optional this week; no evidence is required.",
       hint: "A teacher can make Ayo from cardboard beforehand.",
       fallback: "Skip it; the lesson needs no kit.",
