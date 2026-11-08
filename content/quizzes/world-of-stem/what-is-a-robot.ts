@@ -15,7 +15,7 @@ export const worldOfWhatIsARobotQuiz: QuizContent = {
       ]
     }
   ],
-  "status": "draft",
+  "status": "published",
   "description": "Sense, think, act: the three jobs every robot does.",
   "excerpt": "Sense, think, act: the three jobs every robot does.",
   "placements": [

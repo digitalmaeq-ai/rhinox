@@ -15,7 +15,7 @@ export const worldOfWhatIsAnAlgorithmQuiz: QuizContent = {
       ]
     }
   ],
-  "status": "draft",
+  "status": "published",
   "description": "Step-by-step instructions, in the right order.",
   "excerpt": "Step-by-step instructions, in the right order.",
   "placements": [

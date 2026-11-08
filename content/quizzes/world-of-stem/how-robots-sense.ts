@@ -15,7 +15,7 @@ export const worldOfHowRobotsSenseQuiz: QuizContent = {
       ]
     }
   ],
-  "status": "draft",
+  "status": "published",
   "description": "Light, touch and distance sensors, and what they tell a robot.",
   "excerpt": "Light, touch and distance sensors, and what they tell a robot.",
   "placements": [

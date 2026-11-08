@@ -15,7 +15,7 @@ export const worldOfUsingAiSafelyQuiz: QuizContent = {
       ]
     }
   ],
-  "status": "draft",
+  "status": "published",
   "description": "Good habits for using AI tools and the internet.",
   "excerpt": "Good habits for using AI tools and the internet.",
   "placements": [

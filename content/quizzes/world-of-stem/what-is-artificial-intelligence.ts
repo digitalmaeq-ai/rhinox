@@ -15,7 +15,7 @@ export const worldOfWhatIsArtificialIntelligenceQuiz: QuizContent = {
       ]
     }
   ],
-  "status": "draft",
+  "status": "published",
   "description": "How computers learn patterns, and what they cannot do.",
   "excerpt": "How computers learn patterns, and what they cannot do.",
   "placements": [
