@@ -43,6 +43,15 @@ const DEFAULT_DISPLAY: LessonDisplay = {
   icons: { "wake-up": "☀️", "brush-teeth": "🪥", "eat-breakfast": "🥣" },
 };
 
+/** A card picture: a book picture when the value is a path, otherwise an emoji. */
+function Pic({ icon, size = 56 }: { icon: string; size?: number }) {
+  if (icon.startsWith("/")) {
+    // eslint-disable-next-line @next/next/no-img-element -- small static book pictures, no optimisation needed
+    return <img src={icon} alt="" width={size} height={size} className={styles.cardPicture} aria-hidden="true" />;
+  }
+  return <span aria-hidden="true">{icon}</span>;
+}
+
 function activityText(activity: CurriculumActivity, key: StepKey): string {
   const reviewedInstruction = getLessonSpec(activity.id)?.steps[key]?.instruction;
   if (reviewedInstruction) return reviewedInstruction;
@@ -339,7 +348,7 @@ function LessonView({
           <aside className={styles.lessonSidebar}>
             <div className={styles.rhinoAvatar}><span>🤖</span></div>
             <strong>RhinoBot says</strong>
-            <p>“We can teach a computer by giving it clear steps. Let’s try it together!”</p>
+            <p>“{d.rhinobotSays ?? "We can teach a computer by giving it clear steps. Let’s try it together!"}”</p>
             <div className={styles.sidebarRule} />
             <small>YOUR GOAL</small>
             <p>{lessonSpec?.objective ?? activity.masteryTarget}</p>
@@ -356,12 +365,18 @@ function LessonView({
                   <div><strong>{orderingExercise.prompt}</strong><p>{orderingExercise.instructions}</p></div>
                   <button className={styles.resetButton} onClick={resetOrderingAnswer} disabled={attemptsExhausted || orderingResult === "correct"}>Reset</button>
                 </div>
+                {d.codeStrip && d.codeStrip.length > 0 && (
+                  <div className={styles.codeStrip} role="img" aria-label={`The pattern so far: ${d.codeStrip.map((item) => item.label).join(", ")}, and then?`}>
+                    {d.codeStrip.map((item, index) => <span key={`${item.label}-${index}`}><Pic icon={item.icon} size={40} />{item.label}</span>)}
+                    <b aria-hidden="true">…?</b>
+                  </div>
+                )}
                 <div className={styles.pictureChoices}>
                   {pictures.filter((picture) => !chosen.has(picture.id)).map((picture) => (
                     <button key={picture.id} className={styles.pictureChoice}
                       disabled={attemptsExhausted || orderingResult === "correct" || selectedOrder.length >= orderingExercise.items.length}
                       onClick={() => { setSelectedOrder((old) => [...old, picture.id]); setOrderingResult(null); }}>
-                      <span aria-hidden="true">{picture.icon}</span><strong>{picture.label}</strong><small>Tap to add</small>
+                      <Pic icon={picture.icon} /><strong>{picture.label}</strong><small>Tap to add</small>
                     </button>
                   ))}
                 </div>
@@ -369,7 +384,7 @@ function LessonView({
                   {Array.from({ length: orderingExercise.items.length }, (_, index) => {
                     const item = pictures.find((picture) => picture.id === selectedOrder[index]);
                     return <div key={index} className={styles.sequenceSlot}><small>STEP {index + 1}</small>{item
-                      ? <button disabled={attemptsExhausted || orderingResult === "correct"} onClick={() => { setSelectedOrder((old) => old.filter((id) => id !== item.id)); setOrderingResult(null); }} aria-label={`Remove ${item.label} from step ${index + 1}`}><span aria-hidden="true">{item.icon}</span><strong>{item.label}</strong><span>Remove</span></button>
+                      ? <button disabled={attemptsExhausted || orderingResult === "correct"} onClick={() => { setSelectedOrder((old) => old.filter((id) => id !== item.id)); setOrderingResult(null); }} aria-label={`Remove ${item.label} from step ${index + 1}`}><Pic icon={item.icon} size={44} /><strong>{item.label}</strong><span>Remove</span></button>
                       : <span className={styles.emptySlot}>Choose a picture</span>}</div>;
                   })}
                 </div>
@@ -386,7 +401,7 @@ function LessonView({
                   <div className={styles.buildPanel} role="group" aria-label="Learn the correct order with a grown-up">
                     <strong>Here is the correct order</strong>
                     <p>You have used all {orderingExercise.maxAttempts} tries. Look at the right order together with a teacher or caregiver.</p>
-                    <ol>{correctOrderPictures.map((picture) => <li key={picture.id}><span aria-hidden="true">{picture.icon}</span> {picture.label}</li>)}</ol>
+                    <ol>{correctOrderPictures.map((picture) => <li key={picture.id}><Pic icon={picture.icon} size={32} /> {picture.label}</li>)}</ol>
                     {!orderingAssisted
                       ? <><p>When you have done this with a grown-up, you can go on. It will be recorded as <strong>completed with help</strong>, not as a pass.</p>
                         <button className={styles.secondaryButton} type="button" onClick={() => { setOrderingAssisted(true); setSelectedOrder(orderingExercise.expectedOrder.slice()); }}>A grown-up helped me finish</button></>
@@ -414,22 +429,22 @@ function LessonView({
               </>
             )}
 
-            {stepKey === "think" && d.thinkStrip.length > 0 && <div className={styles.exampleStrip}>{d.thinkStrip.map((item, index) => <span key={item.label} style={{ display: "contents" }}>{index > 0 && <b aria-hidden="true">→</b>}<span aria-hidden="true">{item.icon}</span><span>{item.label}</span></span>)}</div>}
-            {stepKey === "move" && <div className={styles.moveChallenge}>{d.moveStrip.map((item, index) => <span key={item.label} style={{ display: "contents" }}>{index > 0 && <span aria-hidden="true">→</span>}<span aria-hidden="true">{item.icon}</span><b>{item.label}</b></span>)}<p>{d.moveNote}</p><button className={styles.secondaryButton} type="button" onClick={() => setMovePracticed(true)} aria-pressed={movePracticed}>{movePracticed ? `✓ ${d.moveButton}` : d.moveButton}</button></div>}
+            {stepKey === "think" && d.thinkStrip.length > 0 && <div className={styles.exampleStrip}>{d.thinkStrip.map((item, index) => <span key={`${item.label}-${index}`} style={{ display: "contents" }}>{index > 0 && <b aria-hidden="true">→</b>}<Pic icon={item.icon} size={40} /><span>{item.label}</span></span>)}</div>}
+            {stepKey === "move" && <div className={styles.moveChallenge}>{d.moveStrip.map((item, index) => <span key={`${item.label}-${index}`} style={{ display: "contents" }}>{index > 0 && <span aria-hidden="true">→</span>}<Pic icon={item.icon} size={40} /><b>{item.label}</b></span>)}<p>{d.moveNote}</p><button className={styles.secondaryButton} type="button" onClick={() => setMovePracticed(true)} aria-pressed={movePracticed}>{movePracticed ? `✓ ${d.moveButton}` : d.moveButton}</button></div>}
             {stepKey === "build" && (
               <div className={styles.buildPanel}>
-                <div className={styles.buildPanelHeading}><span>🛠️</span><div><strong>Make your idea real</strong><p>{activity.practicalActivity}</p></div></div>
+                <div className={styles.buildPanelHeading}><span>🛠️</span><div><strong>Make your idea real</strong><p>{d.buildIntro ?? activity.practicalActivity}</p></div></div>
                 <p className={styles.buildMaterialsTitle}>{buildRequired ? "Choose what you will use:" : "Optional extension: choose materials if you want to build a model."}</p>
                 <div className={styles.buildChoices}>
                   {["Paper or picture cards", "Blocks or classroom objects", "Drawings in a notebook"].map((choice) => (
                     <button key={choice} className={buildChoice === choice ? styles.buildChoiceSelected : ""} onClick={() => { setBuildChoice(choice); setBuildCompleted(false); }} aria-pressed={buildChoice === choice}>{choice}</button>
                   ))}
                 </div>
-                <p className={styles.buildPlatform}><strong>Suggested platform:</strong> {activity.platform}</p>
+                <p className={styles.buildPlatform}><strong>{d.materials ? "What the class needs:" : "Suggested platform:"}</strong> {d.materials ?? activity.platform}</p>
                 {!buildRequired && <p className={styles.buildFallback}>This week’s core parts are {activity.coreParts}. Building is optional, so you can continue without choosing materials.</p>}
                 {buildChoice && <p className={styles.buildReady}>Good choice. Use {buildChoice.toLowerCase()} to represent each step, then test whether the steps are in the correct order.</p>}
                 {buildRequired && buildChoice && <div className={styles.buildReady}><p>When you have made and tested your model, confirm that you completed it. This is your confirmation, not an automatic check.</p><button className={styles.secondaryButton} type="button" onClick={() => setBuildCompleted((value) => !value)} aria-pressed={buildCompleted}>{buildCompleted ? "✓ I built and tested my model" : "I built and tested my model"}</button></div>}
-                <p className={styles.buildFallback}><strong>If you do not have these materials:</strong> {activity.fallback}</p>
+                <p className={styles.buildFallback}><strong>If you do not have these materials:</strong> {d.materials ? lessonSpec?.steps.build.fallback : activity.fallback}</p>
               </div>
             )}
 
@@ -444,7 +459,7 @@ function LessonView({
               <button className={styles.primaryButton} onClick={onNext} disabled={!canContinue}>{stepIndex === STEPS.length - 1 ? "Finish activity" : stepKey === "build" && !buildRequired ? "Skip optional build →" : "Next step →"}</button>
             </div>
             {!canContinue && <p className={styles.coreNote}>Complete this step’s task before moving on. Your progress is only for this session and is not saved to an account yet.</p>}
-            <p className={styles.coreNote}>Core: {activity.coreParts} · Optional Stretch: {activity.stretch}</p>
+            <p className={styles.coreNote}>{d.footNote ?? `Core: ${activity.coreParts} · Optional Stretch: ${activity.stretch}`}</p>
           </article>
         </div>
       )}

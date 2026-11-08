@@ -168,3 +168,9 @@
   .robotCard { width: 112px; height: 128px; border-radius: 20px; transform: none; }
   .robotFace { width: 64px; height: 46px; border-radius: 14px; gap: 12px; }
 }
+.cardPicture { display: block; width: 56px; height: 56px; object-fit: contain; flex: none; }
+.exampleStrip .cardPicture, .moveChallenge .cardPicture { width: 40px; height: 40px; }
+.codeStrip { display: flex; flex-wrap: wrap; align-items: center; justify-content: center; gap: 8px 12px; margin: 0 0 14px; padding: 14px; border-radius: 14px; background: #f0f8ff; border: 1px solid #dcecf9; }
+.codeStrip > span { display: flex; flex-direction: column; align-items: center; gap: 4px; color: #31587a; font-size: .78rem; font-weight: 700; }
+.codeStrip > b { color: #65a0d6; font-size: 1.4rem; }
+@media (max-width: 800px) { .lessonSidebar > p:last-of-type { grid-column: 1 / -1; margin-bottom: 0; } }

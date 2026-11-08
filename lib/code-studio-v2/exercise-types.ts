@@ -24,7 +24,8 @@ export type ExerciseBase = {
 
 export type OrderingExercise = ExerciseBase & {
   kind: "ordering";
-  items: readonly { id: string; label: string }[];
+  /** Cards that share a matchKey look the same (red, red), so either one counts in that place. */
+  items: readonly { id: string; label: string; matchKey?: string }[];
   expectedOrder: readonly string[];
   scoring: {
     correctPoints: number;
@@ -86,7 +87,8 @@ export function isExerciseDefinition(value: unknown): value is ExerciseDefinitio
         !candidate.scoring || typeof candidate.scoring !== "object") return false;
     const ids = candidate.items.map((item) => item && typeof item === "object" ? (item as Record<string, unknown>).id : undefined);
     const labelsValid = candidate.items.every((item) => item && typeof item === "object" &&
-      nonEmpty((item as Record<string, unknown>).id) && nonEmpty((item as Record<string, unknown>).label));
+      nonEmpty((item as Record<string, unknown>).id) && nonEmpty((item as Record<string, unknown>).label) &&
+      ((item as Record<string, unknown>).matchKey === undefined || nonEmpty((item as Record<string, unknown>).matchKey)));
     const scoring = candidate.scoring as Record<string, unknown>;
     return labelsValid &&
       new Set(ids).size === ids.length &&
@@ -130,7 +132,9 @@ export function scoreOrderingAttempt(
   actual: readonly string[],
   exercise: OrderingExercise,
 ): { correct: boolean; points: number } {
-  const correct = isExpectedOrder(actual, exercise.expectedOrder);
+  // Compare by matchKey where cards share one, so two identical cards are interchangeable.
+  const keyOf = (id: string) => exercise.items.find((item) => item.id === id)?.matchKey ?? id;
+  const correct = isExpectedOrder(actual.map(keyOf), exercise.expectedOrder.map(keyOf));
   return {
     correct,
     points: correct ? exercise.scoring.correctPoints : exercise.scoring.incorrectPoints,

@@ -4,6 +4,8 @@ import assert from "node:assert/strict";
 import { CURRICULUM_ACTIVITIES } from "../lib/code-studio-v2/curriculum.ts";
 import { getLessonSpec, isLessonSpecConsistent } from "../lib/code-studio-v2/lesson-specs.ts";
 import { isBuildRequired } from "../lib/code-studio-v2/lesson-gates.ts";
+import { scoreOrderingAttempt } from "../lib/code-studio-v2/exercise-types.ts";
+import { existsSync } from "node:fs";
 
 const nursery = CURRICULUM_ACTIVITIES.filter((item) => item.level === "Nursery 1");
 assert.equal(nursery.length, 39, "Nursery 1 must have 39 curriculum records");
@@ -39,4 +41,28 @@ for (const activity of nursery) {
   assert.doesNotMatch(JSON.stringify(spec), /\bpassed\b|mastered|undefined/i, tag);
 }
 assert.ok(correctIndexes.size >= 3, "correct answers are spread across the options");
+
+// Every book picture the lessons use is in /public.
+for (const activity of nursery) {
+  const spec = getLessonSpec(activity.id);
+  const d = spec.display;
+  if (!d) continue;
+  const pictures = [...Object.values(d.icons), ...d.thinkStrip.map((i) => i.icon), ...d.moveStrip.map((i) => i.icon), ...(d.codeStrip ?? []).map((i) => i.icon)];
+  for (const icon of pictures) if (icon.startsWith("/")) assert.ok(existsSync(`public${icon}`), `T${activity.term}W${activity.week}: missing picture ${icon}`);
+}
+
+// Term 2 teaches patterns: identical cards are interchangeable (either red counts in a red place).
+const t2w1 = getLessonSpec("tmc-v3-15-nursery-1-t2-w1").steps.code.exercise;
+const swapped = [...t2w1.expectedOrder];
+const reds = swapped.map((id, i) => [id, i]).filter(([id]) => t2w1.items.find((x) => x.id === id).matchKey === "red");
+assert.equal(reds.length, 2, "T2W1 has two red lights");
+[swapped[reds[0][1]], swapped[reds[1][1]]] = [swapped[reds[1][1]], swapped[reds[0][1]]];
+assert.equal(scoreOrderingAttempt(swapped, t2w1).correct, true, "swapping two identical cards is still correct");
+const blue = t2w1.items.find((x) => x.matchKey === "blue").id;
+const redIds = t2w1.items.filter((x) => x.matchKey === "red").map((x) => x.id);
+assert.equal(scoreOrderingAttempt([blue, ...redIds], t2w1).correct, false, "a wrong pattern (blue, red, red) is still wrong");
+for (const activity of nursery.filter((a) => a.term === 2 && a.week !== 6)) {
+  const order = getLessonSpec(activity.id).steps.code.exercise;
+  assert.ok(order.items.some((i) => i.matchKey), `T2W${activity.week}: the Code task is a pattern (repeating cards)`);
+}
 console.log("Nursery 1 lesson checks passed: 39 reviewed lessons, all consistent.");

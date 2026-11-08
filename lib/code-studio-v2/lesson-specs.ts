@@ -41,8 +41,18 @@ export type LessonDisplay = {
   practises: readonly string[];
   /** Said after a correct order, for example "You put the morning steps in the right order." */
   orderingSuccess: string;
-  /** Emoji for an ordering card, by item id. */
+  /** Picture for an ordering card, by item id: an emoji, or a path to a book picture (starts with "/"). */
   icons: Readonly<Record<string, string>>;
+  /** Pattern start shown above the cards on the Code step (Term 2 pattern weeks). */
+  codeStrip?: readonly { icon: string; label: string }[];
+  /** RhinoBot's line for this week, from the book's Think & Move page. */
+  rhinobotSays?: string;
+  /** Replaces the curriculum's teacher-facing build text on the Build step. */
+  buildIntro?: string;
+  /** What the class needs this week (Teacher Guide "You need"). */
+  materials?: string;
+  /** Replaces the core-parts line under each step, for example the book's "Try it at home" note. */
+  footNote?: string;
 };
 
 export type InteractiveLessonSpec = {
@@ -66,7 +76,26 @@ export type InteractiveLessonSpec = {
 const NURSERY_1_T1_W1: InteractiveLessonSpec = {
   activityId: "tmc-v3-15-nursery-1-t1-w1",
   status: "reviewed",
-  objective: "Follow and arrange three familiar actions in the order they happen.",
+  objective: "I can follow 3 steps in order.",
+  // Book-sourced screen text and pictures (Activity Book pp6–8).
+  display: {
+    codeTitle: "What comes first?",
+    thinkStrip: [],
+    moveStrip: [{ icon: "/tmc/n1/lesson-art/clap.png", label: "Clap" }, { icon: "/tmc/n1/lesson-art/stamp.png", label: "Stamp" }, { icon: "🔄", label: "Turn" }],
+    moveNote: "Ask a grown-up or classmate to help. Do each action, then talk about what you did.",
+    moveButton: "I tried the movement challenge",
+    createHeading: "Draw it!",
+    createPrompt: "Draw 3 steps of something you do every day.",
+    createNote: "Can’t draw it yet? Act it or tell it, and a grown-up draws it.",
+    createButton: "I finished my creation",
+    checkQuestion: "Can the child follow a 3-step instruction in the right order on their own?",
+    checkSkill: "follow 3 steps in order",
+    practises: ["Putting steps in order", "Giving and following clear instructions", "Finding and fixing mistakes"],
+    orderingSuccess: "You put Ayo’s morning in the right order.",
+    icons: { "wake-up": "/tmc/n1/lesson-art/wake-up.png", "brush-teeth": "/tmc/n1/lesson-art/brush-teeth.png", "eat-breakfast": "/tmc/n1/lesson-art/eat-breakfast.png" },
+    rhinobotSays: "This is Ayo! Let’s learn to do things one step at a time.",
+    footNote: "Try it at home: Ask your child for 3 steps to get ready for bed. Do them together in that order, then swap and you give the steps.",
+  },
   successCriteria: [
     "Follow a three-step movement instruction.",
     "Arrange wake up, brush teeth, and eat breakfast in order.",
@@ -81,21 +110,21 @@ const NURSERY_1_T1_W1: InteractiveLessonSpec = {
   },
   steps: {
     think: {
-      instruction: "Look at the three morning actions. Think about what usually happens first, next, and last.",
+      instruction: "Look at Ayo getting ready for school. What does he do first? What does he do next? What does he do last?",
       task: "Say or point to what you do first in the morning.",
       evidence: "Learner identifies or communicates a plausible first action.",
       hint: "Think about what you do when you first wake up.",
       fallback: "A teacher or caregiver can describe the pictures aloud; no device is needed.",
     },
     move: {
-      instruction: "Play Robot Says. Try clap, stamp, then turn. Follow each action in the order given.",
+      instruction: "Play Robot Says! Clap → stamp → turn. Now try a new order: turn → clap → stamp.",
       task: "Practise the three movements, then repeat them in a different order.",
       evidence: "Learner or supervising adult confirms the movement sequence was attempted; this is self-reported evidence, not sensor verification.",
       hint: "Listen for one instruction at a time and keep the order.",
       fallback: "Use safe seated gestures or point to action cards if movement is difficult or unsuitable.",
     },
     code: {
-      instruction: "Put the morning picture steps in order: wake up, brush teeth, then eat breakfast.",
+      instruction: "In your Activity Book, page 7: Circle the picture that comes first. Then draw a line from each number to its picture. Now try it on the screen: put Ayo’s morning in order.",
       task: "Select all three picture cards in the correct sequence.",
       evidence: "The interactive sequence is exactly wake up, brush teeth, eat breakfast.",
       hint: "Which action normally happens before brushing your teeth? What comes after?",
@@ -129,7 +158,7 @@ const NURSERY_1_T1_W1: InteractiveLessonSpec = {
       fallback: "Skip the model and continue; the core activity needs no kit.",
     },
     create: {
-      instruction: "Draw or arrange three pictures showing something you do every day, in order.",
+      instruction: "Draw 3 steps of something you do every day.",
       task: "Create a three-step sequence from a familiar daily routine.",
       evidence: "Learner or supervising adult confirms a sequence was created; this is self-reported evidence, not image verification.",
       hint: "Choose a routine you know well, such as washing your hands.",
