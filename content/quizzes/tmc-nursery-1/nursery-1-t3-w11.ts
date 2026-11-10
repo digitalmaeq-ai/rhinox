@@ -145,18 +145,18 @@ export const nursery1T3W11Quiz: QuizContent = {
         },
         {
           "id": "b",
-          "text": "Wave, wave"
+          "text": "Forward, forward, stop"
         },
         {
           "id": "c",
-          "text": "Forward, forward, stop"
+          "text": "Wave, wave"
         },
         {
           "id": "d",
           "text": "Stop, stop"
         }
       ],
-      "correctAnswer": "c",
+      "correctAnswer": "b",
       "points": 1
     },
     {
@@ -170,18 +170,18 @@ export const nursery1T3W11Quiz: QuizContent = {
         },
         {
           "id": "b",
-          "text": "Stop, stop, forward"
+          "text": "Forward, forward, stop"
         },
         {
           "id": "c",
-          "text": "Forward, forward, stop"
+          "text": "Stop, stop, forward"
         },
         {
           "id": "d",
           "text": "Forward, stop, stop"
         }
       ],
-      "correctAnswer": "c",
+      "correctAnswer": "b",
       "points": 1
     },
     {

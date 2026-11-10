@@ -91,7 +91,7 @@ export const nursery1T2W05Quiz: QuizContent = {
       "options": [
         {
           "id": "a",
-          "text": "Yellow"
+          "text": "Red"
         },
         {
           "id": "b",
@@ -99,14 +99,14 @@ export const nursery1T2W05Quiz: QuizContent = {
         },
         {
           "id": "c",
-          "text": "Red"
+          "text": "Yellow"
         },
         {
           "id": "d",
           "text": "Blue"
         }
       ],
-      "correctAnswer": "c",
+      "correctAnswer": "a",
       "points": 1
     },
     {

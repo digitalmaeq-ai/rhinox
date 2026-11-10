@@ -66,7 +66,7 @@ export const nursery1T3W12Quiz: QuizContent = {
       "options": [
         {
           "id": "a",
-          "text": "The box is in Ayo’s way"
+          "text": "No problem"
         },
         {
           "id": "b",
@@ -74,14 +74,14 @@ export const nursery1T3W12Quiz: QuizContent = {
         },
         {
           "id": "c",
-          "text": "No problem"
+          "text": "The box is in Ayo’s way"
         },
         {
           "id": "d",
           "text": "Ayo is happy"
         }
       ],
-      "correctAnswer": "a",
+      "correctAnswer": "c",
       "points": 1
     },
     {
@@ -91,7 +91,7 @@ export const nursery1T3W12Quiz: QuizContent = {
       "options": [
         {
           "id": "a",
-          "text": "Turn on the tap"
+          "text": "Dry your hands"
         },
         {
           "id": "b",
@@ -103,10 +103,10 @@ export const nursery1T3W12Quiz: QuizContent = {
         },
         {
           "id": "d",
-          "text": "Dry your hands"
+          "text": "Turn on the tap"
         }
       ],
-      "correctAnswer": "a",
+      "correctAnswer": "d",
       "points": 1
     },
     {
@@ -191,11 +191,11 @@ export const nursery1T3W12Quiz: QuizContent = {
       "options": [
         {
           "id": "a",
-          "text": "Add a block and test again"
+          "text": "Nothing"
         },
         {
           "id": "b",
-          "text": "Nothing"
+          "text": "Add a block and test again"
         },
         {
           "id": "c",
@@ -206,7 +206,7 @@ export const nursery1T3W12Quiz: QuizContent = {
           "text": "Throw the car"
         }
       ],
-      "correctAnswer": "a",
+      "correctAnswer": "b",
       "points": 1
     },
     {

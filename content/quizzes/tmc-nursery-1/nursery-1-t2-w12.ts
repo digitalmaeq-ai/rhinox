@@ -216,7 +216,7 @@ export const nursery1T2W12Quiz: QuizContent = {
       "options": [
         {
           "id": "a",
-          "text": "Wave"
+          "text": "Hop, wave, hop, wave"
         },
         {
           "id": "b",
@@ -228,10 +228,10 @@ export const nursery1T2W12Quiz: QuizContent = {
         },
         {
           "id": "d",
-          "text": "Hop, wave, hop, wave"
+          "text": "Wave"
         }
       ],
-      "correctAnswer": "d",
+      "correctAnswer": "a",
       "points": 1
     },
     {
@@ -266,7 +266,7 @@ export const nursery1T2W12Quiz: QuizContent = {
       "options": [
         {
           "id": "a",
-          "text": "Triangle"
+          "text": "Circle"
         },
         {
           "id": "b",
@@ -278,10 +278,10 @@ export const nursery1T2W12Quiz: QuizContent = {
         },
         {
           "id": "d",
-          "text": "Circle"
+          "text": "Triangle"
         }
       ],
-      "correctAnswer": "d",
+      "correctAnswer": "a",
       "points": 1
     },
     {

@@ -66,7 +66,7 @@ export const nursery1T3W06Quiz: QuizContent = {
       "options": [
         {
           "id": "a",
-          "text": "A spoon"
+          "text": "An umbrella"
         },
         {
           "id": "b",
@@ -74,14 +74,14 @@ export const nursery1T3W06Quiz: QuizContent = {
         },
         {
           "id": "c",
-          "text": "An umbrella"
+          "text": "A spoon"
         },
         {
           "id": "d",
           "text": "A ball"
         }
       ],
-      "correctAnswer": "c",
+      "correctAnswer": "a",
       "points": 1
     },
     {
@@ -141,7 +141,7 @@ export const nursery1T3W06Quiz: QuizContent = {
       "options": [
         {
           "id": "a",
-          "text": "Ball"
+          "text": "Torch"
         },
         {
           "id": "b",
@@ -149,14 +149,14 @@ export const nursery1T3W06Quiz: QuizContent = {
         },
         {
           "id": "c",
-          "text": "Torch"
+          "text": "Ball"
         },
         {
           "id": "d",
           "text": "Cup"
         }
       ],
-      "correctAnswer": "c",
+      "correctAnswer": "a",
       "points": 1
     },
     {

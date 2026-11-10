@@ -95,7 +95,7 @@ export const nursery1T3W13Quiz: QuizContent = {
         },
         {
           "id": "b",
-          "text": "Step Thinker · Term 3 and the Year badge"
+          "text": "Super Swimmer"
         },
         {
           "id": "c",
@@ -103,10 +103,10 @@ export const nursery1T3W13Quiz: QuizContent = {
         },
         {
           "id": "d",
-          "text": "Super Swimmer"
+          "text": "Step Thinker · Term 3 and the Year badge"
         }
       ],
-      "correctAnswer": "b",
+      "correctAnswer": "d",
       "points": 1
     },
     {
@@ -141,11 +141,11 @@ export const nursery1T3W13Quiz: QuizContent = {
       "options": [
         {
           "id": "a",
-          "text": "Cry"
+          "text": "Find them and swap them back"
         },
         {
           "id": "b",
-          "text": "Find them and swap them back"
+          "text": "Cry"
         },
         {
           "id": "c",
@@ -156,7 +156,7 @@ export const nursery1T3W13Quiz: QuizContent = {
           "text": "Hide them"
         }
       ],
-      "correctAnswer": "b",
+      "correctAnswer": "a",
       "points": 1
     },
     {

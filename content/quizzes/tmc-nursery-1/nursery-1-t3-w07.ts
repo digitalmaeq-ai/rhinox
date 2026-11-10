@@ -66,11 +66,11 @@ export const nursery1T3W07Quiz: QuizContent = {
       "options": [
         {
           "id": "a",
-          "text": "Forward, forward, stop"
+          "text": "Stop, stop, stop"
         },
         {
           "id": "b",
-          "text": "Stop, stop, stop"
+          "text": "Forward, forward, stop"
         },
         {
           "id": "c",
@@ -81,7 +81,7 @@ export const nursery1T3W07Quiz: QuizContent = {
           "text": "Forward, stop"
         }
       ],
-      "correctAnswer": "a",
+      "correctAnswer": "b",
       "points": 1
     },
     {
@@ -270,7 +270,7 @@ export const nursery1T3W07Quiz: QuizContent = {
         },
         {
           "id": "b",
-          "text": "Throw the cards"
+          "text": "Add a forward card"
         },
         {
           "id": "c",
@@ -278,10 +278,10 @@ export const nursery1T3W07Quiz: QuizContent = {
         },
         {
           "id": "d",
-          "text": "Add a forward card"
+          "text": "Throw the cards"
         }
       ],
-      "correctAnswer": "d",
+      "correctAnswer": "b",
       "points": 1
     },
     {

@@ -70,7 +70,7 @@ export const nursery1T1W11Quiz: QuizContent = {
         },
         {
           "id": "b",
-          "text": "Cards in the right order"
+          "text": "A box of toys"
         },
         {
           "id": "c",
@@ -78,10 +78,10 @@ export const nursery1T1W11Quiz: QuizContent = {
         },
         {
           "id": "d",
-          "text": "A box of toys"
+          "text": "Cards in the right order"
         }
       ],
-      "correctAnswer": "b",
+      "correctAnswer": "d",
       "points": 1
     },
     {
@@ -216,11 +216,11 @@ export const nursery1T1W11Quiz: QuizContent = {
       "options": [
         {
           "id": "a",
-          "text": "Gate"
+          "text": "Program"
         },
         {
           "id": "b",
-          "text": "Program"
+          "text": "Gate"
         },
         {
           "id": "c",
@@ -231,7 +231,7 @@ export const nursery1T1W11Quiz: QuizContent = {
           "text": "Market"
         }
       ],
-      "correctAnswer": "b",
+      "correctAnswer": "a",
       "points": 1
     },
     {

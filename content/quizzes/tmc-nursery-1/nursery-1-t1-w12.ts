@@ -283,56 +283,6 @@ export const nursery1T1W12Quiz: QuizContent = {
       ],
       "correctAnswer": "a",
       "points": 1
-    },
-    {
-      "id": "q10",
-      "type": "multiple-choice",
-      "question": "[Extending] Wash hands: tap on, soap, rinse. Which goes first?",
-      "options": [
-        {
-          "id": "a",
-          "text": "Tap on"
-        },
-        {
-          "id": "b",
-          "text": "Soap"
-        },
-        {
-          "id": "c",
-          "text": "Rinse"
-        },
-        {
-          "id": "d",
-          "text": "Dry"
-        }
-      ],
-      "correctAnswer": "a",
-      "points": 1
-    },
-    {
-      "id": "q11",
-      "type": "multiple-choice",
-      "question": "[Extending] Tap on, rinse, soap. Which two are swapped?",
-      "options": [
-        {
-          "id": "a",
-          "text": "Rinse and soap"
-        },
-        {
-          "id": "b",
-          "text": "Tap on and rinse"
-        },
-        {
-          "id": "c",
-          "text": "Tap on and soap"
-        },
-        {
-          "id": "d",
-          "text": "None"
-        }
-      ],
-      "correctAnswer": "a",
-      "points": 1
     }
   ]
 };
