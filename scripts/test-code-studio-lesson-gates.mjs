@@ -127,3 +127,14 @@ assert.equal(isLessonSpecConsistent({ ...spec, steps: { ...spec.steps, think: { 
 assert.equal(isLessonSpecConsistent({ ...spec, steps: { ...spec.steps, code: { ...spec.steps.code, exercise: { ...orderingExercise, expectedOrder: ["wake-up", "wake-up", "eat-breakfast"] } } } }, activity), false, "Invalid embedded exercise contracts must block a lesson.");
 assert.equal(isLessonSpecConsistent(spec, { ...activity, coreParts: "Move + Build + Code" }), false, "A required Build step cannot be labelled optional.");
 console.log("Lesson consistency gate checks passed: malformed content, accessibility regressions, invalid exercises, and Build/core-part mismatches are rejected.");
+
+// Book-first rules: a step the book lacks, and the book pages every other step follows.
+assert.equal(spec.steps.build.inBook, false, "The Week 1 book lesson has no Build stage.");
+assert.equal(isLessonSpecConsistent({ ...spec, steps: { ...spec.steps, think: { ...spec.steps.think, inBook: false } } }, activity), false, "Only an optional Build step may be left out.");
+assert.equal(isLessonSpecConsistent({ ...spec, steps: { ...spec.steps, build: { ...spec.steps.build, exercise: orderingExercise } } }, activity), false, "A step left out of the lesson cannot carry an exercise.");
+assert.equal(isLessonSpecConsistent(spec, { ...activity, coreParts: "Move + Build + Code" }), false);
+assert.equal(isLessonSpecConsistent({ ...spec, steps: { ...spec.steps, move: { ...spec.steps.move, sources: [] } } }, activity), false, "A step the book contains must name its pages.");
+assert.equal(isLessonSpecConsistent({ ...spec, steps: { ...spec.steps, move: { ...spec.steps.move, sources: [{ book: "activity-book", page: 0 }] } } }, activity), false, "Pages are positive whole numbers.");
+assert.equal(isLessonSpecConsistent({ ...spec, bookSource: { activityBookLessonId: " ", teacherGuideLessonId: "x" } }, activity), false, "Book lesson ids cannot be blank.");
+assert.ok(spec.bookSource, "A reviewed lesson names the approved book lessons it is developed from.");
+console.log("Book-first checks passed: omitted Build, page references, and book lesson ids.");

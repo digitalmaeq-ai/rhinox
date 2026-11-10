@@ -58,7 +58,9 @@ export default function LearningHome({
   const [stage, setStage] = useState<Stage>(focused ? "lesson" : "home");
   const [stepIndex, setStepIndex] = useState(0);
   const [done, setDone] = useState(false);
-  const step = STEPS[stepIndex];
+  // Only the stages the approved book lesson contains are shown (a reviewed lesson may leave out Build).
+  const steps = STEPS.filter((item) => getLessonSpec(activity.id)?.steps[item.key]?.inBook !== false);
+  const step = steps[Math.min(stepIndex, steps.length - 1)];
 
   function startLesson(activityId?: string) {
     const requestedActivity = activityId
@@ -72,11 +74,11 @@ export default function LearningHome({
   }
 
   function nextStep() {
-    if (stepIndex === STEPS.length - 1) {
+    if (stepIndex === steps.length - 1) {
       setDone(true);
       return;
     }
-    setStepIndex((current) => Math.min(current + 1, STEPS.length - 1));
+    setStepIndex((current) => Math.min(current + 1, steps.length - 1));
   }
 
   function backStep() {
@@ -172,6 +174,7 @@ export default function LearningHome({
         ) : (
           <LessonView
             activity={activity}
+            steps={steps}
             stepIndex={stepIndex}
             stepKey={step.key}
             stepTitle={step.title}
@@ -192,9 +195,10 @@ export default function LearningHome({
 }
 
 function LessonView({
-  activity, stepIndex, stepKey, stepTitle, stepIcon, done, onBack, onNext, onExit, inWeek, content,
+  activity, steps, stepIndex, stepKey, stepTitle, stepIcon, done, onBack, onNext, onExit, inWeek, content,
 }: {
   activity: CurriculumActivity;
+  steps: readonly (typeof STEPS)[number][];
   stepIndex: number;
   stepKey: StepKey;
   stepTitle: string;
@@ -289,7 +293,7 @@ function LessonView({
         <span>{activity.level} · Term {activity.term} · Week {activity.week}</span>
       </div>
       <div className={styles.lessonProgress}>
-        {STEPS.map((item, index) => <div key={item.key} className={styles.progressStep} data-active={index === stepIndex} data-done={index < stepIndex || done} aria-current={index === stepIndex ? "step" : undefined}><span>{index < stepIndex || done ? "✓" : index + 1}</span><small>{item.label}</small></div>)}
+        {steps.map((item, index) => <div key={item.key} className={styles.progressStep} data-active={index === stepIndex} data-done={index < stepIndex || done} aria-current={index === stepIndex ? "step" : undefined}><span>{index < stepIndex || done ? "✓" : index + 1}</span><small>{item.label}</small></div>)}
       </div>
       {done ? (
         <div className={styles.completion}>
@@ -327,7 +331,7 @@ function LessonView({
             <div className={styles.sidebarBadge}>Core activity</div>
           </aside>
           <article className={styles.lessonMain}>
-            <div className={styles.lessonTitleRow}><span className={styles.bigStepIcon}>{stepIcon}</span><div><span className={styles.eyebrow}>STEP {stepIndex + 1} OF {STEPS.length}</span><h1>{stepTitle}</h1></div></div>
+            <div className={styles.lessonTitleRow}><span className={styles.bigStepIcon}>{stepIcon}</span><div><span className={styles.eyebrow}>STEP {stepIndex + 1} OF {steps.length}</span><h1>{stepTitle}</h1></div></div>
             <p className={styles.instruction}>{content}</p>
             {lessonSpec?.steps[stepKey] && <p className={styles.instruction}><strong>Your task:</strong> {lessonSpec.steps[stepKey].task}</p>}
 
@@ -395,8 +399,8 @@ function LessonView({
               </>
             )}
 
-            {stepKey === "think" && <div className={styles.exampleStrip}><span>☀️</span><span>Wake up</span><b>→</b><span>🪥</span><span>Brush teeth</span><b>→</b><span>🥣</span><span>Eat breakfast</span></div>}
-            {stepKey === "move" && <div className={styles.moveChallenge}><span>👏</span><b>Clap</b><span>→</span><span>👣</span><b>Stamp</b><span>→</span><span>🔄</span><b>Turn</b><p>Ask a grown-up or classmate to call the steps. Follow them in order, then swap and make a new order.</p><button className={styles.secondaryButton} type="button" onClick={() => setMovePracticed(true)} aria-pressed={movePracticed}>{movePracticed ? "✓ I tried the movement challenge" : "I tried the movement challenge"}</button></div>}
+            {stepKey === "think" && <div className={styles.exampleStrip}><span>☀️</span><span>Ayo wakes up</span><b>→</b><span>🪥</span><span>Ayo brushes his teeth</span><b>→</b><span>🥣</span><span>Ayo eats breakfast</span></div>}
+            {stepKey === "move" && <div className={styles.moveChallenge}><span>👏</span><b>Clap</b><span>→</span><span>👣</span><b>Stamp</b><span>→</span><span>🔄</span><b>Turn</b><p>Ask a grown-up or classmate to call the steps. Follow them in order. Then try a new order: turn, clap, stamp.</p><button className={styles.secondaryButton} type="button" onClick={() => setMovePracticed(true)} aria-pressed={movePracticed}>{movePracticed ? "✓ I tried the movement challenge" : "I tried the movement challenge"}</button></div>}
             {stepKey === "build" && (
               <div className={styles.buildPanel}>
                 <div className={styles.buildPanelHeading}><span>🛠️</span><div><strong>Make your idea real</strong><p>{activity.practicalActivity}</p></div></div>
@@ -414,15 +418,15 @@ function LessonView({
               </div>
             )}
 
-            {stepKey === "create" && <div className={styles.createPrompt}><span>🎨</span><div><strong>Your turn to create</strong><p>Draw three things you do every day. Number them 1, 2 and 3 to show the order.</p><small>Core task: complete the three-step drawing. Stretch: add a fourth step.</small><p><button className={styles.secondaryButton} type="button" onClick={() => setCreationCompleted((value) => !value)} aria-pressed={creationCompleted}>{creationCompleted ? "✓ I completed my three-step drawing" : "I completed my three-step drawing"}</button></p></div></div>}
+            {stepKey === "create" && <div className={styles.createPrompt}><span>🎨</span><div><strong>Your turn to create</strong><p>Draw 3 steps of something you do every day. Number them 1, 2 and 3: first, next, last.</p><small>Can’t draw yet? Act it or tell it, and a grown-up draws it.</small><p><button className={styles.secondaryButton} type="button" onClick={() => setCreationCompleted((value) => !value)} aria-pressed={creationCompleted}>{creationCompleted ? "✓ I completed my three-step drawing" : "I completed my three-step drawing"}</button></p></div></div>}
 
             {stepKey !== "check" && <button className={styles.hintButton} onClick={() => setShowHint((shown) => !shown)}>{showHint ? "Hide hint" : "Need a hint?"}</button>}
             {showHint && <div className={styles.hintBox}><strong>RhinoBot’s hint</strong><p>{lessonSpec?.steps[stepKey].hint ?? "Choose one small step and try again."}</p></div>}
 
             <div className={styles.lessonControls}>
               <button className={styles.secondaryButton} onClick={onBack} disabled={stepIndex === 0}>← Back</button>
-              <span>{stepIndex + 1} / {STEPS.length}</span>
-              <button className={styles.primaryButton} onClick={onNext} disabled={!canContinue}>{stepIndex === STEPS.length - 1 ? "Finish activity" : stepKey === "build" && !buildRequired ? "Skip optional build →" : "Next step →"}</button>
+              <span>{stepIndex + 1} / {steps.length}</span>
+              <button className={styles.primaryButton} onClick={onNext} disabled={!canContinue}>{stepIndex === steps.length - 1 ? "Finish activity" : stepKey === "build" && !buildRequired ? "Skip optional build →" : "Next step →"}</button>
             </div>
             {!canContinue && <p className={styles.coreNote}>Complete this step’s task before moving on. Your progress is only for this session and is not saved to an account yet.</p>}
             <p className={styles.coreNote}>Core: {activity.coreParts} · Optional Stretch: {activity.stretch}</p>
