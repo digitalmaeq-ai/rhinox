@@ -1,6 +1,6 @@
 # TMC Book-First Content Registry and v3.16 Curriculum Reference
 
-**Status:** Registry foundation, Nursery 1 structure seed and Stage 6 resource relationships are in place. Nothing is served to learners yet.
+**Status:** Registry foundation, Nursery 1 structure seed, page-level index (Stage 3) and resource relationships (Stage 6) are in place. Nothing is served to learners yet.
 **Repository:** `digitalmaeq-ai/rhinox`
 **Branch:** `feature/tmc-v3-16-content-registry` (draft PR #66, not to be merged without owner approval)
 
@@ -144,6 +144,21 @@ Important limits:
 
 Validation rules enforced by `validateBookRegistry` (all covered by tests): unique IDs; lessons belong to a real book of the same level; valid, non-overlapping page ranges inside the book; a lesson is never ahead of its book and is never approved while structure-only; a book is never published or approved unless verified; resources point at a real book lesson with matching level, term and week; enrichment is labelled; unverified resources are never published; answer-bearing resource types are never public; legacy IDs are never relabelled v3.16.
 
+### Page-level index (Stage 3)
+
+The registry now records every printed page of both Nursery 1 books (110 Activity Book pages, 84 Teacher Guide pages). Each page belongs to exactly one unit and has one structural role. No book wording is stored: only the page number, its unit, its role, and a short label on the four Activity Book front-matter pages.
+
+| Book | Roles |
+|---|---|
+| Activity Book | front matter (4), term openers (3), Think & Move (29), Think & Code (1: Term 1 Week 5), Code it! (33), Draw it! (33), My stars (3), badge pages (4) |
+| Teacher Guide | front matter (6), term overviews (3), lesson plan (36), check and support (33), station check (3), showcase (3) |
+
+- A normal Activity Book week is Think & Move, Code it!, Draw it!. Week 10 is Code it! and Draw it!, Week 12 is My stars, and Week 13 is the badge page (Term 3 also has the Year badge page).
+- A normal Teacher Guide week is a lesson plan page and a check and support page. Week 12's second page is the station check, and Week 13 is one showcase page.
+- When the index was built, each Activity Book role was compared with the tag printed on the real page: 97 pages matched with no mismatch, and the rest (front matter, openers, badges, and pages 80 and 103) were checked by eye.
+- The validator rejects duplicate pages, pages outside the book or outside their unit, roles that do not fit the book type or unit kind, and labels on non-front-matter pages. With `requirePageIndex` every page must be indexed (the seed test turns this on). `pagesForLesson` and `findPage` look pages up.
+- Use: a digital activity can now name its book, lesson and exact page. The page index does not say what is on the page, only where it is and what kind of page it is.
+
 ### Digital resource relationships (Stage 6)
 
 Every Nursery 1 resource is now linked to the exact book lesson it follows, so the registry can answer "what goes with this lesson?" and "which book page is this resource for?".
@@ -235,14 +250,13 @@ Stretch activities never block core completion.
 - The v3.16_4 workbook and the corrected manuscript are not yet supplied to this work.
 - No Nursery 1 book is approved yet. Approval is the owner's decision.
 - Existing v3.15 lessons are unresolved legacy mappings until checked against the book.
-- Page-level indexes for the Nursery 1 books are not built yet (Stage 3).
 - Access classification of previously published Nursery 1 support files is pending an owner decision and is outside this stage.
 
 ## 12. Stage plan
 
 1. Audit (done).
 2. Architecture, types and documentation (this change).
-3. Resource inventory and page-level Nursery 1 index.
+3. Resource inventory and page-level Nursery 1 index (done for Nursery 1).
 4. Curriculum reference importer and tests (done).
 5. Book Registry implementation (done for Nursery 1: structure only).
 6. Digital resource relationships (done for Nursery 1).

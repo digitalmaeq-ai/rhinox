@@ -514,10 +514,35 @@ export interface TmcCurriculumReferenceManifest {
   };
 }
 
+/**
+ * What a page is for, in the book's own structure. Roles are structural labels only; no book
+ * wording is stored. Activity Book weeks run Think & Move, Code it!, Draw it!; Teacher Guide weeks
+ * run lesson plan, then check and support.
+ */
+export type TmcPageRole =
+  // Activity Book
+  | "front-matter" | "term-opener" | "think-move" | "think-code" | "code-it" | "draw-it" | "my-stars" | "badge"
+  // Teacher Guide
+  | "term-overview" | "lesson-plan" | "check-support" | "station-check" | "showcase";
+
+/** One page of one book edition, owned by exactly one unit (lesson). Page numbers are the printed page numbers. */
+export interface TmcBookPage {
+  bookId: string;
+  /** 1-based page number in the book file. */
+  pageNumber: number;
+  /** The unit (TmcBookLesson.lessonId) this page belongs to. */
+  lessonId: string;
+  role: TmcPageRole;
+  /** Short structural label for front-matter pages only (for example "Contents"). Never book prose. */
+  label?: string;
+}
+
 /** The whole registry, loaded server-side. Never sent to client components. */
 export interface TmcBookRegistry {
   books: TmcBook[];
   lessons: TmcBookLesson[];
+  /** Page-level index (Stage 3). Optional so older registries still validate. */
+  pages?: TmcBookPage[];
   resources: TmcLearningResource[];
   relationships: TmcRelationship[];
   legacyMappings: TmcLegacyLessonMapping[];
