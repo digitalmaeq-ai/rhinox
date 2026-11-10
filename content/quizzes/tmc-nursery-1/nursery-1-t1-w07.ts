@@ -191,7 +191,7 @@ export const nursery1T1W07Quiz: QuizContent = {
       "options": [
         {
           "id": "a",
-          "text": "Hide them"
+          "text": "Swap them back"
         },
         {
           "id": "b",
@@ -203,10 +203,10 @@ export const nursery1T1W07Quiz: QuizContent = {
         },
         {
           "id": "d",
-          "text": "Swap them back"
+          "text": "Hide them"
         }
       ],
-      "correctAnswer": "d",
+      "correctAnswer": "a",
       "points": 1
     },
     {
@@ -266,7 +266,7 @@ export const nursery1T1W07Quiz: QuizContent = {
       "options": [
         {
           "id": "a",
-          "text": "Last"
+          "text": "First"
         },
         {
           "id": "b",
@@ -278,10 +278,10 @@ export const nursery1T1W07Quiz: QuizContent = {
         },
         {
           "id": "d",
-          "text": "First"
+          "text": "Last"
         }
       ],
-      "correctAnswer": "d",
+      "correctAnswer": "a",
       "points": 1
     },
     {

@@ -224,14 +224,14 @@ export const nursery1T1W06Quiz: QuizContent = {
         },
         {
           "id": "c",
-          "text": "Wrong"
+          "text": "The same"
         },
         {
           "id": "d",
-          "text": "The same"
+          "text": "Wrong"
         }
       ],
-      "correctAnswer": "d",
+      "correctAnswer": "c",
       "points": 1
     },
     {
@@ -249,14 +249,14 @@ export const nursery1T1W06Quiz: QuizContent = {
         },
         {
           "id": "c",
-          "text": "Wave"
+          "text": "Hold up 3 fingers"
         },
         {
           "id": "d",
-          "text": "Hold up 3 fingers"
+          "text": "Wave"
         }
       ],
-      "correctAnswer": "d",
+      "correctAnswer": "c",
       "points": 1
     },
     {

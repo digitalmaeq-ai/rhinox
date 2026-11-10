@@ -66,7 +66,7 @@ export const nursery1T2W04Quiz: QuizContent = {
       "options": [
         {
           "id": "a",
-          "text": "Star"
+          "text": "Circle"
         },
         {
           "id": "b",
@@ -74,14 +74,14 @@ export const nursery1T2W04Quiz: QuizContent = {
         },
         {
           "id": "c",
-          "text": "Circle"
+          "text": "Star"
         },
         {
           "id": "d",
           "text": "Square"
         }
       ],
-      "correctAnswer": "c",
+      "correctAnswer": "a",
       "points": 1
     },
     {
@@ -124,14 +124,14 @@ export const nursery1T2W04Quiz: QuizContent = {
         },
         {
           "id": "c",
-          "text": "Triangle"
+          "text": "Circle"
         },
         {
           "id": "d",
-          "text": "Circle"
+          "text": "Triangle"
         }
       ],
-      "correctAnswer": "c",
+      "correctAnswer": "d",
       "points": 1
     },
     {

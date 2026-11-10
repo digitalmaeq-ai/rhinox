@@ -70,7 +70,7 @@ export const nursery1T2W07Quiz: QuizContent = {
         },
         {
           "id": "b",
-          "text": "Red"
+          "text": "Green"
         },
         {
           "id": "c",
@@ -78,10 +78,10 @@ export const nursery1T2W07Quiz: QuizContent = {
         },
         {
           "id": "d",
-          "text": "Green"
+          "text": "Red"
         }
       ],
-      "correctAnswer": "b",
+      "correctAnswer": "d",
       "points": 1
     },
     {
@@ -91,11 +91,11 @@ export const nursery1T2W07Quiz: QuizContent = {
       "options": [
         {
           "id": "a",
-          "text": "Clap"
+          "text": "Jump"
         },
         {
           "id": "b",
-          "text": "Jump"
+          "text": "Clap"
         },
         {
           "id": "c",
@@ -106,7 +106,7 @@ export const nursery1T2W07Quiz: QuizContent = {
           "text": "Sit"
         }
       ],
-      "correctAnswer": "b",
+      "correctAnswer": "a",
       "points": 1
     },
     {
@@ -120,7 +120,7 @@ export const nursery1T2W07Quiz: QuizContent = {
         },
         {
           "id": "b",
-          "text": "Stamp"
+          "text": "Wave"
         },
         {
           "id": "c",
@@ -128,10 +128,10 @@ export const nursery1T2W07Quiz: QuizContent = {
         },
         {
           "id": "d",
-          "text": "Wave"
+          "text": "Stamp"
         }
       ],
-      "correctAnswer": "b",
+      "correctAnswer": "d",
       "points": 1
     },
     {
@@ -166,11 +166,11 @@ export const nursery1T2W07Quiz: QuizContent = {
       "options": [
         {
           "id": "a",
-          "text": "Last"
+          "text": "Repeat"
         },
         {
           "id": "b",
-          "text": "Repeat"
+          "text": "Last"
         },
         {
           "id": "c",
@@ -181,7 +181,7 @@ export const nursery1T2W07Quiz: QuizContent = {
           "text": "Stop"
         }
       ],
-      "correctAnswer": "b",
+      "correctAnswer": "a",
       "points": 1
     },
     {

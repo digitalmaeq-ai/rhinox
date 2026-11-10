@@ -70,18 +70,18 @@ export const nursery1T1W03Quiz: QuizContent = {
         },
         {
           "id": "b",
-          "text": "Dreaming"
+          "text": "Told"
         },
         {
           "id": "c",
-          "text": "Told"
+          "text": "Dreaming"
         },
         {
           "id": "d",
           "text": "Drawing"
         }
       ],
-      "correctAnswer": "c",
+      "correctAnswer": "b",
       "points": 1
     },
     {
@@ -95,18 +95,18 @@ export const nursery1T1W03Quiz: QuizContent = {
         },
         {
           "id": "b",
-          "text": "The clapping card"
+          "text": "The hand-up card"
         },
         {
           "id": "c",
-          "text": "The hand-up card"
+          "text": "The clapping card"
         },
         {
           "id": "d",
           "text": "The ball card"
         }
       ],
-      "correctAnswer": "c",
+      "correctAnswer": "b",
       "points": 1
     },
     {
