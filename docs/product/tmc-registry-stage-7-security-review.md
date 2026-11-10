@@ -1,7 +1,7 @@
 # TMC Registry: Stage 7 Security and Compatibility Review
 
 **Scope:** the book-first content registry (Stages 2 to 6, plus the page index), the Nursery 1 pack under `public/tmc/n1/`, the Code Studio V2 lesson for Term 1 Week 1, and how they meet the public site.
-**Date:** 10 November 2026. **Status:** review done, tests added. No access rule has been changed. Decisions below are for the project owner.
+**Date:** 10 November 2026. **Status:** review done, tests added. No access rule has been changed. F1 decided: option C (accept for now).
 
 ## 1. Result in one paragraph
 
@@ -11,7 +11,7 @@ The registry itself is safe: it runs on the server only, denies by default, read
 
 | # | Finding | Level | Status |
 |---|---|---|---|
-| F1 | 242 restricted files are publicly downloadable and linked from public week pages: 39 lesson plans, 39 project sheets, 39 review sheets, 80 question banks (with answers), 45 printable card files and sticker sheets. `robots.ts` allows crawling. The sitemap does not list the files. | High | Open. Owner decision needed (section 3). |
+| F1 | 242 restricted files are publicly downloadable and linked from public week pages: 39 lesson plans, 39 project sheets, 39 review sheets, 80 question banks (with answers), 45 printable card files and sticker sheets. `robots.ts` allows crawling. The sitemap does not list the files. | High | Decided 10 Nov 2026: option C, accept for now (section 3). Revisit when a teacher sign-in exists. |
 | F2 | Quiz pages ship each quiz's correct answers to the browser (`correctAnswer` in the quiz content). The same questions with answers are in the teacher-only question banks. | Low | Accepted for learner quizzes. Note only. |
 | F3 | The Code Studio V2 page still has Term 1 Week 1 wording written into the page code (the picture strips, and a RhinoBot line that is not from the book). It is correct for this one lesson. A second lesson would show the wrong strips. | Medium | Open. Make the page read everything from the lesson spec before a second lesson is added. |
 | F4 | Learner progress is kept in the browser for the session only, and the page says so. There is no stored data about children. | Info | Good. Any stored progress for children aged 3 to 4 needs a privacy and consent design first (Nigeria's data protection law treats children's data with extra care; have it reviewed by someone qualified). |
@@ -31,6 +31,8 @@ The books themselves (Activity Book, Teacher Guide) are not in the repository or
 | C. Accept for now | Nothing changes. | The question banks with answers stay open to anyone with the link. |
 
 Recommendation: C or B now, A when a teacher sign-in exists. This review did not change any access rule.
+
+**Decision (10 November 2026, project owner): option C.** Nothing changes for now. The access debt stays recorded in the registry and the exact inventory (242 files) is guarded by a test, so any new restricted file or type must be a conscious decision. Revisit when a teacher sign-in is planned.
 
 ## 4. Compatibility checked
 
