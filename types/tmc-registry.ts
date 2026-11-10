@@ -230,64 +230,58 @@ export interface TmcBookLessonRef {
  */
 export interface TmcCurriculumReference {
   id: string;
-  curriculumVersion: TmcCurriculumVersion;
+  curriculumVersion: string;
   /** Marker so tooling can refuse to treat these as instructional records. */
   role: "reference-only";
   level: TmcLevel;
-  stage: TmcStage;
+  /** From the Level & Term Map sheet. Not a Master Matrix column, so the matrix importer leaves it unset. */
+  stage?: TmcStage;
   term: TmcTerm;
   week: TmcWeek;
-  weekType: string;
-  theme: string;
-  focus: string;
-  termBigIdea?: string;
+  weekType: string | null;
+  theme: string | null;
+  focus: string | null;
+  termBigIdea: string | null;
   mainStrand: TmcStrand | null;
-  currentConcept?: string;
-  alignmentSummary?: string;
-  visualRequirements?: string;
-  qrLearningHubLink?: string;
-  teacherVideosRequired?: string;
-  videoType?: string;
-  videoStatus?: string;
-  chapterGateAuto?: string;
-  cognitiveDemand?: string;
-  independenceLevel?: string;
+  currentConcept: string | null;
+  alignmentSummary: string | null;
+  visualRequirements: string | null;
+  qrLearningHubLink: string | null;
+  teacherVideosRequired: string | null;
+  videoType: string | null;
+  videoStatus: string | null;
+  chapterGateAuto: string | null;
+  cognitiveDemand: string | null;
+  independenceLevel: string | null;
   /** Curriculum intent per stage (Think/Move/Code/Build/Create). Intent only, not lesson text. */
   learningCycle: Partial<Record<TmcLearningStage, string>>;
-  practicalActivity: string;
-  weeklyCheck: string;
-  masteryTarget: string;
-  priorLearning: string;
-  futureBridge: string;
-  competency: string;
+  practicalActivity: string | null;
+  weeklyCheck: string | null;
+  masteryTarget: string | null;
+  priorLearning: string | null;
+  futureBridge: string | null;
+  competency: string | null;
+  /** Source list split on commas and semicolons. The original text is in rawSourceFields. */
   keyVocabulary: string[];
-  assessmentEvidence: string;
+  assessmentEvidence: string | null;
   alignment: {
-    summary?: string;
-    nerdc?: string;
-    lagosState?: string;
-    federal?: string;
-    international?: string;
-    teachingMethod?: string;
+    summary: string | null;
+    nerdc: string | null;
+    lagosState: string | null;
+    federal: string | null;
+    international: string | null;
+    teachingMethod: string | null;
   };
   implementation: {
-    platform: string;
-    platforms: TmcPlatform[];
+    platform: string | null;
+    /** Stage words found in the free-text "Core parts this week (must do)" column. */
     coreParts: TmcLearningStage[];
-    stretch?: string;
-    fallback: string;
-    kitRequirements?: string[];
-    safetyNotes?: string[];
+    stretch: string | null;
+    fallback: string | null;
   };
-  robotMakerLabChallenge?: string;
-  videoRequirements?: {
-    required: boolean;
-    types?: string[];
-    status?: string;
-  };
-  chapterGate?: string;
-  sourceStatus?: string;
-  sourceNotes?: string;
+  robotMakerLabChallenge: string | null;
+  sourceStatus: string | null;
+  sourceNotes: string | null;
   /** Lossless copy of every original Master Matrix column and value (43-column source row). */
   rawSourceFields: Record<string, string | null>;
   sourceValidationIssues: string[];
@@ -478,16 +472,18 @@ export interface TmcClubModule {
 export interface TmcCurriculumReferenceManifest {
   registryId: "rhinox-tmc-curriculum-reference";
   schemaVersion: string;
-  curriculumVersion: TmcCurriculumVersion;
+  curriculumVersion: string;
   sourceWorkbook: {
-    filename: string;
-    sha256: string;
+    /** Null when the workbook file was not supplied to the importer. */
+    filename: string | null;
+    sha256: string | null;
     masterMatrixRows: number;
     expectedLevels: number;
     expectedTermsPerLevel: number;
     expectedWeeksPerTerm: number;
-    importedAt?: string;
   };
+  sourceCsv: { filename: string | null; sha256: string; columns: number };
+  importedAt: string;
   counts: {
     records: number;
     levels: number;
@@ -497,9 +493,9 @@ export interface TmcCurriculumReferenceManifest {
     passed: boolean;
     errors: string[];
     warnings: string[];
+    /** Source problems reported and deliberately NOT corrected. */
     unresolvedSourceIssues: string[];
   };
-  generatedAt: string;
 }
 
 export interface TmcBookRegistryManifest {

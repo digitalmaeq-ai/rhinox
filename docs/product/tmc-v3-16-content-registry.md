@@ -145,9 +145,31 @@ Teacher-only and answer-key material is classified `teacher-only` and must not b
 
 The Club Edition is a separate programme. Its modules use their own ID namespace (`tmc-club-{module-slug}`), may reference approved book lessons and curriculum references, and are never mixed with book lesson IDs or the 507 school curriculum references.
 
-## 9. Import and validation (planned, later stages)
+## 9. Curriculum reference importer
 
-The curriculum reference importer will: accept the 43 real headers; keep every original value in `rawSourceFields`; keep blanks as null; generate IDs `tmc-v3-16-{level-slug}-t{term}-w{week}`; write one JSON per level plus a combined catalogue and a source-hash manifest; record source row numbers; and report validation issues without correcting them. Validations: 507 records, 13 levels, 39 per level, 3 terms, 13 weeks per term, no duplicates, no missing weeks. Generated output goes to private storage only. Commands will be documented here when the importer exists.
+Files: `scripts/lib/tmc-curriculum-reference.mjs` (pure logic), `scripts/import-tmc-curriculum-reference.mjs` (command line), `scripts/test-tmc-curriculum-reference-import.mjs` (tests, synthetic data only).
+
+It reads the Master Matrix as CSV (no new dependency; export the sheet as UTF-8 CSV) and writes a **reference** catalogue. It does not read the book registry and produces no lesson content.
+
+```
+node scripts/import-tmc-curriculum-reference.mjs <master-matrix.csv> \
+  --workbook <Think-Move-Code-Master-Curriculum-v3.16_4.xlsx> \
+  [--out <dir>] [--version 3.16] [--dry-run]
+```
+
+Output (default `.private-data/tmc-curriculum-reference/v3.16/`, gitignored): `catalogue.json` (all records), `levels/<level>.json` (one per level), `manifest.json` (version, filenames, SHA-256 of the CSV and of the workbook if given, import date, counts, validation) and `source-issues.json`.
+
+Behaviour:
+- The 43 Master Matrix headers are an exact contract. A missing, extra, renamed or duplicate header fails the import.
+- IDs are `tmc-v3-16-{level-slug}-t{term}-w{week}`. Every original column is kept in `rawSourceFields` and blank values stay `null`. Each record carries its source row number (header is row 1).
+- Validation (errors fail the import and nothing is written): exactly 507 records, 13 levels, 39 per level, terms 1 to 3, weeks 1 to 13, no duplicates, no missing weeks, valid level, term and week.
+- Source issues (reported, never corrected, do not fail the import): a core part of Build or Create whose column is blank. Blank strand, Build, Create and alignment fields are otherwise legitimate.
+- Output inside the repository is refused unless it is under `.private-data/`.
+- A workbook hash is recorded only if the workbook file is supplied; otherwise a warning is recorded and the hash is left `null`.
+
+Run the tests: `node scripts/test-tmc-curriculum-reference-import.mjs` (also runs in CI).
+
+Import is not approval to publish. The catalogue stays private and server-side.
 
 ## 10. Publication gate
 
@@ -169,14 +191,13 @@ Stretch activities never block core completion.
 - Existing v3.15 lessons are unresolved legacy mappings until checked against the book.
 - Page-level indexes for the Nursery 1 books are not built yet (Stage 3).
 - Access classification of previously published Nursery 1 support files is pending an owner decision and is outside this stage.
-- CI path filters do not yet cover registry tests; they will be extended when tests are added.
 
 ## 12. Stage plan
 
 1. Audit (done).
 2. Architecture, types and documentation (this change).
 3. Resource inventory and page-level Nursery 1 index.
-4. Curriculum reference importer and tests.
+4. Curriculum reference importer and tests (done).
 5. Book Registry implementation.
 6. Digital resource relationships.
 7. Security and compatibility review.
