@@ -416,7 +416,7 @@ export interface TmcLearningResource extends TmcDerivedBase {
   resourceType:
     | "lesson-plan" | "teacher-parent-guide" | "printable" | "project-sheet"
     | "question-bank" | "review-sheet" | "qr-code" | "learning-hub-page"
-    | "video" | "transcript" | "worksheet" | "game"
+    | "video" | "transcript" | "worksheet" | "game" | "quiz" | "interactive-lesson"
     | "illustration" | "diagram" | "badge" | "certificate";
   uri?: string;
   pageStart?: number;
