@@ -49,6 +49,8 @@ export interface RegistryValidation {
 export interface ValidateOptions {
   /** Require every page of a book with a known page count to belong to exactly one unit. */
   requireFullPageCoverage?: boolean;
+  /** Require every resource to be linked to its source lesson by at least one relationship (Stage 6). */
+  requireResourceRelationships?: boolean;
 }
 
 const rank = (status: TmcBookStatus): number => BOOK_STATUS_ORDER.indexOf(status);
@@ -65,6 +67,9 @@ function findDuplicates(ids: readonly string[]): string[] {
   for (const id of ids) (seen.has(id) ? duplicates : seen).add(id);
   return [...duplicates];
 }
+
+/** Resource types that may assess a lesson. */
+export const ASSESSING_RESOURCE_TYPES: readonly TmcLearningResource["resourceType"][] = ["quiz", "question-bank", "review-sheet"];
 
 /** Resources still served from a public path although their access level says otherwise. */
 export function findAccessDebt(resources: readonly TmcLearningResource[]): TmcLearningResource[] {
@@ -212,6 +217,53 @@ export function validateBookRegistry(registry: TmcBookRegistry, options: Validat
   for (const edge of relationships) {
     if (!knownIds.has(edge.fromId)) errors.push(`Relationship ${edge.relation}: unknown from id ${edge.fromId}.`);
     if (!knownIds.has(edge.toId)) errors.push(`Relationship ${edge.relation}: unknown to id ${edge.toId}.`);
+  }
+  const resourceById = indexBy(resources, (resource) => resource.id);
+  const seenEdges = new Set<string>();
+  const linkedResourceIds = new Set<string>();
+  const placeOf = (id: string) => {
+    const lesson = lessonById.get(id);
+    if (lesson) return { level: lesson.level, term: lesson.term, week: lesson.week, weekly: lesson.unitKind === "week" };
+    const resource = resourceById.get(id);
+    if (resource) return { level: resource.level, term: resource.term, week: resource.week, weekly: resource.week !== undefined };
+    return undefined;
+  };
+  for (const edge of relationships) {
+    const label = `Relationship ${edge.relation} ${edge.fromId} -> ${edge.toId}`;
+    if (edge.fromId === edge.toId) errors.push(`${label}: connects an item to itself.`);
+    const key = `${edge.fromId}|${edge.toId}|${edge.relation}`;
+    if (seenEdges.has(key)) errors.push(`${label}: is listed twice.`);
+    seenEdges.add(key);
+    if (resourceById.has(edge.fromId)) linkedResourceIds.add(edge.fromId);
+    if (resourceById.has(edge.toId)) linkedResourceIds.add(edge.toId);
+    const from = placeOf(edge.fromId);
+    const to = placeOf(edge.toId);
+    if (from && to) {
+      if (from.level !== to.level) errors.push(`${label}: connects different levels.`);
+      if (from.weekly && to.weekly && (from.term !== to.term || from.week !== to.week)) {
+        errors.push(`${label}: connects different weeks.`);
+      }
+    }
+    if (edge.relation === "assesses") {
+      const source = resourceById.get(edge.fromId);
+      if (!source || !ASSESSING_RESOURCE_TYPES.includes(source.resourceType)) {
+        errors.push(`${label}: only a quiz, question bank or review sheet can assess a lesson.`);
+      }
+    }
+  }
+  for (const lesson of lessons) {
+    for (const id of lesson.relatedDigitalResourceIds) {
+      const related = resourceById.get(id);
+      if (!related) errors.push(`Lesson ${lesson.lessonId}: lists unknown digital resource ${id}.`);
+      else if (related.source.lessonId !== lesson.lessonId) {
+        errors.push(`Lesson ${lesson.lessonId}: lists ${id}, whose source is a different lesson.`);
+      }
+    }
+  }
+  const unlinked = resources.filter((resource) => !linkedResourceIds.has(resource.id));
+  if (unlinked.length > 0) {
+    const message = `${unlinked.length} resource(s) have no relationship to a lesson (${unlinked.slice(0, 5).map((r) => r.id).join(", ")}${unlinked.length > 5 ? ", ..." : ""}).`;
+    (options.requireResourceRelationships ? errors : warnings).push(message);
   }
 
   /* ---- legacy mappings ---- */

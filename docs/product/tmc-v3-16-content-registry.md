@@ -1,6 +1,6 @@
 # TMC Book-First Content Registry and v3.16 Curriculum Reference
 
-**Status:** Stage 2 architecture baseline. Types and documentation only. No importer, no data and no runtime change yet.
+**Status:** Registry foundation, Nursery 1 structure seed and Stage 6 resource relationships are in place. Nothing is served to learners yet.
 **Repository:** `digitalmaeq-ai/rhinox`
 **Branch:** `feature/tmc-v3-16-content-registry` (draft PR #66, not to be merged without owner approval)
 
@@ -144,6 +144,24 @@ Important limits:
 
 Validation rules enforced by `validateBookRegistry` (all covered by tests): unique IDs; lessons belong to a real book of the same level; valid, non-overlapping page ranges inside the book; a lesson is never ahead of its book and is never approved while structure-only; a book is never published or approved unless verified; resources point at a real book lesson with matching level, term and week; enrichment is labelled; unverified resources are never published; answer-bearing resource types are never public; legacy IDs are never relabelled v3.16.
 
+### Digital resource relationships (Stage 6)
+
+Every Nursery 1 resource is now linked to the exact book lesson it follows, so the registry can answer "what goes with this lesson?" and "which book page is this resource for?".
+
+| Resource | Link to its lesson | Origin |
+|---|---|---|
+| Lesson plan, Teacher-Parent Guide, project sheet, printable cards, QR code, badges, stickers, website week page | `supports` | book |
+| Review sheet, question bank | `assesses` | book |
+| Read-aloud quiz (one per week) | `assesses` the Teacher Guide week, and `references` that week's question bank | enrichment |
+| Games, interactive RhinoBot lesson (Term 1 Week 1 only), term bonus videos | `extends` | enrichment |
+
+Also linked: weekly cards are `part-of` their term card pack, and weekly Excel question banks are `part-of` the all-weeks bank.
+
+- Website pages and quizzes are recorded as routes (`servedFromPublicPath: false`), so they are never counted as access debt. They are all `public` today. A restricted resource must never be added as a route.
+- The three term bonus videos are `planned` and have no address until a YouTube id is added in `lib/tmc/videos.ts`.
+- All of them stay `draft` until a person compares them with the final books.
+- The validator rejects links that point to themselves, repeat, connect different levels or weeks, or use `assesses` from anything other than a quiz, question bank or review sheet. The seed test requires every resource to have a link. Tests also check the quiz files and the interactive-lesson weeks against the website.
+
 ### Access classes for Nursery 1 support files (decided)
 
 | Class | Files | Audience |
@@ -227,6 +245,6 @@ Stretch activities never block core completion.
 3. Resource inventory and page-level Nursery 1 index.
 4. Curriculum reference importer and tests (done).
 5. Book Registry implementation (done for Nursery 1: structure only).
-6. Digital resource relationships.
+6. Digital resource relationships (done for Nursery 1).
 7. Security and compatibility review.
 8. Verification (tests, typecheck, lint, build).

@@ -223,6 +223,10 @@ const WEEK_GAMES: Array<{ file: string; slug: string; title: string }> = [
   { file: "matching-game.html", slug: "matching-game", title: "Matching game" },
   { file: "screen-game.html", slug: "screen-game", title: "Screen game" },
 ];
+/** Weeks that have a reviewed interactive lesson. A test checks this against lib/tmc/lessons.ts. */
+export const NURSERY_1_INTERACTIVE_LESSON_WEEKS: ReadonlyArray<readonly [number, number]> = [[1, 1]];
+const DIGITAL_NOTE =
+  "Website page or digital extra. Not yet compared with the final Activity Book and Teacher Guide, so it stays a draft until that check is done.";
 const UNREVIEWED_NOTE =
   "File exists in public/tmc/n1. Not yet compared with the final Activity Book and Teacher Guide, so it stays a draft until that check is done.";
 
@@ -231,12 +235,13 @@ function resource(
   title: string,
   resourceType: TmcLearningResource["resourceType"],
   source: { bookId: string; lessonId: string },
-  uri: string,
+  uri: string | undefined,
   access: TmcLearningResource["accessLevel"],
   audience: TmcLearningResource["audience"],
   origin: TmcLearningResource["origin"],
   term?: TmcTerm,
   week?: TmcWeek,
+  digital?: { availability: TmcLearningResource["availability"]; note: string },
 ): TmcLearningResource {
   return {
     id,
@@ -250,17 +255,18 @@ function resource(
     week,
     audience,
     accessLevel: access,
-    availability: "verified",
+    availability: digital?.availability ?? "verified",
     status: "draft",
     uri,
-    servedFromPublicPath: true,
+    // Website routes and planned items are not files under public/; only real files can be access debt.
+    servedFromPublicPath: digital ? false : true,
     provenance: [
       {
         sourceId: "tmc-n1-weekly-pack",
         sourceTitle: "Nursery 1 weekly pack",
         sourceVersion: "not yet reviewed against the final books",
         sourceKind: resourceType === "question-bank" ? "assessment-bank" : "other",
-        notes: UNREVIEWED_NOTE,
+        notes: digital?.note ?? UNREVIEWED_NOTE,
       },
     ],
   };
@@ -282,6 +288,18 @@ export function buildNursery1Resources(): TmcLearningResource[] {
     for (const g of WEEK_GAMES) {
       out.push(resource(`tmc-n1-t${t}-w${w}-${g.slug}`, g.title, "game", ab, `${folder}/${g.file}`, "public", ["learner"], "enrichment", term, week));
     }
+    // Stage 6: website pages and digital extras linked to this week. These are routes, not files.
+    out.push(resource(`tmc-n1-t${t}-w${w}-week-page`, "Week page on the website", "learning-hub-page", ab,
+      `/think-move-code/nursery-1/term-${t}/week-${w}`, "public", ["learner", "parent", "teacher"], "book", term, week,
+      { availability: "verified", note: DIGITAL_NOTE }));
+    out.push(resource(`tmc-n1-t${t}-w${w}-quiz`, "Read-aloud quiz", "quiz", tg,
+      `/explore/stem-quizzes/nursery-1-term-${t}-week-${w}`, "public", ["learner", "teacher"], "enrichment", term, week,
+      { availability: "verified", note: DIGITAL_NOTE }));
+    if (NURSERY_1_INTERACTIVE_LESSON_WEEKS.some(([lt, lw]) => lt === t && lw === w)) {
+      out.push(resource(`tmc-n1-t${t}-w${w}-interactive-lesson`, "Interactive RhinoBot lesson", "interactive-lesson", ab,
+        `/think-move-code/nursery-1/term-${t}/week-${w}/lesson`, "public", ["learner"], "enrichment", term, week,
+        { availability: "verified", note: DIGITAL_NOTE }));
+    }
     if (w === 13) {
       out.push(resource(`tmc-n1-t${t}-w13-step-star-stickers`, `Term ${t} Step Star stickers`, "printable", ab,
         `${folder}/TMC-N1-Term${t}-Step-Star-Stickers.pdf`, "licensed", ["teacher"], "book", term, week));
@@ -300,6 +318,10 @@ export function buildNursery1Resources(): TmcLearningResource[] {
   out.push(resource("tmc-n1-all-question-bank-docx", "Question bank, all 39 weeks (Word, with answers)", "question-bank", frontTg,
     "/tmc/n1/all/TMC-N1-Question-Bank-All-Weeks.docx", "teacher-only", ["teacher"], "book"));
   for (const term of [1, 2, 3]) {
+    out.push(resource(`tmc-n1-t${term}-bonus-video`, `Term ${term} bonus teacher video`, "video",
+      { bookId: N1_ACTIVITY_BOOK_ID, lessonId: `tmc-n1-ab-t${term}-opener` }, undefined, "public", ["teacher", "parent"], "enrichment",
+      term as TmcTerm, undefined,
+      { availability: "planned", note: "Planned bonus video. Not published yet, so it has no address." }));
     out.push(resource(`tmc-n1-t${term}-card-pack`, `Term ${term} printable card pack`, "printable",
       { bookId: N1_ACTIVITY_BOOK_ID, lessonId: `tmc-n1-ab-t${term}-opener` },
       `/tmc/n1/all/TMC-N1-Term${term}-Printable-Card-Pack.pdf`, "licensed", ["teacher"], "book"));
@@ -322,14 +344,61 @@ export function buildNursery1Lessons(resources: TmcLearningResource[]): TmcBookL
   return out;
 }
 
-/** Each week's Teacher Guide lesson is the companion of its Activity Book lesson. */
-function buildRelationships(): TmcRelationship[] {
-  return NURSERY_1_WEEK_TABLE.map(([t, w]) => ({
+/** How each kind of resource relates to the book lesson it follows. */
+const RELATION_BY_TYPE: Record<TmcLearningResource["resourceType"], TmcRelationship["relation"]> = {
+  "lesson-plan": "supports",
+  "teacher-parent-guide": "supports",
+  "project-sheet": "supports",
+  "review-sheet": "assesses",
+  "question-bank": "assesses",
+  quiz: "assesses",
+  printable: "supports",
+  "qr-code": "supports",
+  "learning-hub-page": "supports",
+  badge: "supports",
+  certificate: "supports",
+  worksheet: "supports",
+  transcript: "supports",
+  illustration: "supports",
+  diagram: "supports",
+  game: "extends",
+  video: "extends",
+  "interactive-lesson": "extends",
+};
+
+/**
+ * Stage 6 relationships.
+ *  - Each week's Teacher Guide lesson is the companion of its Activity Book lesson.
+ *  - Every resource is linked to the book lesson it follows (supports, assesses or extends).
+ *  - Weekly cards and question banks are parts of the term or all-weeks files.
+ *  - Each quiz references the week's question bank it was written from.
+ */
+function buildRelationships(resources: TmcLearningResource[]): TmcRelationship[] {
+  const out: TmcRelationship[] = NURSERY_1_WEEK_TABLE.map(([t, w]) => ({
     fromId: tgId(t, w),
     toId: abId(t, w),
     relation: "companion" as const,
     rationale: "Same week in the Teacher Guide and the Activity Book.",
   }));
+  for (const r of resources) {
+    out.push({
+      fromId: r.id,
+      toId: r.source.lessonId,
+      relation: RELATION_BY_TYPE[r.resourceType],
+      rationale: r.origin === "enrichment"
+        ? "Digital enrichment that extends or checks this book lesson. It is not an activity from the book."
+        : "Follows this book lesson.",
+    });
+  }
+  for (const [t, w] of NURSERY_1_WEEK_TABLE) {
+    out.push({ fromId: `tmc-n1-t${t}-w${w}-quiz`, toId: `tmc-n1-t${t}-w${w}-question-bank-pdf`, relation: "references",
+      rationale: "The quiz is a read-aloud version of this week's question bank." });
+    out.push({ fromId: `tmc-n1-t${t}-w${w}-printable-cards`, toId: `tmc-n1-t${t}-card-pack`, relation: "part-of",
+      rationale: "The weekly cards are included in the term card pack." });
+    out.push({ fromId: `tmc-n1-t${t}-w${w}-question-bank-xlsx`, toId: "tmc-n1-all-question-bank-xlsx", relation: "part-of",
+      rationale: "This week is included in the all-weeks question bank." });
+  }
+  return out;
 }
 
 /**
@@ -352,6 +421,6 @@ export const NURSERY_1_REGISTRY: TmcBookRegistry = {
   books: NURSERY_1_BOOKS,
   lessons: buildNursery1Lessons(resources),
   resources,
-  relationships: buildRelationships(),
+  relationships: buildRelationships(resources),
   legacyMappings: NURSERY_1_LEGACY_MAPPINGS,
 };

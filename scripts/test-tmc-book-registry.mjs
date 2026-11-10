@@ -20,10 +20,13 @@ import {
 import {
   N1_ACTIVITY_BOOK_ID,
   N1_TEACHER_GUIDE_ID,
+  NURSERY_1_INTERACTIVE_LESSON_WEEKS,
   NURSERY_1_REGISTRY,
   NURSERY_1_WEEK_TABLE,
 } from "../lib/tmc-registry/seed/nursery-1.ts";
 import { NURSERY_1_WEEKS } from "../lib/tmc/nursery-1-weeks.ts";
+import { interactiveLessonFor } from "../lib/tmc/lessons.ts";
+import { TMC_VIDEOS } from "../lib/tmc/videos.ts";
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 let passed = 0;
@@ -38,13 +41,15 @@ const test = (name, fn) => {
   }
 };
 const R = NURSERY_1_REGISTRY;
+/** Real files under public/. The other resources are website pages or planned items (Stage 6). */
+const FILES = R.resources.filter((r) => r.servedFromPublicPath !== false);
 
 /* ------------------------------------------------------------------ */
 /* Part 1: the real Nursery 1 seed                                     */
 /* ------------------------------------------------------------------ */
 
 test("seed validates with full page coverage and no errors", () => {
-  const { errors } = validateBookRegistry(R, { requireFullPageCoverage: true });
+  const { errors } = validateBookRegistry(R, { requireFullPageCoverage: true, requireResourceRelationships: true });
   assert.deepEqual(errors, []);
 });
 
@@ -125,18 +130,18 @@ test("no draft book is a production source: nothing is served, even to a license
 });
 
 test("every resource file exists on disk and is non-empty (so 'verified' is true)", () => {
-  assert.ok(R.resources.length > 400, `expected 400+ resources, got ${R.resources.length}`);
-  for (const r of R.resources) {
+  assert.ok(FILES.length > 400, `expected 400+ files, got ${FILES.length}`);
+  for (const r of FILES) {
     const file = path.join(root, "public", r.uri);
     assert.ok(existsSync(file), `missing file for ${r.id}: ${r.uri}`);
     assert.ok(statSync(file).size > 0, `empty file for ${r.id}`);
   }
   assert.equal(new Set(R.resources.map((r) => r.id)).size, R.resources.length);
-  assert.equal(new Set(R.resources.map((r) => r.uri)).size, R.resources.length);
+  assert.equal(new Set(FILES.map((r) => r.uri)).size, FILES.length);
 });
 
 test("every file in public/tmc/n1 is registered (no unregistered deliverable)", () => {
-  const registered = new Set(R.resources.map((r) => r.uri));
+  const registered = new Set(FILES.map((r) => r.uri));
   const walk = (dir, base) =>
     readdirSync(dir, { withFileTypes: true }).flatMap((entry) =>
       entry.isDirectory() ? walk(path.join(dir, entry.name), `${base}/${entry.name}`) : [`${base}/${entry.name}`]);
@@ -147,7 +152,7 @@ test("every file in public/tmc/n1 is registered (no unregistered deliverable)", 
 
 test("resources are drafts until compared with the final books; none published", () => {
   assert.ok(R.resources.every((r) => r.status === "draft"));
-  assert.ok(R.resources.every((r) => r.availability === "verified"));
+  assert.ok(FILES.every((r) => r.availability === "verified"));
   assert.ok(R.resources.filter((r) => r.origin === "enrichment").every((r) => r.enrichmentLabel));
   assert.ok(R.resources.filter((r) => r.resourceType === "game").every((r) => r.origin === "enrichment"));
 });
@@ -165,9 +170,80 @@ test("teacher-only classes: lesson plans, project and review sheets, question ba
   assert.equal(byType("question-bank").length, 39 * 2 + 2, "39 PDFs, 39 Excel files, plus the all-weeks Excel and Word files");
 });
 
+test("Stage 6: every resource is linked to the book lesson it follows, with the right kind of link", () => {
+  const edgesFrom = new Map();
+  for (const e of R.relationships) edgesFrom.set(e.fromId, [...(edgesFrom.get(e.fromId) ?? []), e]);
+  for (const r of R.resources) {
+    const toSource = (edgesFrom.get(r.id) ?? []).filter((e) => e.toId === r.source.lessonId);
+    assert.equal(toSource.length, 1, `${r.id} needs exactly one link to ${r.source.lessonId}`);
+    const expected = { game: "extends", video: "extends", "interactive-lesson": "extends", quiz: "assesses", "question-bank": "assesses", "review-sheet": "assesses" }[r.resourceType] ?? "supports";
+    assert.equal(toSource[0].relation, expected, `${r.id}: ${r.resourceType} should ${expected} its lesson`);
+  }
+  const lessonIds = new Set(R.lessons.map((l) => l.lessonId));
+  for (const l of R.lessons) for (const id of l.relatedDigitalResourceIds) assert.ok(R.resources.some((r) => r.id === id && r.source.lessonId === l.lessonId));
+  assert.ok(R.resources.every((r) => lessonIds.has(r.source.lessonId)));
+});
+
+test("Stage 6: each week has a website page and a quiz; the quiz is enrichment that references its question bank", () => {
+  for (const [t, w] of NURSERY_1_WEEK_TABLE) {
+    const page = R.resources.find((r) => r.id === `tmc-n1-t${t}-w${w}-week-page`);
+    const quiz = R.resources.find((r) => r.id === `tmc-n1-t${t}-w${w}-quiz`);
+    assert.equal(page.uri, `/think-move-code/nursery-1/term-${t}/week-${w}`);
+    assert.equal(page.origin, "book");
+    assert.equal(quiz.uri, `/explore/stem-quizzes/nursery-1-term-${t}-week-${w}`);
+    assert.equal(quiz.origin, "enrichment");
+    assert.ok(quiz.enrichmentLabel);
+    assert.ok(R.relationships.some((e) => e.fromId === quiz.id && e.toId === `tmc-n1-t${t}-w${w}-question-bank-pdf` && e.relation === "references"));
+  }
+  assert.equal(R.resources.filter((r) => r.resourceType === "quiz").length, 39);
+  assert.equal(R.resources.filter((r) => r.resourceType === "learning-hub-page").length, 39);
+});
+
+test("Stage 6: website routes exist in the app and every quiz exists in the content folder", () => {
+  for (const [t, w] of NURSERY_1_WEEK_TABLE) {
+    const code = `nursery-1-t${t}-w${String(w).padStart(2, "0")}`;
+    const file = path.join(root, "content/quizzes/tmc-nursery-1", `${code}.ts`);
+    assert.ok(existsSync(file), `missing quiz file ${code}`);
+    assert.match(readFileSync(file, "utf8"), new RegExp(`"slug": "nursery-1-term-${t}-week-${w}"`), `slug of ${code}`);
+  }
+  assert.ok(existsSync(path.join(root, "app/think-move-code/nursery-1/[term]/[week]/page.tsx")));
+  assert.ok(existsSync(path.join(root, "app/think-move-code/nursery-1/[term]/[week]/lesson")));
+  // Quiz pages are served by the site's catch-all route from the content registry's quiz route.
+  assert.ok(existsSync(path.join(root, "app/[...path]/page.tsx")), "catch-all content route");
+  assert.match(readFileSync(path.join(root, "lib/content-registry.ts"), "utf8"), /type: "quiz",[\s\S]*?route: "\/explore\/stem-quizzes"/);
+});
+
+test("Stage 6: interactive lessons match the reviewed lessons on the website (no more, no fewer)", () => {
+  const registered = R.resources.filter((r) => r.resourceType === "interactive-lesson").map((r) => `${r.term}-${r.week}`).sort();
+  const reviewed = NURSERY_1_WEEKS.filter((wk) => interactiveLessonFor(wk)).map((wk) => `${wk.term}-${wk.week}`).sort();
+  assert.deepEqual(registered, reviewed);
+  assert.deepEqual(NURSERY_1_INTERACTIVE_LESSON_WEEKS.map(([t, w]) => `${t}-${w}`).sort(), reviewed);
+  assert.ok(R.resources.filter((r) => r.resourceType === "interactive-lesson").every((r) => r.origin === "enrichment" && r.enrichmentLabel));
+});
+
+test("Stage 6: the three term videos are planned (no address) until a YouTube id is added", () => {
+  const videos = R.resources.filter((r) => r.resourceType === "video");
+  assert.equal(videos.length, TMC_VIDEOS.length);
+  for (const v of TMC_VIDEOS) {
+    const r = videos.find((x) => x.term === v.term);
+    assert.ok(r, `video for term ${v.term}`);
+    assert.equal(r.availability, v.youtubeId ? "verified" : "planned");
+    if (!v.youtubeId) assert.equal(r.uri, undefined, "a planned video has no address");
+    assert.equal(r.origin, "enrichment");
+    assert.equal(r.status, "draft");
+  }
+});
+
+test("Stage 6: website routes are never counted as access debt, and restricted files still are", () => {
+  const routes = R.resources.filter((r) => r.servedFromPublicPath === false);
+  assert.ok(routes.length >= 39 * 2 + 3);
+  assert.ok(routes.every((r) => r.accessLevel === "public"), "no restricted resource is a route yet");
+  assert.ok(findAccessDebt(R.resources).every((r) => r.servedFromPublicPath === true));
+});
+
 test("access debt is tracked: restricted resources still served from a public path", () => {
   const debt = findAccessDebt(R.resources);
-  const restricted = R.resources.filter((r) => r.accessLevel !== "public");
+  const restricted = FILES.filter((r) => r.accessLevel !== "public");
   assert.equal(debt.length, restricted.length);
   assert.ok(debt.length > 0);
   const { warnings } = validateBookRegistry(R);
@@ -343,6 +419,35 @@ test("answer-bearing resource types can never be public, authenticated or licens
 test("relationships must connect known ids", () => {
   assert.match(errorsOf(reg({ relationships: [{ fromId: "l1", toId: "ghost", relation: "companion" }] })), /unknown to id ghost/);
   assert.deepEqual(validateBookRegistry(reg({ relationships: [{ fromId: "l1", toId: "b1", relation: "part-of" }] })).errors, []);
+});
+
+test("Stage 6: relationships may not link an item to itself, repeat, cross weeks or cross levels", () => {
+  const two = reg({ lessons: [makeLesson(), makeLesson({ lessonId: "l2", week: 2 })] });
+  assert.match(errorsOf({ ...two, relationships: [{ fromId: "l1", toId: "l1", relation: "companion" }] }), /to itself/);
+  const twice = { fromId: "r1", toId: "l1", relation: "supports" };
+  assert.match(errorsOf({ ...two, relationships: [twice, twice] }), /listed twice/);
+  assert.match(errorsOf({ ...two, relationships: [{ fromId: "l1", toId: "l2", relation: "companion" }] }), /different weeks/);
+  assert.match(errorsOf({ ...two, resources: [makeResource({ week: 2 })], relationships: [] }), /term\/week differ/);
+  const other = reg({ lessons: [makeLesson(), makeLesson({ lessonId: "l3", level: "Nursery 2" })] });
+  assert.match(errorsOf({ ...other, relationships: [{ fromId: "l1", toId: "l3", relation: "companion" }] }), /different levels/);
+});
+
+test("Stage 6: only a quiz, question bank or review sheet can assess a lesson", () => {
+  const bad = reg({ relationships: [{ fromId: "r1", toId: "l1", relation: "assesses" }] });
+  assert.match(errorsOf(bad), /only a quiz, question bank or review sheet can assess/);
+  const ok = reg({ resources: [makeResource({ resourceType: "quiz" })], relationships: [{ fromId: "r1", toId: "l1", relation: "assesses" }] });
+  assert.deepEqual(validateBookRegistry(ok).errors, []);
+  assert.match(errorsOf(reg({ relationships: [{ fromId: "l1", toId: "r1", relation: "assesses" }] })), /only a quiz/);
+});
+
+test("Stage 6: unlinked resources warn by default and fail when links are required; related ids must be real", () => {
+  const plain = reg();
+  assert.ok(validateBookRegistry(plain).warnings.some((w) => /no relationship to a lesson/.test(w)));
+  assert.match(errorsOf(plain, { requireResourceRelationships: true }), /no relationship to a lesson/);
+  const linked = reg({ relationships: [{ fromId: "r1", toId: "l1", relation: "supports" }] });
+  assert.deepEqual(validateBookRegistry(linked, { requireResourceRelationships: true }).errors, []);
+  assert.match(errorsOf(reg({ lessons: [makeLesson({ relatedDigitalResourceIds: ["ghost"] })] })), /unknown digital resource ghost/);
+  assert.match(errorsOf(reg({ lessons: [makeLesson({ relatedDigitalResourceIds: ["r1"] }), makeLesson({ lessonId: "l9" })], resources: [makeResource({ source: { bookId: "b1", lessonId: "l9" } })] })), /different lesson/);
 });
 
 test("legacy mappings: never relabelled, unresolved must be flagged, mapped needs a real lesson and reviewer", () => {
