@@ -26,6 +26,8 @@ on:
       - "lib/site-navigation.ts"
       - "scripts/test-code-studio-robot-mission-feedback.mjs"
       - ".github/workflows/code-studio-v2-checks.yml"
+      - "lib/tmc/nursery-1-weeks.ts"
+      - "scripts/test-tmc-nursery-1-weeks-data.mjs"
       - ".gitignore"
       - "package.json"
       - "package-lock.json"
@@ -110,6 +112,8 @@ jobs:
         run: node --experimental-strip-types scripts/test-site-navigation.mjs
       - name: Test robot mission feedback
         run: node --experimental-strip-types scripts/test-code-studio-robot-mission-feedback.mjs
+      - name: Test Nursery 1 week page references
+        run: node --experimental-strip-types scripts/test-tmc-nursery-1-weeks-data.mjs
       - name: Lint
         run: npm run lint
       - name: TypeScript check
