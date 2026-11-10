@@ -121,6 +121,13 @@ export interface TmcCurriculumRecord {
   termBigIdea?: string;
   mainStrand: TmcStrand | null;
   currentConcept?: string;
+  alignmentSummary?: string;
+  visualRequirements?: string;
+  qrLearningHubLink?: string;
+  teacherVideosRequired?: string;
+  videoType?: string;
+  videoStatus?: string;
+  chapterGateAuto?: string;
   cognitiveDemand?: string;
   independenceLevel?: string;
   learningCycle: Partial<Record<TmcLearningStage, string>>;
@@ -158,6 +165,8 @@ export interface TmcCurriculumRecord {
   chapterGate?: string;
   sourceStatus?: string;
   sourceNotes?: string;
+  /** Lossless copy of every original Master Matrix column/value (43-column source row). */
+  rawSourceFields: Record<string, string | null>;
   sourceValidationIssues: string[];
   bookReferences: TmcBookReference[];
   assetIds: string[];
