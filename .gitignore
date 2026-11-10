@@ -50,6 +50,6 @@ project-files.txt
 /.private-data/
 
 # Keep the source workbook and raw curriculum exports out of the public repository
-/Think-Move-Code-Master-Curriculum-v3.15.xlsx
+/Think-Move-Code-Master-Curriculum-*.xlsx
 /*Master Matrix*.csv
 /*master-matrix*.csv
