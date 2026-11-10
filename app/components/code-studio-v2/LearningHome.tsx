@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { Fragment, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import ChoiceExercise from "./ChoiceExercise";
@@ -15,12 +15,12 @@ import styles from "./LearningHome.module.css";
 type Stage = "home" | "lesson";
 
 const STEPS = [
-  { key: "think", label: "Think", icon: "💡", title: "Think about the steps" },
-  { key: "move", label: "Move", icon: "🤸", title: "Move like a robot" },
-  { key: "code", label: "Code", icon: "🧩", title: "Put the picture steps in order" },
-  { key: "build", label: "Build", icon: "🛠️", title: "Build it and try it" },
-  { key: "create", label: "Create", icon: "🎨", title: "Create your own sequence" },
-  { key: "check", label: "Show what you know", icon: "⭐", title: "Show a grown-up what you can do" },
+  { key: "think", label: "Think", icon: "💡", title: "Think it through" },
+  { key: "move", label: "Move", icon: "🤸", title: "Move" },
+  { key: "code", label: "Code", icon: "🧩", title: "Code it" },
+  { key: "build", label: "Build", icon: "🛠️", title: "Build and try" },
+  { key: "create", label: "Create", icon: "🎨", title: "Create" },
+  { key: "check", label: "Show what you know", icon: "⭐", title: "Show what you know" },
 ] as const;
 
 type StepKey = (typeof STEPS)[number]["key"];
@@ -177,7 +177,7 @@ export default function LearningHome({
             steps={steps}
             stepIndex={stepIndex}
             stepKey={step.key}
-            stepTitle={step.title}
+            stepTitle={getLessonSpec(activity.id)?.steps[step.key]?.presentation?.title ?? step.title}
             stepIcon={step.icon}
             done={done}
             onBack={backStep}
@@ -237,7 +237,7 @@ function LessonView({
   const choicePointsAvailable = choiceExercise?.pointsAvailable ?? 0;
   const pictures = orderingExercise?.items.map((item) => ({
     ...item,
-    icon: item.id === "wake-up" ? "☀️" : item.id === "brush-teeth" ? "🪥" : item.id === "eat-breakfast" ? "🥣" : "🧩",
+    icon: lessonSpec?.presentation?.pictureIcons?.[item.id] ?? "🧩",
   })) ?? [];
   const chosen = new Set(selectedOrder);
   const attemptsExhausted = Boolean(orderingExercise && !canAttemptExercise(orderingAttempts, orderingExercise) && orderingResult !== "correct");
@@ -253,6 +253,7 @@ function LessonView({
     setSelectedOrder([]);
     setOrderingResult(null);
   }
+  const stepPresentation = lessonSpec?.steps[stepKey]?.presentation;
   const buildRequired = isBuildRequired(activity.coreParts);
   const canContinue = canAdvanceLessonStep(stepKey, {
     movePracticed,
@@ -281,10 +282,10 @@ function LessonView({
       ? "You finished the activity with help."
       : "Nearly there. A teacher check is still to do.";
   const finishedText = outcome.overall === "passed"
-    ? "You practised following instructions, building a sequence and showing a grown-up what you can do. These are foundations of computational thinking."
+    ? (lessonSpec?.presentation?.completionText?.passed ?? "You practised and showed a grown-up what you can do.")
     : outcome.overall === "completed-with-assistance"
-      ? "You went through every step with a grown-up’s help. Try the picture cards again another day to practise on your own."
-      : "You went through every step. A teacher or caregiver still needs to watch you follow three steps on your own.";
+      ? (lessonSpec?.presentation?.completionText?.withHelp ?? "You went through every step with a grown-up’s help. Try again another day to practise on your own.")
+      : (lessonSpec?.presentation?.completionText?.awaitingTeacher ?? "You went through every step. A teacher or caregiver still needs to watch you do it on your own.");
 
   return (
     <section className={styles.lessonView}>
@@ -305,16 +306,16 @@ function LessonView({
             <strong>What was recorded</strong>
             <span>Picture sequence: {outcome.sequence === "passed" ? `passed on your own (${orderingPoints} of ${orderingPointsAvailable} point)` : outcome.sequence === "completed-with-assistance" ? "completed with help, not counted as a pass (0 points)" : "not completed"}</span>
             <span>Movement and drawing: you confirmed these yourself. The app cannot check them.</span>
-            <span>Teacher check: {outcome.check === "adult-confirmed" ? "a teacher or caregiver said they watched you follow 3 steps in order. The app cannot verify who confirmed it." : outcome.check === "awaiting-teacher-confirmation" ? "still waiting. Ask a teacher or caregiver to watch you follow 3 steps." : "not done"}</span>
+            <span>Teacher check: {outcome.check === "adult-confirmed" ? (lessonSpec?.presentation?.teacherCheck?.recordedText ?? "a teacher or caregiver said they watched you do this. The app cannot verify who confirmed it.") : outcome.check === "awaiting-teacher-confirmation" ? "still waiting. Ask a teacher or caregiver to watch you do this on your own." : "not done"}</span>
             <span>Extra practice question: {outcome.extraPractice === "passed" ? `answered correctly (${choicePoints} of ${choicePointsAvailable} point). This is practice only.` : "not passed or not tried. This is practice only."}</span>
           </div>
           <p className={styles.coreNote}>Progress is kept only in this browser session. It is not saved to an account and will be lost if you close or refresh this page.</p>
-          <div className={styles.mastery}><strong>What this activity practises</strong><span>Following steps in order</span><span>Giving clear instructions</span><span>Creating a sequence</span></div>
+          {lessonSpec?.presentation?.practises && <div className={styles.mastery}><strong>What this activity practises</strong>{lessonSpec.presentation.practises.map((item) => <span key={item}>{item}</span>)}</div>}
           <p className={styles.masteryTarget}>{lessonSpec?.successCriteria.join(" ") ?? activity.masteryTarget}</p>
           <div className={styles.buildPanel}>
             <label htmlFor="lesson-reflection"><strong>RhinoBot asks: What did you learn?</strong></label>
             <p>You can write one thing you learned or leave a short note for yourself. This reflection is not graded or saved to an account.</p>
-            <textarea id="lesson-reflection" value={learnerReflection} onChange={(event) => setLearnerReflection(event.target.value.slice(0, 500))} maxLength={500} rows={3} placeholder="I learned that instructions need to be in the right order..." />
+            <textarea id="lesson-reflection" value={learnerReflection} onChange={(event) => setLearnerReflection(event.target.value.slice(0, 500))} maxLength={500} rows={3} placeholder={lessonSpec?.presentation?.reflectionPlaceholder ?? "I learned that..."} />
             <small>{learnerReflection.length}/500 characters · stays in this session</small>
           </div>
           <button className={styles.primaryButton} onClick={onExit}>{inWeek ? "Back to the week page" : "Back to my learning"} <span aria-hidden="true">→</span></button>
@@ -324,7 +325,7 @@ function LessonView({
           <aside className={styles.lessonSidebar}>
             <div className={styles.rhinoAvatar}><span>🤖</span></div>
             <strong>RhinoBot says</strong>
-            <p>“We can teach a computer by giving it clear steps. Let’s try it together!”</p>
+            <p>“{lessonSpec?.presentation?.rhinobotSays ?? "Let’s try it together, one step at a time!"}”</p>
             <div className={styles.sidebarRule} />
             <small>YOUR GOAL</small>
             <p>{lessonSpec?.objective ?? activity.masteryTarget}</p>
@@ -384,7 +385,7 @@ function LessonView({
             {stepKey === "check" && (
               <div className={styles.buildPanel} role="group" aria-labelledby="teacher-check-title">
                 <strong id="teacher-check-title">Teacher or caregiver check</strong>
-                <p>Can the child follow a 3-step instruction in the right order on their own?</p>
+                <p>{lessonSpec?.presentation?.teacherCheck?.question ?? "Can the child do this on their own?"}</p>
                 <div className={styles.buildChoices}>
                   <button type="button" className={teacherObservation === "confirmed" ? styles.buildChoiceSelected : ""} aria-pressed={teacherObservation === "confirmed"} onClick={() => setTeacherObservation("confirmed")}>Yes, I watched them do it</button>
                   <button type="button" className={teacherObservation === "deferred" ? styles.buildChoiceSelected : ""} aria-pressed={teacherObservation === "deferred"} onClick={() => setTeacherObservation("deferred")}>I will check later</button>
@@ -399,8 +400,28 @@ function LessonView({
               </>
             )}
 
-            {stepKey === "think" && <div className={styles.exampleStrip}><span>☀️</span><span>Ayo wakes up</span><b>→</b><span>🪥</span><span>Ayo brushes his teeth</span><b>→</b><span>🥣</span><span>Ayo eats breakfast</span></div>}
-            {stepKey === "move" && <div className={styles.moveChallenge}><span>👏</span><b>Clap</b><span>→</span><span>👣</span><b>Stamp</b><span>→</span><span>🔄</span><b>Turn</b><p>Ask a grown-up or classmate to call the steps. Follow them in order. Then try a new order: turn, clap, stamp.</p><button className={styles.secondaryButton} type="button" onClick={() => setMovePracticed(true)} aria-pressed={movePracticed}>{movePracticed ? "✓ I tried the movement challenge" : "I tried the movement challenge"}</button></div>}
+            {stepPresentation?.strip && stepKey !== "move" && (
+              <div className={styles.exampleStrip}>
+                {stepPresentation.strip.map((item, index) => (
+                  <Fragment key={item.label}>
+                    {index > 0 && <b aria-hidden="true">→</b>}
+                    <span aria-hidden="true">{item.icon}</span><span>{item.label}</span>
+                  </Fragment>
+                ))}
+              </div>
+            )}
+            {stepKey === "move" && stepPresentation?.strip && (
+              <div className={styles.moveChallenge}>
+                {stepPresentation.strip.map((item, index) => (
+                  <Fragment key={item.label}>
+                    {index > 0 && <span aria-hidden="true">→</span>}
+                    <span aria-hidden="true">{item.icon}</span><b>{item.label}</b>
+                  </Fragment>
+                ))}
+                {stepPresentation.note && <p>{stepPresentation.note}</p>}
+                {stepPresentation.confirmLabel && <button className={styles.secondaryButton} type="button" onClick={() => setMovePracticed(true)} aria-pressed={movePracticed}>{movePracticed ? `✓ ${stepPresentation.confirmLabel}` : stepPresentation.confirmLabel}</button>}
+              </div>
+            )}
             {stepKey === "build" && (
               <div className={styles.buildPanel}>
                 <div className={styles.buildPanelHeading}><span>🛠️</span><div><strong>Make your idea real</strong><p>{activity.practicalActivity}</p></div></div>
@@ -418,7 +439,17 @@ function LessonView({
               </div>
             )}
 
-            {stepKey === "create" && <div className={styles.createPrompt}><span>🎨</span><div><strong>Your turn to create</strong><p>Draw 3 steps of something you do every day. Number them 1, 2 and 3: first, next, last.</p><small>Can’t draw yet? Act it or tell it, and a grown-up draws it.</small><p><button className={styles.secondaryButton} type="button" onClick={() => setCreationCompleted((value) => !value)} aria-pressed={creationCompleted}>{creationCompleted ? "✓ I completed my three-step drawing" : "I completed my three-step drawing"}</button></p></div></div>}
+            {stepKey === "create" && stepPresentation?.note && (
+              <div className={styles.createPrompt}>
+                <span aria-hidden="true">🎨</span>
+                <div>
+                  <strong>{stepPresentation.heading ?? "Your turn to create"}</strong>
+                  <p>{stepPresentation.note}</p>
+                  {stepPresentation.smallNote && <small>{stepPresentation.smallNote}</small>}
+                  {stepPresentation.confirmLabel && <p><button className={styles.secondaryButton} type="button" onClick={() => setCreationCompleted((value) => !value)} aria-pressed={creationCompleted}>{creationCompleted ? `✓ ${stepPresentation.confirmLabel}` : stepPresentation.confirmLabel}</button></p>}
+                </div>
+              </div>
+            )}
 
             {stepKey !== "check" && <button className={styles.hintButton} onClick={() => setShowHint((shown) => !shown)}>{showHint ? "Hide hint" : "Need a hint?"}</button>}
             {showHint && <div className={styles.hintBox}><strong>RhinoBot’s hint</strong><p>{lessonSpec?.steps[stepKey].hint ?? "Choose one small step and try again."}</p></div>}

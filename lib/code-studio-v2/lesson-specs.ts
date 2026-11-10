@@ -16,6 +16,27 @@ export type LessonBookSource = {
   teacherGuideLessonId: string;
 };
 
+/** One picture-and-word item shown in a step's strip (for example "clap" or "Ayo wakes up"). */
+export type PresentationItem = { icon: string; label: string };
+
+/**
+ * What the learner page shows for a step. Every field is optional: a step without it falls back to
+ * the generic title and shows no strip, so a new lesson can be written as data only.
+ */
+export type StepPresentation = {
+  title?: string;
+  /** Pictures in the order the book shows them. */
+  strip?: readonly PresentationItem[];
+  /** Short line under the strip (for the Move step this is the grown-up's prompt). */
+  note?: string;
+  /** Small print under the note. */
+  smallNote?: string;
+  /** Heading above the note (used by the Create step). */
+  heading?: string;
+  /** The learner's own "I did it" button. The app cannot check it. */
+  confirmLabel?: string;
+};
+
 export type LessonStepSpec = {
   /**
    * False when the approved book lesson has no such stage. The step is kept in the spec for
@@ -24,6 +45,8 @@ export type LessonStepSpec = {
   inBook?: boolean;
   /** The book pages this step follows. Required for every step the book contains. */
   sources?: readonly BookPageRef[];
+  /** How this step looks on the page. Optional. */
+  presentation?: StepPresentation;
   instruction: string;
   task: string;
   evidence: string;
@@ -41,6 +64,17 @@ export type InteractiveLessonSpec = {
   objective: string;
   successCriteria: readonly string[];
   estimatedMinutes: number;
+  /** Lesson-level wording for the learner page. Optional; generic text is used for anything missing. */
+  presentation?: {
+    rhinobotSays?: string;
+    /** Emoji for each ordering item id, so the page needs no per-lesson code. */
+    pictureIcons?: Readonly<Record<string, string>>;
+    /** The adult's yes/no question and the line recorded when they confirm. */
+    teacherCheck?: { question: string; recordedText: string };
+    practises?: readonly string[];
+    reflectionPlaceholder?: string;
+    completionText?: { passed: string; withHelp: string; awaitingTeacher: string };
+  };
   /** The approved book lesson this lesson is developed from. Every reviewed lesson must have one. */
   bookSource?: LessonBookSource;
   accessibility: {
@@ -68,6 +102,21 @@ const NURSERY_1_T1_W1: InteractiveLessonSpec = {
     "Follow 3 steps in order on their own, as observed by a teacher or caregiver.",
   ],
   estimatedMinutes: 10,
+  presentation: {
+    rhinobotSays: "We can teach a computer by giving it clear steps. Let’s try it together!",
+    pictureIcons: { "wake-up": "☀️", "brush-teeth": "🪥", "eat-breakfast": "🥣" },
+    teacherCheck: {
+      question: "Can the child follow a 3-step instruction in the right order on their own?",
+      recordedText: "a teacher or caregiver said they watched you follow 3 steps in order. The app cannot verify who confirmed it.",
+    },
+    practises: ["Following steps in order", "Giving clear instructions", "Creating a sequence"],
+    reflectionPlaceholder: "I learned that instructions need to be in the right order...",
+    completionText: {
+      passed: "You practised following instructions, building a sequence and showing a grown-up what you can do. These are foundations of computational thinking.",
+      withHelp: "You went through every step with a grown-up’s help. Try the picture cards again another day to practise on your own.",
+      awaitingTeacher: "You went through every step. A teacher or caregiver still needs to watch you follow three steps on your own.",
+    },
+  },
   bookSource: { activityBookLessonId: "tmc-n1-ab-t1-w1", teacherGuideLessonId: "tmc-n1-tg-t1-w1" },
   accessibility: {
     keyboardOperable: true,
@@ -78,6 +127,10 @@ const NURSERY_1_T1_W1: InteractiveLessonSpec = {
   steps: {
     think: {
       sources: [{ book: "activity-book", page: 6 }, { book: "teacher-guide", page: 8 }],
+      presentation: {
+        title: "Think about the steps",
+        strip: [{ icon: "☀️", label: "Ayo wakes up" }, { icon: "🪥", label: "Ayo brushes his teeth" }, { icon: "🥣", label: "Ayo eats breakfast" }],
+      },
       instruction: "Look at Ayo getting ready for school. What does he do first? What does he do next? What does he do last?",
       task: "Say or point to what Ayo does first, next and last. Then say together: “First wake up, next brush teeth, last eat.”",
       evidence: "Learner says or points to the first, next and last picture. This is adult-observed, not automatic.",
@@ -86,6 +139,12 @@ const NURSERY_1_T1_W1: InteractiveLessonSpec = {
     },
     move: {
       sources: [{ book: "activity-book", page: 6 }, { book: "teacher-guide", page: 8 }],
+      presentation: {
+        title: "Move like a robot",
+        strip: [{ icon: "👏", label: "Clap" }, { icon: "👣", label: "Stamp" }, { icon: "🔄", label: "Turn" }],
+        note: "Ask a grown-up or classmate to call the steps. Follow them in order. Then try a new order: turn, clap, stamp.",
+        confirmLabel: "I tried the movement challenge",
+      },
       instruction: "Play Robot Says! Clap → stamp → turn. Now try a new order: turn → clap → stamp.",
       task: "Do clap, stamp, turn in that order. Then do turn, clap, stamp.",
       evidence: "Learner or supervising adult confirms the movement sequence was attempted; this is self-reported evidence, not sensor verification.",
@@ -94,6 +153,7 @@ const NURSERY_1_T1_W1: InteractiveLessonSpec = {
     },
     code: {
       sources: [{ book: "teacher-guide", page: 8 }, { book: "activity-book", page: 7 }],
+      presentation: { title: "Put the picture steps in order" },
       instruction: "Lay the 3 morning cards in a row. Point to each one and say “first, next, last”.",
       task: "Put the cards in order: Ayo wakes up, Ayo brushes his teeth, Ayo eats breakfast.",
       evidence: "The interactive sequence is exactly wake up, brush teeth, eat breakfast.",
@@ -130,6 +190,13 @@ const NURSERY_1_T1_W1: InteractiveLessonSpec = {
     },
     create: {
       sources: [{ book: "activity-book", page: 8 }, { book: "teacher-guide", page: 8 }],
+      presentation: {
+        title: "Create your own sequence",
+        heading: "Your turn to create",
+        note: "Draw 3 steps of something you do every day. Number them 1, 2 and 3: first, next, last.",
+        smallNote: "Can’t draw yet? Act it or tell it, and a grown-up draws it.",
+        confirmLabel: "I completed my three-step drawing",
+      },
       instruction: "Draw 3 steps of something you do every day: first, next and last.",
       task: "Draw three steps in order. Colour the star when you can!",
       evidence: "Learner or supervising adult confirms a sequence was created; this is self-reported evidence, not image verification.",
@@ -138,6 +205,7 @@ const NURSERY_1_T1_W1: InteractiveLessonSpec = {
     },
     check: {
       sources: [{ book: "teacher-guide", page: 9 }, { book: "activity-book", page: 7 }],
+      presentation: { title: "Show a grown-up what you can do" },
       instruction: "Show a teacher or caregiver that you can follow 3 steps in the right order.",
       task: "Follow a 3-step instruction on your own while a teacher or caregiver watches.",
       evidence: "A teacher or caregiver observes whether the child follows a 3-step instruction in the right order on their own; this is adult-recorded evidence, not automatic verification. The picture question below is optional extra practice and is not the official check.",
