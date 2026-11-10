@@ -14,6 +14,8 @@ on:
       - "scripts/lib/tmc-curriculum-reference.mjs"
       - "scripts/test-tmc-curriculum-reference-import.mjs"
       - "types/tmc-registry.ts"
+      - "lib/tmc-registry/**"
+      - "scripts/test-tmc-book-registry.mjs"
       - "docs/product/tmc-v3-16-content-registry.md"
       - "scripts/test-code-studio-curriculum-import.mjs"
       - "scripts/test-private-curriculum-loader.mjs"
@@ -89,6 +91,8 @@ jobs:
         run: node scripts/test-code-studio-curriculum-import.mjs
       - name: Test TMC curriculum reference importer
         run: node scripts/test-tmc-curriculum-reference-import.mjs
+      - name: Test TMC Book Registry
+        run: node --experimental-strip-types scripts/test-tmc-book-registry.mjs
       - name: Test private curriculum access boundary
         run: node --experimental-strip-types scripts/test-private-curriculum-loader.mjs
       - name: Test robot simulator

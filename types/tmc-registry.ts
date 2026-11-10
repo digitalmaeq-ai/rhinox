@@ -177,6 +177,8 @@ export interface TmcBookLesson {
   term?: TmcTerm;
   week?: TmcWeek;
   chapterOrUnit?: string;
+  /** What kind of unit this is. Only "week" units carry a term and week. */
+  unitKind: "week" | "front-matter" | "term-opener" | "term-overview";
   lessonTitle: string;
   pageStart: number;
   pageEnd: number;
@@ -192,6 +194,14 @@ export interface TmcBookLesson {
   relatedIllustrationIds: string[];
   relatedDigitalResourceIds: string[];
   approvalStatus: TmcBookStatus;
+  /**
+   * How much of the book text has been captured:
+   *  - "structure-only": title and exact page range only; the content arrays are NOT filled in;
+   *  - "transcribed": book wording captured faithfully;
+   *  - "verified": transcription checked page by page against the book.
+   * Empty arrays on a "structure-only" lesson mean "not captured yet", not "the book has none".
+   */
+  contentStatus: "structure-only" | "transcribed" | "verified";
   /** Cross-reference only; never used to supply instructional content. */
   curriculumReferenceIds: string[];
   provenance: TmcSourceProvenance[];
@@ -411,6 +421,11 @@ export interface TmcLearningResource extends TmcDerivedBase {
   uri?: string;
   pageStart?: number;
   pageEnd?: number;
+  /**
+   * True while the file is still served from a public static path. A resource whose accessLevel
+   * is stricter than "public" but is still served publicly is recorded access debt, not protection.
+   */
+  servedFromPublicPath?: boolean;
 }
 
 /* ------------------------------------------------------------------ */
@@ -497,6 +512,15 @@ export interface TmcCurriculumReferenceManifest {
     /** Source problems reported and deliberately NOT corrected. */
     unresolvedSourceIssues: string[];
   };
+}
+
+/** The whole registry, loaded server-side. Never sent to client components. */
+export interface TmcBookRegistry {
+  books: TmcBook[];
+  lessons: TmcBookLesson[];
+  resources: TmcLearningResource[];
+  relationships: TmcRelationship[];
+  legacyMappings: TmcLegacyLessonMapping[];
 }
 
 export interface TmcBookRegistryManifest {

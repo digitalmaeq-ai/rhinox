@@ -130,6 +130,30 @@ Not yet supplied or inspected: the corrected manuscript v3.16 (`.docx`) and any 
 
 Note on reading the Activity Book PDF: its embedded text layer is unreliable, so book content and page numbers must be taken from the rendered pages, not from text extraction.
 
+## 6a. Book Registry implementation (Nursery 1)
+
+Files: `lib/tmc-registry/book-registry.ts` (validation and access policy, no runtime imports), `lib/tmc-registry/book-registry.server.ts` (server-only loader), `lib/tmc-registry/seed/nursery-1.ts` (structure seed), `scripts/test-tmc-book-registry.mjs`.
+
+What the Nursery 1 seed holds: the two books (Activity Book and Teacher Guide), 86 units (39 week units per book plus front matter, term openers and term overviews, so every page of both books belongs to exactly one unit), 39 Teacher Guide to Activity Book companion links, 3 legacy mappings and one resource record for every file in `public/tmc/n1/` (verified to exist by the tests).
+
+Important limits:
+- **Structure only.** Lessons carry titles and exact page ranges. The content arrays (concepts, activities, exercises and so on) are empty, and an empty array on a `structure-only` lesson means "not captured yet", not "the book has none". No book wording is stored in the public repository.
+- **Nothing is served.** Both books are `revised`, so no lesson is a production source. The server loader (`getLicensedBookLesson`) returns nothing today for two independent reasons: no draft book is a production source, and no trusted learner identity provider is connected.
+- **Resources are drafts.** Each support file exists, but none has yet been compared with the final books, so each stays `draft`. Games are labelled digital enrichment.
+- **Cross-references by position.** Lessons list the v3.16 reference ID for the same level, term and week. This is a positional link only. No coverage comparison (crosswalk) has been done, and the v3.16 workbook itself has not been imported yet.
+
+Validation rules enforced by `validateBookRegistry` (all covered by tests): unique IDs; lessons belong to a real book of the same level; valid, non-overlapping page ranges inside the book; a lesson is never ahead of its book and is never approved while structure-only; a book is never published or approved unless verified; resources point at a real book lesson with matching level, term and week; enrichment is labelled; unverified resources are never published; answer-bearing resource types are never public; legacy IDs are never relabelled v3.16.
+
+### Access classes for Nursery 1 support files (decided)
+
+| Class | Files | Audience |
+|---|---|---|
+| `public` | teacher and parent guide, QR codes, games, badges | parents, children, teachers |
+| `licensed` | printable cards, term card packs, Step Star stickers | teachers (USB pack content) |
+| `teacher-only` | lesson plans, project sheets, review sheets, question banks (with answers) | teachers |
+
+The class is recorded in the registry now. **Enforcement is not in place yet.** The files still sit under `public/tmc/n1/` and are downloadable by anyone with the link, and no teacher sign-in exists. The registry therefore tracks this as access debt (`servedFromPublicPath`), reported as a warning by the validator. The debt is removed by moving restricted files behind the access check once a teacher sign-in exists. That is a separate change so teachers' current downloads do not break.
+
 ## 7. Private content and access
 
 The GitHub repository is public. These must **not** be committed to it:
@@ -202,7 +226,7 @@ Stretch activities never block core completion.
 2. Architecture, types and documentation (this change).
 3. Resource inventory and page-level Nursery 1 index.
 4. Curriculum reference importer and tests (done).
-5. Book Registry implementation.
+5. Book Registry implementation (done for Nursery 1: structure only).
 6. Digital resource relationships.
 7. Security and compatibility review.
 8. Verification (tests, typecheck, lint, build).
