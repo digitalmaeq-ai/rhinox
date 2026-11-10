@@ -28,6 +28,7 @@ import {
 } from "../lib/tmc-registry/seed/nursery-1.ts";
 import { NURSERY_1_WEEKS } from "../lib/tmc/nursery-1-weeks.ts";
 import { interactiveLessonFor } from "../lib/tmc/lessons.ts";
+import { getLessonSpec } from "../lib/code-studio-v2/lesson-specs.ts";
 import { TMC_VIDEOS } from "../lib/tmc/videos.ts";
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
@@ -223,6 +224,42 @@ test("Stage 6: interactive lessons match the reviewed lessons on the website (no
   assert.ok(R.resources.filter((r) => r.resourceType === "interactive-lesson").every((r) => r.origin === "enrichment" && r.enrichmentLabel));
 });
 
+test("Stage 3/6: every reviewed interactive lesson names its book lessons and exact pages, and the registry agrees", () => {
+  const reviewed = NURSERY_1_WEEKS.filter((wk) => interactiveLessonFor(wk));
+  assert.ok(reviewed.length >= 1);
+  const roleOk = {
+    think: { "activity-book": ["think-move", "think-code"], "teacher-guide": ["lesson-plan"] },
+    move: { "activity-book": ["think-move", "think-code"], "teacher-guide": ["lesson-plan"] },
+    code: { "activity-book": ["code-it"], "teacher-guide": ["lesson-plan"] },
+    create: { "activity-book": ["draw-it"], "teacher-guide": ["lesson-plan"] },
+    check: { "activity-book": ["code-it"], "teacher-guide": ["check-support"] },
+  };
+  for (const wk of reviewed) {
+    const activity = interactiveLessonFor(wk);
+    const spec = getLessonSpec(activity.id);
+    const ab = `tmc-n1-ab-t${wk.term}-w${wk.week}`;
+    const tg = `tmc-n1-tg-t${wk.term}-w${wk.week}`;
+    assert.deepEqual(spec.bookSource, { activityBookLessonId: ab, teacherGuideLessonId: tg }, "a reviewed lesson names its book lessons");
+    assert.ok(R.lessons.some((l) => l.lessonId === ab) && R.lessons.some((l) => l.lessonId === tg));
+    for (const [key, step] of Object.entries(spec.steps)) {
+      if (step.inBook === false) {
+        assert.equal(key, "build", "only an optional Build step may be left out");
+        assert.equal(step.exercise, undefined);
+        continue;
+      }
+      assert.ok(step.sources?.length > 0, `${key} must name its book pages`);
+      for (const ref of step.sources) {
+        const bookId = ref.book === "activity-book" ? N1_ACTIVITY_BOOK_ID : N1_TEACHER_GUIDE_ID;
+        const page = findPage(R, bookId, ref.page);
+        assert.ok(page, `${key}: ${ref.book} p${ref.page} is not in the page index`);
+        assert.equal(page.lessonId, ref.book === "activity-book" ? ab : tg, `${key}: p${ref.page} is in another week`);
+        assert.ok(roleOk[key][ref.book].includes(page.role), `${key}: ${ref.book} p${ref.page} is a ${page.role} page`);
+      }
+    }
+    assert.ok(R.resources.some((r) => r.resourceType === "interactive-lesson" && r.source.lessonId === ab));
+  }
+});
+
 test("Stage 6: the three term videos are planned (no address) until a YouTube id is added", () => {
   const videos = R.resources.filter((r) => r.resourceType === "video");
   assert.equal(videos.length, TMC_VIDEOS.length);
@@ -290,6 +327,69 @@ test("Stage 3: only the four Activity Book front-matter pages carry a label, and
   assert.deepEqual(labelled.map((p) => `${p.pageNumber}:${p.label}`), ["1:Meet RhinoBot and Ayo", "2:Contents", "3:For grown-ups", "4:Safety rules"]);
   assert.ok(labelled.every((p) => p.label.length <= 30));
   assert.deepEqual(Object.keys(R.pages[0]).sort(), ["bookId", "label", "lessonId", "pageNumber", "role"].filter((k) => k in R.pages[0]).sort());
+});
+
+test("Stage 7: the registry never reads secrets, the environment or the network", () => {
+  const files = [
+    "types/tmc-registry.ts", "lib/tmc-registry/book-registry.ts", "lib/tmc-registry/seed/nursery-1.ts", "lib/tmc-registry/book-registry.server.ts",
+  ];
+  for (const file of files) {
+    const text = readFileSync(path.join(root, file), "utf8").replace(/\/\*[\s\S]*?\*\//g, "").replace(/^\s*\/\/.*$/gm, "");
+    assert.doesNotMatch(text, /process\.env|\bfetch\s*\(|XMLHttpRequest|WebSocket|api[_-]?key|password|secret/i, `${file} must not read secrets or the network`);
+  }
+});
+
+test("Stage 7: curriculum workbooks stay private (ignored by git, never in public/)", () => {
+  const ignore = readFileSync(path.join(root, ".gitignore"), "utf8");
+  for (const pattern of ["/.private-data/", "/Think-Move-Code-Master-Curriculum-*.xlsx", "/*Master Matrix*.csv", "/*master-matrix*.csv"]) {
+    assert.ok(ignore.split(/\r?\n/).includes(pattern), `.gitignore must contain ${pattern}`);
+  }
+  const walk = (dir) => readdirSync(dir, { withFileTypes: true }).flatMap((e) => (e.isDirectory() ? walk(path.join(dir, e.name)) : [path.join(dir, e.name)]));
+  const leaked = walk(path.join(root, "public")).filter((f) => /master[-_ ]?(curriculum|matrix)/i.test(path.basename(f)));
+  assert.deepEqual(leaked, [], "no curriculum workbook may be served from public/");
+});
+
+test("Stage 7: every file the public pages link to is a registered resource", () => {
+  const source = readFileSync(path.join(root, "lib/tmc/nursery-1.ts"), "utf8");
+  const uris = new Set(FILES.map((r) => r.uri));
+  const suffixes = [...source.matchAll(/suffix: "([^"]+)"/g)].map((m) => m[1]);
+  assert.ok(suffixes.length >= 7, "week file suffixes were found");
+  for (const [t, w] of NURSERY_1_WEEK_TABLE) {
+    for (const suffix of suffixes) {
+      const uri = `/tmc/n1/t${t}-w${w}/TMC-N1-T${t}-W${String(w).padStart(2, "0")}-${suffix}`;
+      assert.ok(uris.has(uri), `linked file is not registered: ${uri}`);
+    }
+  }
+  for (const href of [...source.matchAll(/href: "(\/tmc\/n1\/[^"]+)"/g)].map((m) => m[1])) assert.ok(uris.has(href), `linked file is not registered: ${href}`);
+  for (const term of [1, 2, 3]) {
+    for (const uri of [`/tmc/n1/all/TMC-N1-Term${term}-Printable-Card-Pack.pdf`, `/tmc/n1/t${term}-w13/TMC-N1-Term${term}-Step-Star-Stickers.pdf`, `/tmc/n1/t${term}-w13/step-thinker-term${term}-badge.png`]) {
+      assert.ok(uris.has(uri), `linked file is not registered: ${uri}`);
+    }
+  }
+});
+
+test("Stage 7: access debt inventory is exact, so a new restricted file or type cannot be served unnoticed", () => {
+  const debt = {};
+  for (const r of findAccessDebt(R.resources)) debt[r.resourceType] = (debt[r.resourceType] ?? 0) + 1;
+  assert.deepEqual(debt, { "lesson-plan": 39, "project-sheet": 39, "review-sheet": 39, "question-bank": 80, printable: 45 });
+  assert.equal(findAccessDebt(R.resources).length, 242);
+  // Teacher-only items are all inside that inventory; public items are never in it.
+  assert.ok(R.resources.filter((r) => r.accessLevel === "teacher-only").every((r) => r.servedFromPublicPath));
+  assert.ok(findAccessDebt(R.resources).every((r) => r.accessLevel !== "public"));
+});
+
+test("Stage 7: compatibility. Old addresses, the v3.15 lesson id and the legacy mappings are all preserved", () => {
+  const lessonRoute = readFileSync(path.join(root, "app/think-move-code/nursery-1/[term]/[week]/lesson/page.tsx"), "utf8");
+  assert.match(lessonRoute, /dynamicParams = false/, "weeks without a reviewed lesson must stay a 404");
+  assert.ok(interactiveLessonFor({ term: 1, week: 1 }), "the Term 1 Week 1 lesson is still offered");
+  assert.equal(interactiveLessonFor({ term: 1, week: 1 }).id, "tmc-v3-15-nursery-1-t1-w1", "the legacy activity id is unchanged");
+  assert.ok(R.legacyMappings.some((m) => m.legacyId === "tmc-v3-15-nursery-1-t1-w1" && m.status === "unresolved" && m.preservedForCompatibility));
+  for (const [t, w] of NURSERY_1_WEEK_TABLE) {
+    assert.ok(existsSync(path.join(root, "app/think-move-code/nursery-1/[term]/[week]/page.tsx")));
+    assert.ok(R.resources.some((r) => r.uri === `/think-move-code/nursery-1/term-${t}/week-${w}`), `week page T${t}W${w} is registered`);
+  }
+  // A registry written before the page index existed still validates.
+  assert.deepEqual(validateBookRegistry({ ...R, pages: undefined }).errors, []);
 });
 
 test("access debt is tracked: restricted resources still served from a public path", () => {

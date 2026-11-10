@@ -260,5 +260,5 @@ Stretch activities never block core completion.
 4. Curriculum reference importer and tests (done).
 5. Book Registry implementation (done for Nursery 1: structure only).
 6. Digital resource relationships (done for Nursery 1).
-7. Security and compatibility review.
+7. Security and compatibility review (done: see `tmc-registry-stage-7-security-review.md`; one high finding, the public restricted files, is awaiting an owner decision).
 8. Verification (tests, typecheck, lint, build).
