@@ -136,6 +136,7 @@ export interface TmcSourceProvenance {
 export type TmcBookType =
   | "student-book"
   | "activity-book"
+  | "workbook"
   | "teacher-guide"
   | "teacher-activity-guide"
   | "other-instructional-book";

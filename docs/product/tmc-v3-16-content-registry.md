@@ -122,7 +122,11 @@ Final-draft files supplied by the owner on 10 November 2026. Status: **revised (
 | Activity Book, cover | `TMC-Nursery-1-Activity-Book-Cover-REVISED_2.pdf` | 1 | `f946fb1d24b44abcea8d8f458e8aa0640c6ab321dfc5d837f9df22a82b4e8cbd` |
 | Teacher Guide, interior | `TMC-Nursery-1-Teacher-Guide-Interior-REVISED_1.pdf` | 84 | `ba10825d494d41bc3bc74e635c31b60f5caf8720cc86067f1c29c6d5c2e52565` |
 
-Not yet supplied or inspected: the corrected manuscript v3.16 (`.docx`), any Student Book and any Teacher Activity Guide. They are recorded as `unverified` or `missing` until seen.
+Learner book: the **Activity Book is the learner book for Nursery 1**. Nursery 1 has no Student Book and no separate workbook by design: the Activity Book already carries the writing and drawing practice pages a nursery child can manage. These are recorded as **not applicable**, not as missing.
+
+Workbooks are planned only for some older levels and none has been started. They have no records yet. When they are registered they use the `workbook` book type and stay `planned` until a file exists.
+
+Not yet supplied or inspected: the corrected manuscript v3.16 (`.docx`) and any Teacher Activity Guide. They are recorded as `unverified` or `missing` until seen.
 
 Note on reading the Activity Book PDF: its embedded text layer is unreliable, so book content and page numbers must be taken from the rendered pages, not from text extraction.
 
