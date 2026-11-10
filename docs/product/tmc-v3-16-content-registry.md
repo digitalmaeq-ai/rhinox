@@ -260,7 +260,7 @@ Stretch activities never block core completion.
 4. Curriculum reference importer and tests (done).
 5. Book Registry implementation (done for Nursery 1: structure only).
 6. Digital resource relationships (done for Nursery 1).
-7. Security and compatibility review (done: see `tmc-registry-stage-7-security-review.md`; one high finding, the public restricted files, is awaiting an owner decision).
+7. Security and compatibility review (done: see `tmc-registry-stage-7-security-review.md`; one high finding, the public restricted files, was accepted for now by the owner on 10 November 2026).
 8. Verification (tests, typecheck, lint, build). Done on 10 November 2026 for `main` at 595587d (after Stages 2 to 7 were merged):
    - `npx tsc --noEmit`: passed.
    - `npm run lint`: no problems in project code. The only 5 errors (and about 5,400 warnings) are in the third-party Pyodide runtime file copied into `public/pyodide/`.
@@ -269,4 +269,4 @@ Stretch activities never block core completion.
    - Browser tests on the production build: Term 1 Week 1 lesson 94 of 94, guided robot "not ready" page 6 of 6.
    - Live addresses: week pages, quizzes and Lesson Plan files return 200; the lesson address returns 200 for Term 1 Week 1 and 404 for other weeks; short links redirect.
    - `npm audit --omit=dev --audit-level=high`: 0 vulnerabilities.
-   - Still open: the owner decision on restricted public files (Stage 7, F1).
+   - Stage 7 finding F1 (restricted files still public): owner chose option C, accept for now.
