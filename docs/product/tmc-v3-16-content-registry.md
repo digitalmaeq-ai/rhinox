@@ -1,233 +1,183 @@
-# TMC v3.16 — Comprehensive Content Registry
+# TMC Book-First Content Registry and v3.16 Curriculum Reference
 
-**Status:** Architecture baseline and source audit; implementation is not yet populated or release-ready.  
-**Repository:** `digitalmaeq-ai/rhinox`  
-**Branch:** `feature/tmc-v3-16-content-registry`  
-**Curriculum authority:** Think • Move • Code! Master Curriculum v3.16.
+**Status:** Stage 2 architecture baseline. Types and documentation only. No importer, no data and no runtime change yet.
+**Repository:** `digitalmaeq-ai/rhinox`
+**Branch:** `feature/tmc-v3-16-content-registry` (draft PR #66, not to be merged without owner approval)
 
-## 1. Purpose
+## 1. The governing rule
 
-The TMC Content Registry is the canonical, versioned content layer for the Rhinox learning ecosystem. It supplies consistent curriculum identity, source references, learning steps, exercises, projects, assessments, media and progression relationships to:
+> **The TMC Master Curriculum guides the development of the books. The approved books define the instructional content. Every other TMC educational resource, assessment and digital experience is developed from, and stays consistent with, those approved books.**
 
-- Code Studio and its guided lesson engine;
-- Robot Lab and virtual/physical mission adapters;
-- the TMC Learning Hub and book-linked QR destinations;
-- Student Books, Activity Books and Teacher Guides;
-- teacher and school dashboards;
-- the future AI Tutor and recommendation service;
-- the Club Edition, derived from the School Edition.
+The relationship is a chain:
 
-The registry is not a second curriculum and must not invent or rewrite curriculum. The approved Master Curriculum v3.16 is the source of curriculum structure. The books and guides provide age-appropriate delivery and teaching detail. Digital activities are mapped extensions, with their authorship and review status explicit.
+1. **Master Curriculum v3.16** guides how the books are developed and organised.
+2. **Approved books** establish the actual instructional content.
+3. **Everything else** (Teacher Guides, Code Studio, Robot Lab, assessments, videos, worksheets, games, QR pages, the AI Tutor) is derived from the approved books and points at an exact book lesson.
 
-## 2. Verified v3.16 source audit
+Nothing in the codebase may reverse this. In particular, a curriculum record is **never** the parent of a lesson, exercise, mission, assessment, worksheet, video or AI answer.
 
-The supplied workbook `Think-Move-Code-Master-Curriculum-v3.16_4.xlsx` was inspected directly.
+## 2. Role of the v3.16 curriculum reference catalogue
 
-- Workbook SHA-256: `bdfbf6f487000c5fbaadca1c890aa38bca85e147ed7d1d505a225ab3f3ce6f14`
-- 24 worksheets.
-- Master Matrix: 43 columns and 507 weekly records (508 rows including header).
-- 13 levels: Nursery 1, Nursery 2 and Year 1–Year 11.
-- 39 weekly records per level; 13 weeks per term; 3 terms per level.
-- All expected level/term/week combinations are present.
-- A blank Main strand is valid for some integration, revision, project, assessment or showcase weeks. Do not fill it by inference.
-- Build and Create are sometimes blank where they are not required core parts. Do not invent missing source activities.
+It exists for:
+- the original level, term and week structure;
+- intended coverage and progression, to support editorial checks ("does the book cover what was intended?");
+- development provenance and traceability.
 
-The 24 workbook sheets and their registry roles:
+It does **not** supply learner-facing text, exercises, missions, assessments or tutor answers. Importing it is not approval to publish anything. Records carry `role: "reference-only"` so tooling can refuse to treat them as lessons.
 
-| Workbook sheet | Registry responsibility |
+### Source workbook (to be verified)
+
+The workbook `Think-Move-Code-Master-Curriculum-v3.16_4.xlsx` is described in the task brief as:
+- 24 worksheets; Master Matrix of 43 columns and 507 weekly records;
+- 13 levels (Nursery 1, Nursery 2, Year 1 to Year 11), 39 records per level, 3 terms, 13 weeks per term.
+
+**The workbook has not been supplied to the importer work yet.** These figures must be verified against the real file, including its SHA-256, before the importer reports them as fact.
+
+Blank Main strand, Build, Create and alignment values can be legitimate and are preserved as blank. A missing activity that the source marks as a required core part is a source issue to report, never something to invent.
+
+| Workbook sheet | Role in the reference catalogue |
 |---|---|
-| Read Me | Curriculum rules, source authority and production principles |
-| Competency Framework | Level competencies, minimum viable learner outcomes and exit evidence |
-| Concept Ladders | Concept progression, prerequisites and future bridges |
+| Read Me | Curriculum rules and production principles |
+| Competency Framework | Level competencies and exit evidence |
+| Concept Ladders | Concept progression and future bridges |
 | Robotics Ladders | Robotics skill progression |
 | AI Progression | AI and emerging technology progression |
 | Spiral Progression | Revisit and deepen concepts across levels |
 | Hardware Progression | Hardware and kit progression |
 | Coding & Hardware Path | Coding environments and hardware pathway |
-| Level & Term Map | Stage, term title, big idea, strands, focus and coding tools |
-| Master Matrix | 507 canonical weekly curriculum records |
-| Club Edition | Derived club modules, pacing, builds and badges |
-| Assessment | Age-banded evidence models and assessment policy |
-| Teaching Methods | Pedagogy and instructional-method guidance |
+| Level & Term Map | Stage, term title, big idea, strands, focus, coding tools |
+| Master Matrix | 507 weekly curriculum reference rows |
+| Club Edition | Club module reference (separate programme, see section 8) |
+| Assessment | Age-banded evidence models |
+| Teaching Methods | Pedagogy guidance |
 | Mascots | Approved character identity and level mapping |
-| Book Production Map | Book and teacher-resource deliverables by level |
-| Book Copy | Learner-facing copy and character dialogue |
-| Open Items | Unresolved editorial, curriculum and production decisions |
-| Launch Pathway | Catch-up/entry pathways for schools adopting TMC mid-sequence |
+| Book Production Map | Planned book and teacher-resource deliverables (plans, not evidence a book exists) |
+| Book Copy | Character and dialogue guidance for book writing |
+| Open Items | Unresolved editorial and production decisions |
+| Launch Pathway | Entry pathways for schools adopting TMC mid-sequence |
 | Curriculum Alignment | NERDC and other alignment evidence |
-| Lagos & Federal Map | Nigerian scheme/reference mapping |
+| Lagos & Federal Map | Nigerian scheme and reference mapping |
 | International Standards | International evidence mapping |
-| Other Schemes (reference) | Additional comparison evidence |
-| Sources | Reference bibliography and source records |
-| Modernisation Guide | Curriculum maintenance and update policy |
+| Other Schemes (reference) | Comparison evidence |
+| Sources | Bibliography |
+| Modernisation Guide | Maintenance and update policy |
 
-## 3. Source hierarchy and conflict handling
+## 3. Book Registry (the central instructional registry)
 
-1. **Master Curriculum v3.16** governs level, term, week, concepts, competencies, progression, hardware, platform, core parts, fallback and assessment intent.
-2. **Student Book / Activity Book** governs learner-facing wording, page tasks, illustrations and learner interactions.
-3. **Teacher Guide** governs teaching sequence, preparation, differentiation, safety, observation and marking guidance.
-4. **Teacher Activity Guide / assessment bank** supplies teacher-only assessment and answer materials where the production map calls for them.
-5. **Approved videos, QR assets, printables and games** support the relevant lesson; they do not override the curriculum.
-6. **Digital lesson specifications** translate approved source material into Code Studio or Robot Lab interactions. They are editorial/digital adaptations, not source facts.
+Defined in `types/tmc-registry.ts`.
 
-If sources disagree, create a conflict record linked to the affected lesson and source locations. Do not silently choose a version or overwrite one source with another. Resolve through editorial/curriculum review.
+**`TmcBook`** is one edition of one book: ID, title, type (student book, activity book, teacher guide, teacher activity guide, other), level, edition, version, language, audience, publication status, editorial status, availability, file location, file SHA-256, page count, source manuscript, provenance and related curriculum reference IDs. A new edition is a new record; the older one becomes `superseded`.
 
-## 4. Registry entities
+**`TmcBookLesson`** is one lesson or unit inside one book edition: lesson ID, book ID, level, term, week, chapter or unit, title, page range, concepts, vocabulary, learning instructions, activities, examples, practical tasks, projects, exercises, review questions, illustration links, digital resource links and approval status.
 
-The shared contracts are defined in `types/tmc-registry.ts`. The registry is normalised into linked entities rather than a single oversized lesson JSON object.
+**`TmcBookLessonRef`** is the exact source location (book, lesson, pages, section, activity label). Every derived resource must carry one.
 
-### A. Curriculum record
+Book content is preserved as written. Import must not summarise, rewrite or generate instruction. Teacher-only items and answers carry `accessLevel: "teacher-only"`.
 
-One record for every Master Matrix row, keyed by a permanent ID:
+### Approval states
 
-`tmc-v3-16-{level-slug}-t{term}-w{week}`
+`draft`, `under-review`, `revised`, `approved`, `published`, `superseded`.
 
-Example: `tmc-v3-16-nursery-1-t1-w1`.
+- Only `approved` or `published` editions may serve as the production instructional source.
+- A revised or "final draft" manuscript is **not** approved. Moving a book to `approved` is an explicit owner decision recorded with who and when.
+- `availability` (`verified`, `unverified`, `planned`, `missing`) is separate from approval. A planned book that appears only in the Book Production Map is `planned`, never complete.
 
-A curriculum record stores all 43 Master Matrix fields (including nullable fields) with source provenance. It is not automatically a runnable lesson.
+### Edition and version management
 
-### B. Learning steps
+Each book edition records its exact version and file SHA-256. If a file changes, it is a new version and its derived resources are re-reviewed. Page references are valid only for the edition they were taken from.
 
-A lesson may contain Think, Move, Code, Build, Create, Test, Improve, Explain and Check steps. The Master Matrix's Think/Move/Code/Build/Create fields remain the source content. Test, Improve and Explain can be added as clearly attributed digital/teacher enrichments where supported by the source and pedagogy.
+## 4. Derived resources
 
-### C. Book and guide references
+Code Studio activities and exercises, Robot Lab missions, assessments and every other resource extend `TmcDerivedBase`, which **requires** a `source: TmcBookLessonRef` and an `origin`:
 
-Link each weekly record to the applicable book edition, exact page range, activity label, section and QR destination. Store separate editions and revision history; do not assume every level has every book type. Follow the Book Production Map.
+- `book`: reproduces or directly follows an activity written in the book.
+- `enrichment`: a digital extension. It must be labelled as enrichment, name its originating book lesson, must not contradict or replace the book, and must never be presented as a book activity.
 
-### D. Digital activities
+Rules:
+- A book lesson need not have a coding exercise, a Robot Lab mission or a digital version. Do not force one.
+- Learning stages (think, move, code, build, create, test, improve, explain, check) are used only where the relevant book lesson contains them. There is no generic sequence imposed on every lesson.
+- Assessments cover only concepts, activities and skills in the cited book lesson, and keep the age-appropriate method the book specifies. They are never generated from curriculum records.
+- The AI Tutor uses approved book content as its primary source, names the book and lesson, separates approved content from enrichment, flags gaps, and never uses draft or unapproved books as authority.
+- Crosswalks (`TmcBookCurriculumCrosswalk`) record where a book lesson covers, partly covers or extends the curriculum intent. A crosswalk is an editorial check, not a content dependency.
 
-Code Studio exercises and Robot Lab missions are separate linked records. A curriculum record can have:
-- no digital interaction (unplugged lesson);
-- one or more Code Studio exercises;
-- one or more Robot Lab missions;
-- a physical build or teacher-observed activity;
-- a mixed sequence.
+## 5. Legacy lessons
 
-Do not force all 507 weeks into a code editor or robot simulator.
+Lessons written before this rule (the v3.15 era) are not trusted by default.
 
-### E. Assessment and evidence
+- Do not rename a `tmc-v3-15-…` ID to v3.16 and call it migrated.
+- Do not use curriculum similarity alone as proof that a legacy lesson matches a book lesson.
+- To migrate: identify the legacy lesson, find the originating approved book lesson, confirm chapter and page, compare the content, record discrepancies, and migrate only when the match is reliable.
+- Until then the lesson is a `TmcLegacyLessonMapping` with status `unresolved`. It stays out of the approved catalogue, its data is kept for compatibility, and it is flagged for editorial review.
+- Do not regenerate legacy lessons from curriculum records.
 
-Keep the curriculum's assessment evidence separate from automated app checks. Each evidence item declares its mode: automatic, learner-confirmed, teacher-observed or portfolio-reviewed. Automated simulation success must never be described as proof that a learner physically built or understood a robot. Teacher observation remains authoritative where the curriculum says so.
+## 6. Nursery 1 source set (first level to be perfected)
 
-### F. Assets and learning resources
+Nursery 1 is the template level. The other levels use the same pattern once their books exist. A level with no supplied book is `planned` or `missing`, not guessed.
 
-Register QR codes, videos, transcripts, illustrations, diagrams, printables, games, badges, certificates, worksheets, teacher notes and club resources with audience, language, access level, status and provenance.
+Final-draft files supplied by the owner on 10 November 2026. Status: **revised (final draft), not approved**.
 
-### G. Relationships
+| Book | Source file | Pages | SHA-256 |
+|---|---|---|---|
+| Activity Book, interior | `TMC-Nursery-1-Activity-Book-Interior2-REVISED_4.pdf` | 110 | `f4de8066a97e4dd565d90dfe71569395f0e1a81ae32c47c481f03923ca8f3250` |
+| Activity Book, cover | `TMC-Nursery-1-Activity-Book-Cover-REVISED_2.pdf` | 1 | `f946fb1d24b44abcea8d8f458e8aa0640c6ab321dfc5d837f9df22a82b4e8cbd` |
+| Teacher Guide, interior | `TMC-Nursery-1-Teacher-Guide-Interior-REVISED_1.pdf` | 84 | `ba10825d494d41bc3bc74e635c31b60f5caf8720cc86067f1c29c6d5c2e52565` |
 
-Use explicit edges for prerequisite, follows, teaches, assesses, supports, extends, companion, references, unlocks and part-of. This graph powers navigation, progression, recommendations and AI retrieval.
+Not yet supplied or inspected: the corrected manuscript v3.16 (`.docx`), any Student Book and any Teacher Activity Guide. They are recorded as `unverified` or `missing` until seen.
 
-## 5. Product boundaries
+Note on reading the Activity Book PDF: its embedded text layer is unreliable, so book content and page numbers must be taken from the rendered pages, not from text extraction.
 
-| Consumer | Reads from registry | Writes back |
-|---|---|---|
-| Code Studio | Curriculum, lesson steps, exercises, starter projects, success criteria and fallbacks | Attempt events, automated evidence and learner project references |
-| Robot Lab | Mission definition, robot profile, simulator config, allowed commands, build brief and safety notes | Simulator run evidence, mission result and project reference |
-| Learning Hub | Level/term/week catalogue, book links, QR resources and videos | Resource completion and navigation events |
-| Teacher workspace | Teacher guides, assessment criteria, rubrics, class assignments and evidence | Observation records, assessment decisions and feedback |
-| AI Tutor | Approved learner-facing explanations, vocabulary, prerequisites and source references | No curriculum edits; proposed enrichment must enter editorial review |
-| Club Edition | Derived module links, session plan, project and badge mapping | Session attendance, mastery checklist and showcase evidence |
+## 7. Private content and access
 
-The registry must not depend on React components. UI renderers consume typed data. Code execution adapters and Robot Lab simulation engines remain separate from curriculum definitions.
+The GitHub repository is public. These must **not** be committed to it:
+- the full v3.16 workbook or any raw CSV export;
+- generated private catalogues;
+- complete book text or page maps;
+- answer keys, marking guides and teacher-only content;
+- original licensed media.
 
-## 6. Content workflow and publication gates
+Public GitHub may hold: types and validation code, importer tooling, schema documentation, **synthetic** test fixtures, a non-sensitive manifest (counts, version, hash) and explicitly approved public previews.
 
-Recommended lifecycle:
+Private content stays server-side under the existing boundary (`.private-data/…`, read only by server modules that require an authenticated, licensed learner and fail closed). Do not assume every resource uses the same store; follow the existing security architecture and recommend changes only where necessary. Never expose the full registry or catalogue to client components, never expose draft or unapproved lessons to learners, and never add a paid database or storage provider without approval.
 
-`source-only → imported → enrichment-draft → editorial-review → curriculum-review → approved → published`
+Teacher-only and answer-key material is classified `teacher-only` and must not be served from public static paths.
 
-A record can be archived without deleting its history. Draft, imported or merely curriculum-complete records are not launchable.
+## 8. Club Edition
 
-A Code Studio activity or Robot Lab mission may launch only when:
-1. its curriculum record exists in the active version;
-2. all required source fields and linked assets are present;
-3. its age, reading level, platform and hardware requirements are appropriate;
-4. its success criteria and evidence limitations are explicit;
-5. its no-power/no-device/no-kit fallback is present where required;
-6. automated checks have valid typed contracts;
-7. teacher-observed evidence is not falsely automated;
-8. the lesson wording and activity have been reviewed;
-9. the exact activity spec is approved and registered in the reviewed-launch allowlist.
+The Club Edition is a separate programme. Its modules use their own ID namespace (`tmc-club-{module-slug}`), may reference approved book lessons and curriculum references, and are never mixed with book lesson IDs or the 507 school curriculum references.
 
-Stretch activities never block core completion or badges. Secure assessment answers and marking keys remain teacher-only.
+## 9. Import and validation (planned, later stages)
 
-## 7. Intellectual property and hosting boundary
+The curriculum reference importer will: accept the 43 real headers; keep every original value in `rawSourceFields`; keep blanks as null; generate IDs `tmc-v3-16-{level-slug}-t{term}-w{week}`; write one JSON per level plus a combined catalogue and a source-hash manifest; record source row numbers; and report validation issues without correcting them. Validations: 507 records, 13 levels, 39 per level, 3 terms, 13 weeks per term, no duplicates, no missing weeks. Generated output goes to private storage only. Commands will be documented here when the importer exists.
 
-The GitHub repository `digitalmaeq-ai/rhinox` is public. The full Master Matrix, complete book manuscripts, teacher guides, answer keys, proprietary illustrations and full lesson content must **not** be committed to it.
+## 10. Publication gate
 
-Public GitHub should contain:
-- registry TypeScript contracts and validation code;
-- import/export tooling;
-- non-sensitive schema documentation;
-- synthetic fixtures and tests;
-- a non-sensitive manifest with counts, version and source hash;
-- explicitly approved public preview records only.
+A digital resource may reach learners only when all are true:
+1. its book lesson exists in an `approved` or `published` book edition;
+2. its exact page reference is recorded;
+3. its origin is labelled (`book` or `enrichment`);
+4. required assets and fallbacks are present;
+5. evidence limits are explicit and teacher-observed evidence is not falsely automated;
+6. wording and activity have been reviewed by a person;
+7. it is registered in the reviewed-launch allowlist.
 
-Private content storage should contain:
-- the complete v3.16 Master Matrix export/catalogue;
-- complete book/guide text and page maps;
-- teacher-only answers, rubrics and assessment banks;
-- original media and licensed assets;
-- full lesson specifications until approved for learner publication.
+Stretch activities never block core completion.
 
-The server-side registry loader must enforce authentication, school/licence entitlement, audience and resource access. Never expose teacher-only fields or proprietary source files through client bundles, public static assets or unauthorised API routes. Do not add a paid database or storage provider without approval; the current local/private storage boundary remains the starting point.
+## 11. Known limitations and unresolved items
 
-## 8. v3.15 migration requirements
+- The v3.16_4 workbook and the corrected manuscript are not yet supplied to this work.
+- No Nursery 1 book is approved yet. Approval is the owner's decision.
+- Existing v3.15 lessons are unresolved legacy mappings until checked against the book.
+- Page-level indexes for the Nursery 1 books are not built yet (Stage 3).
+- Access classification of previously published Nursery 1 support files is pending an owner decision and is outside this stage.
+- CI path filters do not yet cover registry tests; they will be extended when tests are added.
 
-The current Code Studio V2 importer, catalogue types and documentation still contain v3.15 assumptions. Migration must:
-- accept the actual v3.16 Master Matrix headers, including all 43 columns;
-- retain every field, including alignment, visual requirements, QR/Hub links, video requirements, robot/maker challenge, chapter gate and hardware/platform fields;
-- set curriculum version to 3.16 in every generated record and stable ID;
-- validate exactly 507 records, 13 levels, 39 records per level and 13 weeks per term;
-- preserve nullable strands and optional Build/Create values;
-- report blank required core activities and other source validation issues without fabricating content;
-- record workbook SHA-256, import time, importer/schema version and source sheet;
-- create a deterministic private catalogue and per-level indexes;
-- compare the 3.16 records with prior v3.15 content and produce a change report, never silently overwrite reviewed lesson specs;
-- keep v3.15 records available for historical progress interpretation, but do not serve them as the current curriculum.
+## 12. Stage plan
 
-## 9. Existing repository findings
-
-The V2 branch merged to `main` through PR #17 on 23 October 2026. Existing work includes the v2 learning route, guided lesson prototype, lesson gates, private curriculum loader, exercise contracts, robot simulator and a v3.15 importer.
-
-The V2 curriculum import documentation explicitly says the full curriculum catalogue is private and not connected to the learner route. The current v3.15 importer is not sufficient for v3.16 and must be migrated before the full catalogue is connected.
-
-The current reviewed/draft lesson-spec files are not a complete content registry. A draft or example lesson must not be promoted merely because its structure fits the new schema.
-
-## 10. Available source material and gaps
-
-Verified in the current working Library:
-- `Think-Move-Code-Master-Curriculum-v3.16_4.xlsx` (the 24-sheet authority described above);
-- `TMC-Nursery-1-Teacher-Guide-Interior-REVISED_1.pdf`;
-- `TMC-Nursery-1-Activity-Book-Interior2-REVISED_4.pdf`;
-- `Think_Move_Code_Nursery_1_Corrected_Manuscript_v3_16.docx`;
-- earlier Nursery 1 student-book drafts and production/design references.
-
-Repository and Library inspection did not establish that final, approved book/guide files exist for all 13 levels. The Book Production Map must determine expected deliverables; missing source files must be reported as gaps, not filled by generating guessed lesson copy. The Nursery 1 source set should be reconciled page-by-page first, then the same source-ingestion process can be applied to the next available level.
-
-## 11. Acceptance criteria for the complete registry
-
-- [ ] All 507 v3.16 Master Matrix records imported without missing or duplicate level/term/week keys.
-- [ ] All 24 workbook sheets inventoried and mapped to registry entities or reference-only metadata.
-- [ ] All 13 levels and 39 weekly records per level indexed.
-- [ ] Every record preserves original nullable values and has source provenance.
-- [ ] Book Production Map deliverables reconciled against actual files and editions.
-- [ ] All available books and guides indexed by exact level, edition, page and week.
-- [ ] QR, video, printable and illustration links checked; broken/placeholder links flagged.
-- [ ] Digital lesson enrichments clearly distinguished from verbatim curriculum/book source.
-- [ ] Code Studio exercise and Robot Lab mission mappings reviewed individually.
-- [ ] Assessment/evidence model respects age band and teacher-observation requirements.
-- [ ] Unresolved source conflicts and open items remain visible.
-- [ ] Private content is not committed to public GitHub or exposed to unauthorised clients.
-- [ ] Import, schema, access and progression tests pass before learner release.
-
-## 12. Immediate implementation sequence
-
-1. Finish the source inventory and page-level Nursery 1 reconciliation.
-2. Upgrade the importer and validators from v3.15 to v3.16.
-3. Generate the full private 507-record catalogue and manifest.
-4. Build book/page/resource indexes from available Nursery 1 materials.
-5. Create the lesson enrichment layer and link the existing reviewed lesson only after re-review against v3.16.
-6. Add Code Studio and Robot Lab mappings as separate, review-gated records.
-7. Connect the private server-side loader and test entitlement boundaries.
-8. Expand level by level; do not mark missing books or unreviewed lessons as complete.
+1. Audit (done).
+2. Architecture, types and documentation (this change).
+3. Resource inventory and page-level Nursery 1 index.
+4. Curriculum reference importer and tests.
+5. Book Registry implementation.
+6. Digital resource relationships.
+7. Security and compatibility review.
+8. Verification (tests, typecheck, lint, build).
