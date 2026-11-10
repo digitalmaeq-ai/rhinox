@@ -11,8 +11,8 @@ let passed = 0, failed = 0;
 function check(name, ok, detail) {
   if (ok) { passed++; console.log("  ok   " + name); } else { failed++; console.log("  FAIL " + name + (detail ? " :: " + detail : "")); }
 }
-const RIGHT = ["Wake up", "Brush teeth", "Eat breakfast"];
-const WRONG = ["Eat breakfast", "Wake up", "Brush teeth"];
+const RIGHT = ["Ayo wakes up", "Ayo brushes his teeth", "Ayo eats breakfast"];
+const WRONG = ["Ayo eats breakfast", "Ayo wakes up", "Ayo brushes his teeth"];
 
 async function open(browser, viewport, opts = {}) {
   const ctx = await browser.newContext({ viewport, reducedMotion: opts.reducedMotion ? "reduce" : "no-preference" });
@@ -33,11 +33,9 @@ async function toCodeStep(p) {
 async function order(p, labels) {
   for (const l of labels) await p.getByRole("button", { name: new RegExp(l) }).first().click();
 }
-async function afterCode(p) {                                       // build (optional) -> create -> check
-  await next(p).click();                                            // code -> build
-  const skip = p.getByRole("button", { name: /Skip optional build/ });
-  check("optional Build can be skipped", await skip.isEnabled());
-  await skip.click();                                               // build -> create
+async function afterCode(p) {                                       // the book lesson has no Build: code -> create -> check
+  check("the Build step is not shown (the book lesson has none)", (await p.getByRole("button", { name: /Skip optional build/ }).count()) === 0);
+  await next(p).click();                                            // code -> create
   await p.getByRole("button", { name: "I completed my three-step drawing" }).click();
   await next(p).click();                                            // create -> check
 }
@@ -46,7 +44,7 @@ async function journey(browser, label, viewport, opts) {
   console.log("\n== " + label);
   // A. independent success, adult confirms
   let { ctx, page: p, errors, failedReqs } = await open(browser, viewport, opts);
-  check("the week's lesson opens straight at step 1", await p.getByText("STEP 1 OF 6").isVisible());
+  check("the week's lesson opens straight at step 1", await p.getByText("STEP 1 OF 5").isVisible());
   await toCodeStep(p);
   check("Next is disabled before the sequence is solved", await next(p).isDisabled());
   await order(p, WRONG);
@@ -115,10 +113,10 @@ async function journey(browser, label, viewport, opts) {
 async function keyboard(browser) {
   console.log("\n== keyboard only");
   const { ctx, page: p } = await open(browser, { width: 1280, height: 800 });
-  check("lesson is open at step 1", await p.getByText(/STEP 1 OF 6/).isVisible());
+  check("lesson is open at step 1", await p.getByText(/STEP 1 OF 5/).isVisible());
   await next(p).focus();
   await p.keyboard.press("Enter");
-  check("the next step opens with the keyboard", await p.getByText(/STEP 2 OF 6/).isVisible());
+  check("the next step opens with the keyboard", await p.getByText(/STEP 2 OF 5/).isVisible());
   const focusVisible = await p.evaluate(() => { document.querySelector("button")?.focus(); const el = document.activeElement; return !!el && el !== document.body; });
   check("keyboard focus lands on a control", focusVisible);
   await p.keyboard.press("Tab");

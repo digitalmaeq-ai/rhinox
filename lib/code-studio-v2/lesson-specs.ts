@@ -7,7 +7,23 @@ export type StepKey = "think" | "move" | "code" | "build" | "create" | "check";
  * Exercise specification for an individually reviewed lesson.
  * A curriculum record alone must never be treated as a runnable exercise.
  */
+/** One page of an approved book that a step is taken from. Pages are printed page numbers. */
+export type BookPageRef = { book: "activity-book" | "teacher-guide"; page: number };
+
+/** Which approved book lesson a reviewed lesson is developed from (registry lesson ids). */
+export type LessonBookSource = {
+  activityBookLessonId: string;
+  teacherGuideLessonId: string;
+};
+
 export type LessonStepSpec = {
+  /**
+   * False when the approved book lesson has no such stage. The step is kept in the spec for
+   * compatibility but is not shown to the learner. Only an optional Build step may be left out.
+   */
+  inBook?: boolean;
+  /** The book pages this step follows. Required for every step the book contains. */
+  sources?: readonly BookPageRef[];
   instruction: string;
   task: string;
   evidence: string;
@@ -25,6 +41,8 @@ export type InteractiveLessonSpec = {
   objective: string;
   successCriteria: readonly string[];
   estimatedMinutes: number;
+  /** The approved book lesson this lesson is developed from. Every reviewed lesson must have one. */
+  bookSource?: LessonBookSource;
   accessibility: {
     keyboardOperable: boolean;
     touchOperable: boolean;
@@ -34,16 +52,23 @@ export type InteractiveLessonSpec = {
   steps: Record<StepKey, LessonStepSpec>;
 };
 
+/**
+ * Nursery 1, Term 1, Week 1 "I Can Do Things in Steps".
+ * Rebuilt from the approved books (Activity Book pp. 6-8, Teacher Guide pp. 8-9), not from the
+ * curriculum sheet. The Teacher Guide lesson has Think, Move, Code and Book & close; it has no Build.
+ * The activity id is kept so existing addresses keep working.
+ */
 const NURSERY_1_T1_W1: InteractiveLessonSpec = {
   activityId: "tmc-v3-15-nursery-1-t1-w1",
   status: "reviewed",
-  objective: "Follow and arrange three familiar actions in the order they happen.",
+  objective: "I can follow 3 steps in order.",
   successCriteria: [
-    "Follow a three-step movement instruction.",
-    "Arrange wake up, brush teeth, and eat breakfast in order.",
-    "Follow three steps in order on their own, as observed by a teacher or caregiver.",
+    "Follow a three-step movement instruction in the right order.",
+    "Put Ayo's morning pictures in order: wakes up, brushes his teeth, eats breakfast.",
+    "Follow 3 steps in order on their own, as observed by a teacher or caregiver.",
   ],
   estimatedMinutes: 10,
+  bookSource: { activityBookLessonId: "tmc-n1-ab-t1-w1", teacherGuideLessonId: "tmc-n1-tg-t1-w1" },
   accessibility: {
     keyboardOperable: true,
     touchOperable: true,
@@ -52,31 +77,34 @@ const NURSERY_1_T1_W1: InteractiveLessonSpec = {
   },
   steps: {
     think: {
-      instruction: "Look at the three morning actions. Think about what usually happens first, next, and last.",
-      task: "Say or point to what you do first in the morning.",
-      evidence: "Learner identifies or communicates a plausible first action.",
-      hint: "Think about what you do when you first wake up.",
+      sources: [{ book: "activity-book", page: 6 }, { book: "teacher-guide", page: 8 }],
+      instruction: "Look at Ayo getting ready for school. What does he do first? What does he do next? What does he do last?",
+      task: "Say or point to what Ayo does first, next and last. Then say together: “First wake up, next brush teeth, last eat.”",
+      evidence: "Learner says or points to the first, next and last picture. This is adult-observed, not automatic.",
+      hint: "RhinoBot remembers: you already do steps at home every morning!",
       fallback: "A teacher or caregiver can describe the pictures aloud; no device is needed.",
     },
     move: {
-      instruction: "Play Robot Says. Try clap, stamp, then turn. Follow each action in the order given.",
-      task: "Practise the three movements, then repeat them in a different order.",
+      sources: [{ book: "activity-book", page: 6 }, { book: "teacher-guide", page: 8 }],
+      instruction: "Play Robot Says! Clap → stamp → turn. Now try a new order: turn → clap → stamp.",
+      task: "Do clap, stamp, turn in that order. Then do turn, clap, stamp.",
       evidence: "Learner or supervising adult confirms the movement sequence was attempted; this is self-reported evidence, not sensor verification.",
-      hint: "Listen for one instruction at a time and keep the order.",
-      fallback: "Use safe seated gestures or point to action cards if movement is difficult or unsuitable.",
+      hint: "Go slowly. Listen for one step at a time and wait for “Go!”.",
+      fallback: "If moving is hard, do the steps seated or point to action cards with a grown-up.",
     },
     code: {
-      instruction: "Put the morning picture steps in order: wake up, brush teeth, then eat breakfast.",
-      task: "Select all three picture cards in the correct sequence.",
+      sources: [{ book: "teacher-guide", page: 8 }, { book: "activity-book", page: 7 }],
+      instruction: "Lay the 3 morning cards in a row. Point to each one and say “first, next, last”.",
+      task: "Put the cards in order: Ayo wakes up, Ayo brushes his teeth, Ayo eats breakfast.",
       evidence: "The interactive sequence is exactly wake up, brush teeth, eat breakfast.",
-      hint: "Which action normally happens before brushing your teeth? What comes after?",
-      fallback: "Use three printed or hand-drawn cards and arrange them on a table.",
+      hint: "What does Ayo do first? What comes next? What comes last?",
+      fallback: "No device or printer? Draw the 3 pictures on paper or the board and arrange them with a teacher or caregiver.",
       exercise: {
         id: "morning-routine-order",
         kind: "ordering",
-        prompt: "Put the morning actions in the order they usually happen.",
-        instructions: "Choose the cards in order: first, next, and last.",
-        hint: "Wake up comes before brushing your teeth. Eating breakfast comes after.",
+        prompt: "Put Ayo's morning pictures in order.",
+        instructions: "Choose the cards in order: first, next and last.",
+        hint: "What does Ayo do first? Then what comes next?",
         fallback: "Arrange printed or hand-drawn cards on a table with a teacher or caregiver.",
         evidenceMode: "automatic",
         maxAttempts: 3,
@@ -84,40 +112,43 @@ const NURSERY_1_T1_W1: InteractiveLessonSpec = {
         pointsAvailable: 1,
         accessibility: { keyboardOperable: true, touchOperable: true, textAlternative: true },
         items: [
-          { id: "wake-up", label: "Wake up" },
-          { id: "brush-teeth", label: "Brush teeth" },
-          { id: "eat-breakfast", label: "Eat breakfast" },
+          { id: "wake-up", label: "Ayo wakes up" },
+          { id: "brush-teeth", label: "Ayo brushes his teeth" },
+          { id: "eat-breakfast", label: "Ayo eats breakfast" },
         ],
         expectedOrder: ["wake-up", "brush-teeth", "eat-breakfast"],
         scoring: { correctPoints: 1, incorrectPoints: 0, partialCredit: false },
       },
     },
     build: {
-      instruction: "Building a model is optional this week. You can skip this step and continue.",
-      task: "Optional: choose simple safe materials for a model of a morning routine.",
-      evidence: "No evidence is required because Build is not a core part of this week's curriculum.",
-      hint: "You could use paper cards or blocks, with adult help where needed.",
-      fallback: "Skip the model and continue; the core activity needs no kit.",
+      inBook: false,
+      instruction: "This week's book lesson has no Build part, so this step is not shown.",
+      task: "Nothing to do. The book lesson goes from Code to the Activity Book drawing.",
+      evidence: "No evidence is required because Build is not a core part of this week's book lesson.",
+      hint: "Nothing to do for this step.",
+      fallback: "Skip this step; the lesson needs no kit.",
     },
     create: {
-      instruction: "Draw or arrange three pictures showing something you do every day, in order.",
-      task: "Create a three-step sequence from a familiar daily routine.",
+      sources: [{ book: "activity-book", page: 8 }, { book: "teacher-guide", page: 8 }],
+      instruction: "Draw 3 steps of something you do every day: first, next and last.",
+      task: "Draw three steps in order. Colour the star when you can!",
       evidence: "Learner or supervising adult confirms a sequence was created; this is self-reported evidence, not image verification.",
-      hint: "Choose a routine you know well, such as washing your hands.",
-      fallback: "Arrange three objects or point to three drawn symbols instead of drawing.",
+      hint: "Choose something you know well, like getting ready for bed.",
+      fallback: "Can't draw yet? Act it or tell it, and a grown-up draws it.",
     },
     check: {
-      instruction: "Show a teacher or caregiver that you can follow three steps in order.",
+      sources: [{ book: "teacher-guide", page: 9 }, { book: "activity-book", page: 7 }],
+      instruction: "Show a teacher or caregiver that you can follow 3 steps in the right order.",
       task: "Follow a 3-step instruction on your own while a teacher or caregiver watches.",
-      evidence: "A teacher or caregiver observes whether the child follows a 3-step instruction in the right order on their own; this is adult-recorded evidence, not automatic verification. The picture-card question below is optional extra practice and is not the official check.",
+      evidence: "A teacher or caregiver observes whether the child follows a 3-step instruction in the right order on their own; this is adult-recorded evidence, not automatic verification. The picture question below is optional extra practice and is not the official check.",
       hint: "Start with 2 steps, then add the third. Do the steps together first, then let the child try alone.",
       fallback: "If no adult can watch right now, choose “I will check later” so the teacher can complete the observation.",
       exercise: {
         id: "morning-what-comes-first",
         kind: "choice",
-        prompt: "Getting ready for school: which picture comes first?",
-        instructions: "Choose the first step of the morning.",
-        hint: "What do you do before you brush your teeth or eat?",
+        prompt: "What comes first? Choose the picture that comes first.",
+        instructions: "Choose the first picture.",
+        hint: "What does Ayo do first when he gets ready for school?",
         fallback: "Ask a teacher or caregiver to read the choices aloud, then point to the best answer.",
         evidenceMode: "automatic",
         maxAttempts: 3,
@@ -125,10 +156,9 @@ const NURSERY_1_T1_W1: InteractiveLessonSpec = {
         pointsAvailable: 1,
         accessibility: { keyboardOperable: true, touchOperable: true, textAlternative: true },
         options: [
-          { id: "wake-up", label: "Wake up" },
-          { id: "brush-teeth", label: "Brush teeth" },
-          { id: "eat-breakfast", label: "Eat breakfast" },
-          { id: "go-to-bed", label: "Go to bed at night" },
+          { id: "wake-up", label: "Ayo wakes up" },
+          { id: "brush-teeth", label: "Ayo brushes his teeth" },
+          { id: "eat-breakfast", label: "Ayo eats breakfast" },
         ],
         correctOptionId: "wake-up",
       },
@@ -175,6 +205,21 @@ export function isLessonSpecConsistent(spec: InteractiveLessonSpec, activity: Cu
       !step.fallback.trim()
     ) return false;
     if (step.exercise && !isExerciseDefinition(step.exercise)) return false;
+  }
+
+  // A step the book does not have may only be an optional Build step, with nothing attached to it.
+  for (const key of stepKeys) {
+    if (spec.steps[key].inBook === false && (key !== "build" || isBuildRequired(activity.coreParts) || spec.steps[key].exercise)) return false;
+  }
+  // Every step the book does contain names the book pages it follows. Pages are positive whole numbers.
+  if (spec.bookSource) {
+    if (!spec.bookSource.activityBookLessonId.trim() || !spec.bookSource.teacherGuideLessonId.trim()) return false;
+    for (const key of stepKeys) {
+      const step = spec.steps[key];
+      if (step.inBook === false) continue;
+      if (!step.sources || step.sources.length === 0) return false;
+      if (!step.sources.every((ref) => (ref.book === "activity-book" || ref.book === "teacher-guide") && Number.isInteger(ref.page) && ref.page > 0)) return false;
+    }
   }
 
   const buildRequired = isBuildRequired(activity.coreParts);
