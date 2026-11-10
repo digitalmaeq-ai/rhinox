@@ -138,3 +138,14 @@ assert.equal(isLessonSpecConsistent({ ...spec, steps: { ...spec.steps, move: { .
 assert.equal(isLessonSpecConsistent({ ...spec, bookSource: { activityBookLessonId: " ", teacherGuideLessonId: "x" } }, activity), false, "Book lesson ids cannot be blank.");
 assert.ok(spec.bookSource, "A reviewed lesson names the approved book lessons it is developed from.");
 console.log("Book-first checks passed: omitted Build, page references, and book lesson ids.");
+
+// Data-driven page: the learner page reads its wording from the spec, so a new lesson needs no page code.
+const present = spec.presentation;
+assert.ok(present?.rhinobotSays && present.teacherCheck && present.completionText && present.practises?.length, "Lesson-level wording lives in the spec.");
+assert.equal(spec.steps.move.presentation?.strip?.length, 3, "The Move strip comes from the spec.");
+assert.ok(spec.steps.move.presentation?.confirmLabel && spec.steps.create.presentation?.confirmLabel, "Self-confirm labels come from the spec.");
+const itemIds = spec.steps.code.exercise?.items.map((item) => item.id) ?? [];
+assert.ok(itemIds.length > 0 && itemIds.every((id) => present?.pictureIcons?.[id]), "Every ordering picture has an icon in the spec.");
+const { presentation: _omit, ...bare } = spec;
+assert.equal(isLessonSpecConsistent(bare, activity), true, "A lesson without presentation data is still valid and uses generic wording.");
+console.log("Data-driven page checks passed: wording, strips, icons and fallbacks come from the spec.");
