@@ -581,7 +581,7 @@ export const NURSERY_1_WEEKS: TmcWeek[] = [
     "cardsFile": "TMC-N1-T1-W12-Printable-Cards.pdf",
     "pages": 6,
     "cardsKB": 717,
-    "activityBookPage": null,
+    "activityBookPage": 38,
     "teacherGuidePage": 30
   },
   {
@@ -606,7 +606,7 @@ export const NURSERY_1_WEEKS: TmcWeek[] = [
     "cardsFile": "TMC-N1-T1-W13-Printable-Cards.pdf",
     "pages": 4,
     "cardsKB": 216,
-    "activityBookPage": null,
+    "activityBookPage": 39,
     "teacherGuidePage": 32
   },
   {
@@ -1179,7 +1179,7 @@ export const NURSERY_1_WEEKS: TmcWeek[] = [
     "cardsFile": "TMC-N1-T2-W12-Printable-Cards.pdf",
     "pages": 7,
     "cardsKB": 395,
-    "activityBookPage": null,
+    "activityBookPage": 73,
     "teacherGuidePage": 56
   },
   {
@@ -1204,7 +1204,7 @@ export const NURSERY_1_WEEKS: TmcWeek[] = [
     "cardsFile": "TMC-N1-T2-W13-Printable-Cards.pdf",
     "pages": 5,
     "cardsKB": 262,
-    "activityBookPage": null,
+    "activityBookPage": 74,
     "teacherGuidePage": 58
   },
   {
@@ -1721,7 +1721,7 @@ export const NURSERY_1_WEEKS: TmcWeek[] = [
     "cardsFile": "TMC-N1-T3-W12-Printable-Cards.pdf",
     "pages": 6,
     "cardsKB": 522,
-    "activityBookPage": null,
+    "activityBookPage": 108,
     "teacherGuidePage": 82
   },
   {
@@ -1746,7 +1746,7 @@ export const NURSERY_1_WEEKS: TmcWeek[] = [
     "cardsFile": "TMC-N1-T3-W13-Printable-Cards.pdf",
     "pages": 6,
     "cardsKB": 277,
-    "activityBookPage": null,
+    "activityBookPage": 109,
     "teacherGuidePage": 84
   }
 ];
