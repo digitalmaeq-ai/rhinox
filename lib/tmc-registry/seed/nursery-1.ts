@@ -20,6 +20,8 @@ import type {
   TmcLearningResource,
   TmcLegacyLessonMapping,
   TmcRelationship,
+  TmcBookPage,
+  TmcPageRole,
   TmcSourceProvenance,
   TmcTerm,
   TmcWeek,
@@ -415,11 +417,58 @@ export const NURSERY_1_LEGACY_MAPPINGS: TmcLegacyLessonMapping[] = [
     status: "unresolved", discrepancies: ["No Year 1 book has been supplied, so there is nothing to map to."], editorialReviewRequired: true, preservedForCompatibility: true },
 ];
 
+/* ------------------------------------------------------------------ */
+/* Stage 3: page-level index                                           */
+/* ------------------------------------------------------------------ */
+
+/** Short structural labels for the Activity Book front-matter pages (page number to label). */
+const AB_FRONT_LABELS: Record<number, string> = { 1: "Meet RhinoBot and Ayo", 2: "Contents", 3: "For grown-ups", 4: "Safety rules" };
+
+/**
+ * Roles come from the final books' own structure, checked page by page against the Activity Book
+ * REVISED_4 and Teacher Guide REVISED_1 when this index was built:
+ *  - Activity Book week of 3 pages: Think & Move, Code it!, Draw it!. One exception: Term 1 Week 5
+ *    opens with a Think & Code page.
+ *  - Week 10 (2 pages): Code it!, Draw it!. Week 12 (1 page): My stars. Week 13: badge page(s).
+ *  - Teacher Guide week of 2 pages: lesson plan, then check and support (Week 12: station check).
+ *    Week 13 is one showcase page.
+ */
+export const AB_THINK_CODE_EXCEPTION = { term: 1, week: 5 } as const;
+
+export function buildNursery1Pages(): TmcBookPage[] {
+  const out: TmcBookPage[] = [];
+  const add = (bookId: string, pageNumber: number, lessonId: string, role: TmcPageRole, label?: string) =>
+    out.push({ bookId, pageNumber, lessonId, role, ...(label ? { label } : {}) });
+
+  for (const [id, kind, , a, b] of AB_OTHER) {
+    for (let page = a; page <= b; page += 1) {
+      add(N1_ACTIVITY_BOOK_ID, page, id, kind === "term-opener" ? "term-opener" : "front-matter", kind === "front-matter" ? AB_FRONT_LABELS[page] : undefined);
+    }
+  }
+  for (const [id, kind, , a, b] of TG_OTHER) {
+    for (let page = a; page <= b; page += 1) add(N1_TEACHER_GUIDE_ID, page, id, kind === "term-overview" ? "term-overview" : "front-matter");
+  }
+  for (const [t, w, , abStart, abEnd, tgStart, tgEnd] of NURSERY_1_WEEK_TABLE) {
+    const abRoles: TmcPageRole[] =
+      w === 13 ? Array(abEnd - abStart + 1).fill("badge")
+      : w === 12 ? ["my-stars"]
+      : w === 10 ? ["code-it", "draw-it"]
+      : [t === AB_THINK_CODE_EXCEPTION.term && w === AB_THINK_CODE_EXCEPTION.week ? "think-code" : "think-move", "code-it", "draw-it"];
+    abRoles.forEach((role, i) => add(N1_ACTIVITY_BOOK_ID, abStart + i, abId(t, w), role));
+    const tgRoles: TmcPageRole[] = w === 13 ? ["showcase"] : ["lesson-plan", w === 12 ? "station-check" : "check-support"];
+    tgRoles.forEach((role, i) => add(N1_TEACHER_GUIDE_ID, tgStart + i, tgId(t, w), role));
+    if (abRoles.length !== abEnd - abStart + 1) throw new Error(`Activity Book T${t}W${w}: ${abRoles.length} roles for ${abEnd - abStart + 1} pages`);
+    if (tgRoles.length !== tgEnd - tgStart + 1) throw new Error(`Teacher Guide T${t}W${w}: ${tgRoles.length} roles for ${tgEnd - tgStart + 1} pages`);
+  }
+  return out.sort((x, y) => x.bookId.localeCompare(y.bookId) || x.pageNumber - y.pageNumber);
+}
+
 const resources = buildNursery1Resources();
 
 export const NURSERY_1_REGISTRY: TmcBookRegistry = {
   books: NURSERY_1_BOOKS,
   lessons: buildNursery1Lessons(resources),
+  pages: buildNursery1Pages(),
   resources,
   relationships: buildRelationships(resources),
   legacyMappings: NURSERY_1_LEGACY_MAPPINGS,

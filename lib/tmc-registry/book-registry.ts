@@ -12,8 +12,10 @@ import type {
   TmcBook,
   TmcBookContentItem,
   TmcBookLesson,
+  TmcBookPage,
   TmcBookRegistry,
   TmcBookStatus,
+  TmcPageRole,
   TmcLearningResource,
 } from "../../types/tmc-registry";
 
@@ -51,6 +53,8 @@ export interface ValidateOptions {
   requireFullPageCoverage?: boolean;
   /** Require every resource to be linked to its source lesson by at least one relationship (Stage 6). */
   requireResourceRelationships?: boolean;
+  /** Require every page of a book with a known page count to appear in the page index (Stage 3). */
+  requirePageIndex?: boolean;
 }
 
 const rank = (status: TmcBookStatus): number => BOOK_STATUS_ORDER.indexOf(status);
@@ -67,6 +71,12 @@ function findDuplicates(ids: readonly string[]): string[] {
   for (const id of ids) (seen.has(id) ? duplicates : seen).add(id);
   return [...duplicates];
 }
+
+/** Page roles each kind of book may use. */
+export const PAGE_ROLES_BY_BOOK_TYPE: Readonly<Record<string, readonly TmcPageRole[]>> = {
+  "activity-book": ["front-matter", "term-opener", "think-move", "think-code", "code-it", "draw-it", "my-stars", "badge"],
+  "teacher-guide": ["front-matter", "term-overview", "lesson-plan", "check-support", "station-check", "showcase"],
+};
 
 /** Resource types that may assess a lesson. */
 export const ASSESSING_RESOURCE_TYPES: readonly TmcLearningResource["resourceType"][] = ["quiz", "question-bank", "review-sheet"];
@@ -170,6 +180,49 @@ export function validateBookRegistry(registry: TmcBookRegistry, options: Validat
     if (gaps.length > 0) {
       const message = `Book ${bookId}: ${gaps.length} page(s) belong to no unit (${gaps.slice(0, 12).join(", ")}${gaps.length > 12 ? ", ..." : ""}).`;
       (options.requireFullPageCoverage ? errors : warnings).push(message);
+    }
+  }
+
+  /* ---- page index (Stage 3) ---- */
+  const pages = registry.pages ?? [];
+  const seenPages = new Set<string>();
+  const indexedByBook = new Map<string, Set<number>>();
+  for (const page of pages) {
+    const label = `Page ${page.bookId} p${page.pageNumber}`;
+    const book = bookById.get(page.bookId);
+    const unit = lessonById.get(page.lessonId);
+    const key = `${page.bookId}|${page.pageNumber}`;
+    if (seenPages.has(key)) errors.push(`${label}: is indexed twice.`);
+    seenPages.add(key);
+    if (!book) { errors.push(`${label}: unknown book.`); continue; }
+    if (!Number.isInteger(page.pageNumber) || page.pageNumber < 1 || (book.pageCount && page.pageNumber > book.pageCount)) {
+      errors.push(`${label}: is outside the book (1 to ${book.pageCount ?? "?"}).`);
+    }
+    if (!unit || unit.bookId !== page.bookId) errors.push(`${label}: its unit ${page.lessonId} is not in this book.`);
+    else if (page.pageNumber < unit.pageStart || page.pageNumber > unit.pageEnd) {
+      errors.push(`${label}: lies outside its unit ${unit.lessonId} (pages ${unit.pageStart} to ${unit.pageEnd}).`);
+    }
+    const allowed = PAGE_ROLES_BY_BOOK_TYPE[book.bookType];
+    if (allowed && !allowed.includes(page.role)) errors.push(`${label}: role "${page.role}" is not used in a ${book.bookType}.`);
+    if (unit && ((unit.unitKind === "term-opener" && page.role !== "term-opener") || (unit.unitKind === "term-overview" && page.role !== "term-overview") ||
+        (unit.unitKind === "front-matter" && page.role !== "front-matter"))) {
+      errors.push(`${label}: role "${page.role}" does not fit a ${unit.unitKind} unit.`);
+    }
+    if (page.label && page.role !== "front-matter") errors.push(`${label}: only front-matter pages carry a label.`);
+    const set = indexedByBook.get(page.bookId) ?? new Set<number>();
+    set.add(page.pageNumber);
+    indexedByBook.set(page.bookId, set);
+  }
+  if (pages.length > 0 || options.requirePageIndex) {
+    for (const book of books) {
+      if (!book.pageCount) continue;
+      const have = indexedByBook.get(book.bookId) ?? new Set<number>();
+      const missing: number[] = [];
+      for (let n = 1; n <= book.pageCount; n += 1) if (!have.has(n)) missing.push(n);
+      if (missing.length > 0) {
+        const message = `Book ${book.bookId}: ${missing.length} page(s) are not in the page index (${missing.slice(0, 12).join(", ")}${missing.length > 12 ? ", ..." : ""}).`;
+        (options.requirePageIndex ? errors : warnings).push(message);
+      }
     }
   }
 
@@ -338,3 +391,13 @@ export function authorizeBookLesson(
 
 /** A book is a production source only when approved or published. */
 export const isProductionSource = (book: TmcBook): boolean => isProductionStatus(book.editorialStatus);
+
+/** The indexed pages of one lesson, in page order. */
+export function pagesForLesson(registry: TmcBookRegistry, lessonId: string): TmcBookPage[] {
+  return (registry.pages ?? []).filter((page) => page.lessonId === lessonId).sort((a, b) => a.pageNumber - b.pageNumber);
+}
+
+/** The indexed page record for one printed page of one book, if any. */
+export function findPage(registry: TmcBookRegistry, bookId: string, pageNumber: number): TmcBookPage | undefined {
+  return (registry.pages ?? []).find((page) => page.bookId === bookId && page.pageNumber === pageNumber);
+}

@@ -13,7 +13,9 @@ import { fileURLToPath } from "node:url";
 import {
   authorizeBookLesson,
   findAccessDebt,
+  findPage,
   getProductionLessons,
+  pagesForLesson,
   isProductionStatus,
   validateBookRegistry,
 } from "../lib/tmc-registry/book-registry.ts";
@@ -49,7 +51,7 @@ const FILES = R.resources.filter((r) => r.servedFromPublicPath !== false);
 /* ------------------------------------------------------------------ */
 
 test("seed validates with full page coverage and no errors", () => {
-  const { errors } = validateBookRegistry(R, { requireFullPageCoverage: true, requireResourceRelationships: true });
+  const { errors } = validateBookRegistry(R, { requireFullPageCoverage: true, requireResourceRelationships: true, requirePageIndex: true });
   assert.deepEqual(errors, []);
 });
 
@@ -239,6 +241,55 @@ test("Stage 6: website routes are never counted as access debt, and restricted f
   assert.ok(routes.length >= 39 * 2 + 3);
   assert.ok(routes.every((r) => r.accessLevel === "public"), "no restricted resource is a route yet");
   assert.ok(findAccessDebt(R.resources).every((r) => r.servedFromPublicPath === true));
+});
+
+test("Stage 3: every page of both books is indexed once (110 Activity Book, 84 Teacher Guide) and sits in its own unit", () => {
+  const ab = R.pages.filter((p) => p.bookId === N1_ACTIVITY_BOOK_ID);
+  const tg = R.pages.filter((p) => p.bookId === N1_TEACHER_GUIDE_ID);
+  assert.equal(ab.length, 110);
+  assert.equal(tg.length, 84);
+  assert.deepEqual(ab.map((p) => p.pageNumber), Array.from({ length: 110 }, (_, i) => i + 1));
+  assert.deepEqual(tg.map((p) => p.pageNumber), Array.from({ length: 84 }, (_, i) => i + 1));
+  for (const page of R.pages) {
+    const unit = R.lessons.find((l) => l.lessonId === page.lessonId);
+    assert.ok(unit && unit.bookId === page.bookId && page.pageNumber >= unit.pageStart && page.pageNumber <= unit.pageEnd, `p${page.pageNumber} unit`);
+  }
+});
+
+test("Stage 3: role totals match the books (checked page by page against the final PDFs when built)", () => {
+  const count = (bookId) => {
+    const out = {};
+    for (const p of R.pages.filter((x) => x.bookId === bookId)) out[p.role] = (out[p.role] ?? 0) + 1;
+    return out;
+  };
+  assert.deepEqual(count(N1_ACTIVITY_BOOK_ID), {
+    "front-matter": 4, "term-opener": 3, "think-move": 29, "think-code": 1, "code-it": 33, "draw-it": 33, "my-stars": 3, badge: 4,
+  });
+  assert.deepEqual(count(N1_TEACHER_GUIDE_ID), {
+    "front-matter": 6, "term-overview": 3, "lesson-plan": 36, "check-support": 33, "station-check": 3, showcase: 3,
+  });
+});
+
+test("Stage 3: week page patterns (Activity Book and Teacher Guide) and the one Think & Code exception", () => {
+  for (const [t, w] of NURSERY_1_WEEK_TABLE) {
+    const ab = pagesForLesson(R, `tmc-n1-ab-t${t}-w${w}`).map((p) => p.role);
+    const tg = pagesForLesson(R, `tmc-n1-tg-t${t}-w${w}`).map((p) => p.role);
+    const expectAb = w === 13 ? (t === 3 ? ["badge", "badge"] : ["badge"]) : w === 12 ? ["my-stars"] : w === 10 ? ["code-it", "draw-it"]
+      : [t === 1 && w === 5 ? "think-code" : "think-move", "code-it", "draw-it"];
+    assert.deepEqual(ab, expectAb, `AB T${t}W${w}`);
+    assert.deepEqual(tg, w === 13 ? ["showcase"] : ["lesson-plan", w === 12 ? "station-check" : "check-support"], `TG T${t}W${w}`);
+  }
+  assert.equal(findPage(R, N1_ACTIVITY_BOOK_ID, 18).role, "think-code");
+  assert.equal(findPage(R, N1_ACTIVITY_BOOK_ID, 80).role, "code-it");
+  assert.equal(findPage(R, N1_ACTIVITY_BOOK_ID, 103).role, "code-it");
+  assert.equal(findPage(R, N1_ACTIVITY_BOOK_ID, 111), undefined);
+});
+
+test("Stage 3: only the four Activity Book front-matter pages carry a label, and no book prose is stored", () => {
+  const labelled = R.pages.filter((p) => p.label);
+  assert.deepEqual(labelled.map((p) => `${p.pageNumber}:${p.label}`), ["1:Meet RhinoBot and Ayo", "2:Contents", "3:For grown-ups", "4:Safety rules"]);
+  assert.ok(labelled.every((p) => p.label.length <= 30));
+  assert.deepEqual(Object.keys(R.pages[0]).sort(), ["bookId", "label", "lessonId", "pageNumber", "role"].filter((k) => k in R.pages[0]).sort());
 });
 
 test("access debt is tracked: restricted resources still served from a public path", () => {
@@ -448,6 +499,38 @@ test("Stage 6: unlinked resources warn by default and fail when links are requir
   assert.deepEqual(validateBookRegistry(linked, { requireResourceRelationships: true }).errors, []);
   assert.match(errorsOf(reg({ lessons: [makeLesson({ relatedDigitalResourceIds: ["ghost"] })] })), /unknown digital resource ghost/);
   assert.match(errorsOf(reg({ lessons: [makeLesson({ relatedDigitalResourceIds: ["r1"] }), makeLesson({ lessonId: "l9" })], resources: [makeResource({ source: { bookId: "b1", lessonId: "l9" } })] })), /different lesson/);
+});
+
+test("Stage 3: page index rejects duplicates, out-of-range pages, wrong units, wrong roles and stray labels", () => {
+  const page = (over = {}) => ({ bookId: "b1", pageNumber: 1, lessonId: "l1", role: "think-move", ...over });
+  const withPages = (pages, extra = {}) => reg({ pages, ...extra });
+  assert.deepEqual(validateBookRegistry(withPages([page()])).errors, []);
+  assert.match(errorsOf(withPages([page(), page()])), /indexed twice/);
+  assert.match(errorsOf(withPages([page({ pageNumber: 5 })])), /outside the book/);
+  assert.match(errorsOf(withPages([page({ pageNumber: 0 })])), /outside the book/);
+  assert.match(errorsOf(withPages([page({ pageNumber: 3 })])), /outside its unit l1/);
+  assert.match(errorsOf(withPages([page({ lessonId: "ghost" })])), /not in this book/);
+  assert.match(errorsOf(withPages([page({ bookId: "ghost" })])), /unknown book/);
+  assert.match(errorsOf(withPages([page({ role: "lesson-plan" })])), /not used in a activity-book/);
+  assert.match(errorsOf(withPages([page({ label: "Contents" })])), /only front-matter pages carry a label/);
+  const opener = makeLesson({ lessonId: "o1", unitKind: "term-opener", term: undefined, week: undefined, pageStart: 3, pageEnd: 3 });
+  assert.match(errorsOf(withPages([page({ pageNumber: 3, lessonId: "o1", role: "think-move" })], { lessons: [makeLesson(), opener] })), /does not fit a term-opener/);
+});
+
+test("Stage 3: unindexed pages warn by default and fail when the full index is required", () => {
+  const some = reg({ pages: [{ bookId: "b1", pageNumber: 1, lessonId: "l1", role: "think-move" }] });
+  assert.ok(validateBookRegistry(some).warnings.some((w) => /3 page\(s\) are not in the page index \(2, 3, 4\)/.test(w)));
+  assert.match(errorsOf(some, { requirePageIndex: true }), /not in the page index/);
+  assert.match(errorsOf(reg(), { requirePageIndex: true }), /4 page\(s\) are not in the page index/);
+  assert.deepEqual(validateBookRegistry(reg()).warnings.filter((w) => /page index/.test(w)), [], "a registry with no page index at all stays quiet by default");
+});
+
+test("Stage 3: pagesForLesson and findPage", () => {
+  const registry = reg({ pages: [{ bookId: "b1", pageNumber: 2, lessonId: "l1", role: "code-it" }, { bookId: "b1", pageNumber: 1, lessonId: "l1", role: "think-move" }] });
+  assert.deepEqual(pagesForLesson(registry, "l1").map((p) => p.pageNumber), [1, 2]);
+  assert.equal(findPage(registry, "b1", 2).role, "code-it");
+  assert.equal(findPage(registry, "b1", 9), undefined);
+  assert.deepEqual(pagesForLesson(reg(), "l1"), []);
 });
 
 test("legacy mappings: never relabelled, unresolved must be flagged, mapped needs a real lesson and reviewer", () => {
