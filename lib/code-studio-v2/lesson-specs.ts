@@ -234,8 +234,159 @@ const NURSERY_1_T1_W1: InteractiveLessonSpec = {
   },
 };
 
+/**
+ * Nursery 1, Term 1, Week 2 "My Day Has Order".
+ * Built from the approved books (Activity Book pp. 9-11, Teacher Guide pp. 10-11), not from the
+ * curriculum sheet or the older draft. The Teacher Guide lesson has Think, Move, Code and Book &
+ * close; it has no Build, so the Build step is not shown.
+ * The books name the morning pictures slightly differently (Activity Book: "puts on his uniform" and
+ * "putting on his shirt"; Teacher Guide: "get dressed"). The page uses "gets dressed", which fits both.
+ */
+const NURSERY_1_T1_W2: InteractiveLessonSpec = {
+  activityId: "tmc-v3-15-nursery-1-t1-w2",
+  status: "reviewed",
+  objective: "I can put my morning in order.",
+  successCriteria: [
+    "Act out the morning in order: wake up, get dressed, walk to school.",
+    "Put Ayo's morning pictures in order: wakes up, gets dressed, walks to school.",
+    "Put 3 daily-routine pictures in order and act them out, as observed by a teacher or caregiver.",
+  ],
+  estimatedMinutes: 10,
+  presentation: {
+    rhinobotSays: "Last week we did 3 steps in order. Now let’s put Ayo’s morning in order!",
+    pictureIcons: { "wake-up": "☀️", "get-dressed": "👕", "walk-to-school": "🚶" },
+    teacherCheck: {
+      question: "Can the child put 3 daily-routine pictures in order and act them out?",
+      recordedText: "a teacher or caregiver said they watched you put 3 morning pictures in order and act them out. The app cannot verify who confirmed it.",
+    },
+    practises: ["Putting a daily routine in order", "Using the words before and after", "Creating a sequence"],
+    reflectionPlaceholder: "I learned that my morning has an order...",
+    completionText: {
+      passed: "You put Ayo’s morning in order, acted it out and showed a grown-up what you can do. Putting steps in the right order is a foundation of computational thinking.",
+      withHelp: "You went through every step with a grown-up’s help. Try the morning cards again another day to practise on your own.",
+      awaitingTeacher: "You went through every step. A teacher or caregiver still needs to watch you put the morning in order and act it out.",
+    },
+  },
+  bookSource: { activityBookLessonId: "tmc-n1-ab-t1-w2", teacherGuideLessonId: "tmc-n1-tg-t1-w2" },
+  accessibility: {
+    keyboardOperable: true,
+    touchOperable: true,
+    reducedMotionSafe: true,
+    textInstructionsAvailable: true,
+  },
+  steps: {
+    think: {
+      sources: [{ book: "activity-book", page: 9 }, { book: "teacher-guide", page: 10 }],
+      presentation: {
+        title: "Think about Ayo’s morning",
+        strip: [{ icon: "☀️", label: "Ayo wakes up" }, { icon: "👕", label: "Ayo gets dressed" }, { icon: "🚶", label: "Ayo walks to school" }],
+      },
+      instruction: "Silly Ayo walked to school before he got dressed! Ayo’s morning is mixed up. What must come first?",
+      task: "Say what you do in the morning before school. Then say together: “Wake up, get dressed, walk to school.”",
+      evidence: "Learner says or points to what comes first, next and last. This is adult-observed, not automatic.",
+      hint: "RhinoBot asks: what do you do in the morning before school?",
+      fallback: "A teacher or caregiver can describe the pictures aloud; no device is needed.",
+    },
+    move: {
+      sources: [{ book: "activity-book", page: 9 }, { book: "teacher-guide", page: 10 }],
+      presentation: {
+        title: "Act out the morning",
+        strip: [{ icon: "🙆", label: "Wake up (stretch)" }, { icon: "👕", label: "Get dressed (pull on your shirt)" }, { icon: "🚶", label: "Walk to school (march on the spot)" }],
+        note: "Ask a grown-up to call the steps: “Wake up! Get dressed! Walk to school!” Do the morning 3 times. What comes after get dressed?",
+        confirmLabel: "I acted out my morning",
+      },
+      instruction: "Act out the morning: wake up (stretch) → get dressed (pull on your shirt) → walk to school (march on the spot).",
+      task: "Do the three actions in order. Do it 3 times.",
+      evidence: "Learner or supervising adult confirms the morning was acted out; this is self-reported evidence, not sensor verification.",
+      hint: "Say each step out loud as you do it.",
+      fallback: "If moving is hard, do the steps seated or point to the picture cards with a grown-up.",
+    },
+    code: {
+      sources: [{ book: "teacher-guide", page: 10 }, { book: "activity-book", page: 10 }],
+      presentation: { title: "Put the morning pictures in order" },
+      instruction: "Lay the 3 morning cards in a row. Point to each one and say “first, next, last”.",
+      task: "Put the cards in order: Ayo wakes up, Ayo gets dressed, Ayo walks to school.",
+      evidence: "The interactive sequence is exactly wake up, get dressed, walk to school. This checks the order on the screen only.",
+      hint: "What must Ayo do before he walks to school?",
+      fallback: "No device or printer? Draw the 3 morning pictures on paper or the board and arrange them with a teacher or caregiver.",
+      exercise: {
+        id: "morning-order-w2",
+        kind: "ordering",
+        prompt: "Put Ayo's morning pictures in order.",
+        instructions: "Choose the cards in order: first, next and last.",
+        hint: "Ayo gets dressed before he walks to school.",
+        fallback: "Arrange printed or hand-drawn cards on a table with a teacher or caregiver.",
+        evidenceMode: "automatic",
+        maxAttempts: 3,
+        retryPolicy: "allow-until-limit",
+        pointsAvailable: 1,
+        accessibility: { keyboardOperable: true, touchOperable: true, textAlternative: true },
+        items: [
+          { id: "wake-up", label: "Ayo wakes up" },
+          { id: "get-dressed", label: "Ayo gets dressed" },
+          { id: "walk-to-school", label: "Ayo walks to school" },
+        ],
+        expectedOrder: ["wake-up", "get-dressed", "walk-to-school"],
+        scoring: { correctPoints: 1, incorrectPoints: 0, partialCredit: false },
+      },
+    },
+    build: {
+      inBook: false,
+      instruction: "This week's book lesson has no Build part, so this step is not shown.",
+      task: "Nothing to do. The book lesson goes from Code to the Activity Book drawing.",
+      evidence: "No evidence is required because Build is not a core part of this week's book lesson.",
+      hint: "Nothing to do for this step.",
+      fallback: "Skip this step; the lesson needs no kit.",
+    },
+    create: {
+      sources: [{ book: "activity-book", page: 11 }, { book: "teacher-guide", page: 10 }],
+      presentation: {
+        title: "Draw your morning",
+        heading: "Your turn to create",
+        note: "Draw your morning in 3 boxes: first, next, last. Colour the star when you can!",
+        smallNote: "Can’t draw yet? Act it or tell it, and a grown-up draws it.",
+        confirmLabel: "I drew my morning in 3 boxes",
+      },
+      instruction: "Draw your morning in 3 boxes: first, next and last.",
+      task: "Draw three things you do in your morning, in order. Colour the star when you can!",
+      evidence: "Learner or supervising adult confirms a sequence was created; this is self-reported evidence, not image verification.",
+      hint: "Start with the first thing you do when you wake up.",
+      fallback: "Can't draw yet? Act it or tell it, and a grown-up draws it.",
+    },
+    check: {
+      sources: [{ book: "teacher-guide", page: 11 }, { book: "activity-book", page: 10 }],
+      presentation: { title: "Show a grown-up what you can do" },
+      instruction: "Show a teacher or caregiver that you can put 3 morning pictures in order and act them out.",
+      task: "Put the 3 morning pictures in order and act them out while a teacher or caregiver watches.",
+      evidence: "A teacher or caregiver observes whether the child puts 3 daily-routine pictures in order and acts them out; this is adult-recorded evidence, not automatic verification. The picture question below is optional extra practice and is not the official check.",
+      hint: "Start with 2 cards (wake up, get dressed), then add walk to school. Act each card as you lay it down.",
+      fallback: "If no adult can watch right now, choose “I will check later” so the teacher can complete the observation.",
+      exercise: {
+        id: "morning-what-comes-after",
+        kind: "choice",
+        prompt: "What comes after get dressed? Choose the picture.",
+        instructions: "Choose the picture that comes after Ayo gets dressed.",
+        hint: "Ayo gets dressed, then he goes to school.",
+        fallback: "Ask a teacher or caregiver to read the choices aloud, then point to the best answer.",
+        evidenceMode: "automatic",
+        maxAttempts: 3,
+        retryPolicy: "allow-until-limit",
+        pointsAvailable: 1,
+        accessibility: { keyboardOperable: true, touchOperable: true, textAlternative: true },
+        options: [
+          { id: "wake-up", label: "Ayo wakes up" },
+          { id: "walk-to-school", label: "Ayo walks to school" },
+          { id: "get-dressed", label: "Ayo gets dressed" },
+        ],
+        correctOptionId: "walk-to-school",
+      },
+    },
+  },
+};
+
 const LESSON_SPECS: Readonly<Record<string, InteractiveLessonSpec>> = {
   [NURSERY_1_T1_W1.activityId]: NURSERY_1_T1_W1,
+  [NURSERY_1_T1_W2.activityId]: NURSERY_1_T1_W2,
 };
 
 export function getLessonSpec(activityId: string): InteractiveLessonSpec | undefined {

@@ -12,7 +12,8 @@ const spec = getLessonSpec(activity.id);
 assert.ok(spec, "The reviewed lesson must have a specific exercise specification.");
 assert.equal(spec.status, "reviewed");
 assert.equal(isReviewedInteractiveLesson(activity.id), true);
-assert.equal(isReviewedInteractiveLesson("tmc-v3-15-nursery-1-t1-w2"), false);
+assert.equal(isReviewedInteractiveLesson("tmc-v3-15-nursery-1-t1-w2"), true);
+assert.equal(isReviewedInteractiveLesson("tmc-v3-15-year-1-t1-w3"), false, "A draft-only lesson is not served.");
 assert.equal(isReviewedInteractiveLesson(""), false);
 assert.equal(isLessonSpecConsistent(spec, activity), true);
 assert.equal(spec.estimatedMinutes, 10);
@@ -146,6 +147,17 @@ assert.equal(spec.steps.move.presentation?.strip?.length, 3, "The Move strip com
 assert.ok(spec.steps.move.presentation?.confirmLabel && spec.steps.create.presentation?.confirmLabel, "Self-confirm labels come from the spec.");
 const itemIds = spec.steps.code.exercise?.items.map((item) => item.id) ?? [];
 assert.ok(itemIds.length > 0 && itemIds.every((id) => present?.pictureIcons?.[id]), "Every ordering picture has an icon in the spec.");
-const { presentation: _omit, ...bare } = spec;
+const bare = { ...spec, presentation: undefined };
 assert.equal(isLessonSpecConsistent(bare, activity), true, "A lesson without presentation data is still valid and uses generic wording.");
 console.log("Data-driven page checks passed: wording, strips, icons and fallbacks come from the spec.");
+
+// Week 2 is built from the Week 2 book pages and follows the same rules as Week 1.
+const w2activity = CURRICULUM_ACTIVITIES.find((item) => item.id === "tmc-v3-15-nursery-1-t1-w2");
+const w2 = getLessonSpec("tmc-v3-15-nursery-1-t1-w2");
+assert.ok(w2activity && w2, "Week 2 has a curriculum record and a reviewed spec.");
+assert.equal(isLessonSpecConsistent(w2, w2activity), true, "The Week 2 spec passes the same gate as Week 1.");
+assert.equal(w2.steps.build.inBook, false, "The Week 2 book lesson has no Build stage.");
+assert.deepEqual(w2.steps.code.exercise?.expectedOrder, ["wake-up", "get-dressed", "walk-to-school"]);
+assert.ok(w2.steps.code.exercise?.items.every((item) => w2.presentation?.pictureIcons?.[item.id]), "Every Week 2 picture has an icon.");
+assert.deepEqual(w2.bookSource, { activityBookLessonId: "tmc-n1-ab-t1-w2", teacherGuideLessonId: "tmc-n1-tg-t1-w2" });
+console.log("Week 2 checks passed.");

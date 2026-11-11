@@ -226,7 +226,7 @@ const WEEK_GAMES: Array<{ file: string; slug: string; title: string }> = [
   { file: "screen-game.html", slug: "screen-game", title: "Screen game" },
 ];
 /** Weeks that have a reviewed interactive lesson. A test checks this against lib/tmc/lessons.ts. */
-export const NURSERY_1_INTERACTIVE_LESSON_WEEKS: ReadonlyArray<readonly [number, number]> = [[1, 1]];
+export const NURSERY_1_INTERACTIVE_LESSON_WEEKS: ReadonlyArray<readonly [number, number]> = [[1, 1], [1, 2]];
 const DIGITAL_NOTE =
   "Website page or digital extra. Not yet compared with the final Activity Book and Teacher Guide, so it stays a draft until that check is done.";
 const UNREVIEWED_NOTE =
