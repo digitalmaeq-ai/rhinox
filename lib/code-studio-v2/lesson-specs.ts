@@ -1,4 +1,5 @@
 import type { CurriculumActivity } from "./curriculum";
+import { NURSERY_1_T1_BOOK_ONLY_LESSONS } from "./lesson-specs-n1-t1.ts";
 import { isExerciseDefinition, type ExerciseDefinition } from "./exercise-types.ts";
 import { isBuildRequired } from "./lesson-gates.ts";
 export type StepKey = "think" | "move" | "code" | "build" | "create" | "check";
@@ -574,6 +575,7 @@ const LESSON_SPECS: Readonly<Record<string, InteractiveLessonSpec>> = {
   [NURSERY_1_T1_W1.activityId]: NURSERY_1_T1_W1,
   [NURSERY_1_T1_W2.activityId]: NURSERY_1_T1_W2,
   [NURSERY_1_T1_W3.activityId]: NURSERY_1_T1_W3,
+  ...Object.fromEntries(NURSERY_1_T1_BOOK_ONLY_LESSONS.map((lesson) => [lesson.activityId, lesson])),
 };
 
 export function getLessonSpec(activityId: string): InteractiveLessonSpec | undefined {

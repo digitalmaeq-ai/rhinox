@@ -172,10 +172,40 @@ const w3activity = activityFromBookSpec(w3);
 assert.ok(w3activity && w3activity.curriculumVersion === "book", "The page details are built from the books, not labelled v3.15.");
 assert.equal(isLessonSpecConsistent(w3, w3activity), true, "The Week 3 spec passes the same gate as Weeks 1 and 2.");
 assert.equal(interactiveLessonFor({ term: 1, week: 3 })?.id, w3id, "Week 3 is served.");
-assert.equal(interactiveLessonFor({ term: 1, week: 4 }), null, "Week 4 is not served yet.");
+assert.equal(interactiveLessonFor({ term: 1, week: 9 }), null, "Week 9 is not served yet.");
 assert.deepEqual(w3.steps.code.exercise?.expectedOrder, ["walk", "pick-up"]);
 assert.ok(w3.steps.code.exercise?.items.every((item) => w3.presentation?.pictureIcons?.[item.id]), "Every Week 3 picture has an icon.");
 assert.equal(w3.steps.build.inBook, false);
 assert.equal(activityFromBookSpec({ ...w3, unit: undefined }), null, "Without a unit block there is nothing to build from.");
 assert.deepEqual(w3.bookSource, { activityBookLessonId: "tmc-n1-ab-t1-w3", teacherGuideLessonId: "tmc-n1-tg-t1-w3" });
 console.log("Week 3 checks passed.");
+
+// Weeks 4 to 8 are built from the approved books alone and must pass the same gate as Weeks 1 to 3.
+const BOOK_WEEKS = {
+  4: { order: ["stand-up", "walk", "wave"], ab: [15, 16, 17], tg: [14, 15] },
+  5: { order: ["put-on-socks", "put-on-shoes", "go-out-to-play"], ab: [18, 19, 20], tg: [16, 17] },
+  6: { order: ["clap-1", "clap-2", "clap-3"], ab: [21, 22, 23], tg: [18, 19] },
+  7: { order: ["mix-flour", "bake-bread", "eat-bread"], ab: [24, 25, 26], tg: [20, 21] },
+  8: { order: ["leave-home", "ride-bus", "buy-bread", "come-home"], ab: [27, 28, 29], tg: [22, 23] },
+};
+for (const [week, expected] of Object.entries(BOOK_WEEKS)) {
+  const id = `tmc-v3-15-nursery-1-t1-w${week}`;
+  const lesson = getLessonSpec(id);
+  assert.ok(lesson && lesson.unit, `Week ${week} has a reviewed spec that carries its own details.`);
+  assert.equal(CURRICULUM_ACTIVITIES.some((item) => item.id === id), false, `Week ${week} has no curriculum-sheet record.`);
+  const built = activityFromBookSpec(lesson);
+  assert.ok(built && built.curriculumVersion === "book");
+  assert.equal(isLessonSpecConsistent(lesson, built), true, `Week ${week} passes the lesson gate.`);
+  assert.equal(interactiveLessonFor({ term: 1, week: Number(week) })?.id, id, `Week ${week} is served.`);
+  assert.equal(lesson.steps.build.inBook, false, `Week ${week} has no Build stage in the books.`);
+  assert.deepEqual(lesson.steps.code.exercise?.expectedOrder, expected.order, `Week ${week} order.`);
+  assert.ok(lesson.steps.code.exercise?.items.every((item) => lesson.presentation?.pictureIcons?.[item.id]), `Week ${week}: every picture has an icon.`);
+  assert.deepEqual(lesson.bookSource, { activityBookLessonId: `tmc-n1-ab-t1-w${week}`, teacherGuideLessonId: `tmc-n1-tg-t1-w${week}` });
+  const pages = new Set(Object.values(lesson.steps).flatMap((s) => (s.sources ?? []).map((p) => `${p.book}:${p.page}`)));
+  for (const p of expected.ab) assert.ok(pages.has(`activity-book:${p}`), `Week ${week} uses Activity Book page ${p}.`);
+  for (const p of expected.tg) assert.ok(pages.has(`teacher-guide:${p}`), `Week ${week} uses Teacher Guide page ${p}.`);
+  const choice = lesson.steps.check.exercise;
+  assert.equal(choice?.kind, "choice");
+  assert.ok(choice.options.some((o) => o.id === choice.correctOptionId), `Week ${week}: the correct choice is one of the options.`);
+}
+console.log("Weeks 4 to 8 checks passed.");

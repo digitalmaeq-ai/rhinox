@@ -6,7 +6,7 @@ import { interactiveLessonFor, lessonsInReview, nursery1LessonPath } from "../li
 assert.equal(interactiveLessonFor({ term: 1, week: 1 })?.theme, "I Can Do Things in Steps");
 assert.equal(interactiveLessonFor({ term: 1, week: 2 })?.theme, "My Day Has Order");
 assert.equal(interactiveLessonFor({ term: 1, week: 3 })?.theme, "I Can Give Instructions", "a lesson described by the books alone is offered");
-assert.equal(interactiveLessonFor({ term: 1, week: 4 }), null, "a week with no reviewed lesson offers nothing");
+assert.equal(interactiveLessonFor({ term: 1, week: 9 }), null, "a week with no reviewed lesson offers nothing");
 assert.equal(interactiveLessonFor({ term: 3, week: 13 }), null, "weeks with no lesson record offer nothing");
 
 // Everything else is grouped as "in review", never as ready.
