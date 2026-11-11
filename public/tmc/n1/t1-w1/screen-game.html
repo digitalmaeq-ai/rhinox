@@ -18,12 +18,13 @@ body{margin:0;font-family:"Nunito","Trebuchet MS",Arial,sans-serif;background:va
 .speak{margin-left:auto;border:0;background:var(--yellow);color:var(--navy);font-size:28px;width:60px;height:60px;border-radius:50%;cursor:pointer;box-shadow:0 4px 0 #d9a91e}
 .round{font-weight:800;color:var(--orange);font-size:14px;letter-spacing:.06em;text-transform:uppercase}
 .slots{display:grid;grid-template-columns:repeat(3,1fr);gap:clamp(8px,2vw,18px);margin:18px 0}
-.slot{aspect-ratio:1/1.1;border:4px dashed #9cc9f0;border-radius:24px;background:#fff;position:relative;display:grid;place-items:center;cursor:pointer}
+.slots.arrowed,.slots.arrowed + .tray{--gap:clamp(22px,4vw,34px);gap:var(--gap)}
+.slot{aspect-ratio:1/1.1;border:4px dashed #9cc9f0;border-radius:24px;background:#fff;position:relative;display:grid;place-items:center;padding:15% 4px;box-sizing:border-box;cursor:pointer}
+.slots.arrowed .slot:not(:last-child)::after{content:"→";position:absolute;top:50%;right:calc(var(--gap) / -2);transform:translate(50%,-50%);color:var(--blue);font-size:clamp(20px,3.4vw,28px);font-weight:900;line-height:1}
 .slot .num{position:absolute;top:8px;left:12px;font-size:clamp(22px,5vw,34px);font-weight:900;color:var(--blue)}
 .slot .lbl{position:absolute;bottom:6px;width:100%;text-align:center;font-weight:800;font-size:clamp(13px,2.6vw,18px);color:#5b7a98}
 .slot.filled{border-style:solid;border-color:var(--blue)}
-.slot svg,.card svg{width:78%;height:auto}
-.arrows{display:flex;justify-content:space-around;margin-top:-10px;color:var(--blue);font-size:28px;font-weight:900}
+.slot svg,.card svg{width:72%;height:auto;max-height:100%}
 .tray{display:grid;grid-template-columns:repeat(3,1fr);gap:clamp(8px,2vw,18px);min-height:120px;margin-top:6px}
 .card{border:0;padding:6px;background:var(--card);border-radius:22px;box-shadow:0 6px 0 #c9dcef;cursor:pointer;display:grid;place-items:center;transition:transform .15s}
 .card:active{transform:translateY(3px);box-shadow:0 3px 0 #c9dcef}
@@ -75,8 +76,7 @@ html.fit-on,html.fit-on body{height:100%;overflow:hidden}
 
   <div id="model" class="model" hidden></div>
 
-  <div class="slots" id="slots"></div>
-  <div class="arrows"><span>→</span><span>→</span></div>
+  <div class="slots arrowed" id="slots"></div>
   <div class="tray" id="tray"></div>
 
   <div class="bar">
