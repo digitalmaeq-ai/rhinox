@@ -5,8 +5,8 @@ import { useEffect, useMemo, useState } from "react";
 
 import styles from "./path.module.css";
 import {
-  PROGRESS_STORAGE_KEY,
   nextUp,
+  progressStorageKey,
   parseProgress,
   serializeProgress,
   stopProgress,
@@ -25,7 +25,8 @@ const KIND_HINT: Record<string, string> = {
 
 // The trail with progress. An adult marks each step done; the ticks are kept only in this browser
 // on this device (see lib/tmc-path/progress.ts). Nothing is sent anywhere.
-export default function PathTrail({ view }: { view: PathView }) {
+export default function PathTrail({ view, levelSlug }: { view: PathView; levelSlug: string }) {
+  const storageKey = useMemo(() => progressStorageKey(levelSlug), [levelSlug]);
   const validIds = useMemo(() => new Set(view.stops.flatMap((stop) => stop.steps.map((step) => step.id))), [view]);
   const [done, setDone] = useState<ReadonlySet<string>>(() => new Set());
   const [canSave, setCanSave] = useState(true);
@@ -37,24 +38,24 @@ export default function PathTrail({ view }: { view: PathView }) {
   useEffect(() => {
     const load = () => {
       try {
-        setDone(parseProgress(window.localStorage.getItem(PROGRESS_STORAGE_KEY), validIds));
+        setDone(parseProgress(window.localStorage.getItem(storageKey), validIds));
       } catch {
         setCanSave(false);
       }
     };
     load();
     const onStorage = (event: StorageEvent) => {
-      if (event.key === PROGRESS_STORAGE_KEY || event.key === null) load();
+      if (event.key === storageKey || event.key === null) load();
     };
     window.addEventListener("storage", onStorage);
     return () => window.removeEventListener("storage", onStorage);
-  }, [validIds]);
+  }, [validIds, storageKey]);
 
   const save = (next: ReadonlySet<string>) => {
     setDone(next);
     try {
-      if (next.size === 0) window.localStorage.removeItem(PROGRESS_STORAGE_KEY);
-      else window.localStorage.setItem(PROGRESS_STORAGE_KEY, serializeProgress(next));
+      if (next.size === 0) window.localStorage.removeItem(storageKey);
+      else window.localStorage.setItem(storageKey, serializeProgress(next));
       setCanSave(true);
     } catch {
       setCanSave(false);

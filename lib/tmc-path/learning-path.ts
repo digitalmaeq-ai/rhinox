@@ -86,6 +86,7 @@ export function validateLearningPath(path: LearningPath, registry: TmcBookRegist
   const err = (message: string) => errors.push(message);
   const resources = new Map(registry.resources.map((item) => [item.id, item]));
   if (path.order !== "soft") err(`path order must be "soft", found "${String(path.order)}"`);
+  if (path.stops.length === 0) err(`${path.level}: the registry has no weeks for this level, so there is no path to show`);
   const seenStops = new Set<string>();
   const seenSteps = new Set<string>();
   for (const stop of path.stops) {

@@ -11,8 +11,13 @@
  */
 import type { PathView, PathViewStop } from "./view";
 
-/** The one browser-storage key the path uses. The "v1" is the format version. */
-export const PROGRESS_STORAGE_KEY = "tmc.learning-path.nursery-1.v1";
+/** The browser-storage key for one level's path. The "v1" is the format version. Each level has its own key. */
+export function progressStorageKey(levelSlug: string): string {
+  if (!/^[a-z0-9]+(-[a-z0-9]+)*$/.test(levelSlug)) throw new Error(`Invalid level slug: ${levelSlug}`);
+  return `tmc.learning-path.${levelSlug}.v1`;
+}
+/** Nursery 1's key, kept exactly as first released so saved progress is not lost. */
+export const PROGRESS_STORAGE_KEY = progressStorageKey("nursery-1");
 export const PROGRESS_FORMAT_VERSION = 1;
 /** Far above the 156 real steps; stops a damaged or tampered value from growing without limit. */
 export const MAX_STORED_STEPS = 500;
