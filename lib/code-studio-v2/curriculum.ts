@@ -7,7 +7,8 @@
  */
 export type CurriculumActivity = {
   id: string;
-  curriculumVersion: "3.15";
+  /** "3.15" for rows imported from the Master Matrix; "book" for a lesson described by the approved books. */
+  curriculumVersion: "3.15" | "book";
   level: string;
   term: number;
   week: number;

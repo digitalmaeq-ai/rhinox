@@ -2,7 +2,6 @@ import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 
 import LearningHome from "@/app/components/code-studio-v2/LearningHome";
-import { CURRICULUM_ACTIVITIES } from "@/lib/code-studio-v2/curriculum";
 import { NURSERY_1_WEEKS, findWeek, weekPath } from "@/lib/tmc/nursery-1";
 import { interactiveLessonFor } from "@/lib/tmc/lessons";
 
@@ -35,5 +34,5 @@ export default async function LessonPage({ params }: LessonPageProps) {
   const item = findWeek(term, week);
   const lesson = item ? interactiveLessonFor(item) : null;
   if (!item || !lesson) notFound();
-  return <LearningHome activities={CURRICULUM_ACTIVITIES} focusActivityId={lesson.id} exitHref={weekPath(item)} />;
+  return <LearningHome activities={[lesson]} focusActivityId={lesson.id} exitHref={weekPath(item)} />;
 }
