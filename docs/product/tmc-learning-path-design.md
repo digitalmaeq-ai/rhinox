@@ -1,6 +1,6 @@
 # Think • Move • Code! Learning Path: design for approval
 
-Status: **approved by the owner (2026-11-11); phase 2 built, phases 3 to 6 not started.**
+Status: **approved by the owner (2026-11-11); phases 2 and 3 built, phases 4 to 6 not started.**
 Decisions recorded: (1) name "Learning Path"; (2) soft order; (3) progress kept on the adult's device is approved for the pilot, nothing stored until phase 4; (4) the Code Studio lessons for Weeks 1 to 8 are **set aside**: the path does not use them, they stay as they are, and the owner will pick the better of the two designs later.
 Level: Nursery 1 first; later levels reuse the same pattern.
 
@@ -63,7 +63,7 @@ Option B is meant to avoid collecting personal data. Before C, or any server sto
 
 1. **This design** (you are reading it).
 2. **Path data (done):** `types/tmc-learning-path.ts` and `lib/tmc-path/learning-path.ts` build 39 stops of 4 steps (Learn, Play, Match, Quiz) from the registry and validate them; tests in `scripts/test-tmc-learning-path.mjs`.
-3. **Picker and read-only path pages:** the choice screen and the trail, no saving.
+3. **Picker and read-only path pages (done):** a "How would you like to use Think • Move • Code!?" choice on the home page (Week by week stays first) and the trail at `/think-move-code/nursery-1/path`. Every step link is checked to load. Nothing is saved.
 4. **Device-only progress (needs approval of Option B).**
 5. **Hints and RhinoBot as guide:** tiered hints, "Today's next step".
 6. **Next levels:** Nursery 2 onwards reuse the same path code.

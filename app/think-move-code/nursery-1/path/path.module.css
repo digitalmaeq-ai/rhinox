@@ -1,0 +1,216 @@
+/* Learning Path: a read-only trail. Light, pale blue, restrained accents. */
+.page {
+  background: var(--rx-bg-soft);
+  color: var(--rx-text);
+  padding: clamp(14px, 3vw, 28px) 0 clamp(40px, 6vw, 72px);
+}
+
+.wrap {
+  max-width: 760px;
+}
+
+.page .wrap {
+  padding-block: 0;
+}
+
+.crumbs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin: 0 0 14px;
+  padding: 0;
+  list-style: none;
+  font-size: 0.85rem;
+  color: var(--rx-text-soft);
+}
+
+.crumbs li + li::before {
+  content: "/";
+  margin-right: 6px;
+  color: var(--rx-text-muted);
+}
+
+.crumbs a {
+  color: var(--rx-blue);
+}
+
+.head {
+  margin-bottom: 22px;
+}
+
+.eyebrow {
+  margin: 0 0 4px;
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--rx-blue);
+}
+
+.title {
+  margin: 0;
+  font-family: var(--rx-font-display);
+  font-size: clamp(1.6rem, 4.5vw, 2.2rem);
+  line-height: 1.1;
+  color: var(--rx-heading);
+  text-wrap: balance;
+}
+
+.lead {
+  margin: 10px 0 0;
+  max-width: 60ch;
+  font-size: 1.05rem;
+  line-height: 1.55;
+}
+
+.note {
+  margin: 10px 0 0;
+  max-width: 64ch;
+  font-size: 0.9rem;
+  line-height: 1.5;
+  color: var(--rx-text-soft);
+}
+
+.note a {
+  color: var(--rx-blue);
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
+.term {
+  margin-top: 26px;
+}
+
+.termTitle {
+  margin: 0 0 12px;
+  font-family: var(--rx-font-display);
+  font-size: 1.25rem;
+  color: var(--rx-heading);
+}
+
+.trail {
+  position: relative;
+  display: grid;
+  gap: 12px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+/* The line that joins the weeks. */
+.trail::before {
+  content: "";
+  position: absolute;
+  top: 14px;
+  bottom: 14px;
+  left: 17px;
+  width: 2px;
+  background: var(--rx-blue-pale);
+}
+
+.stop {
+  position: relative;
+  display: grid;
+  grid-template-columns: 36px minmax(0, 1fr);
+  gap: 12px;
+  align-items: start;
+}
+
+.badge {
+  position: relative;
+  display: grid;
+  place-items: center;
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  border: 2px solid var(--rx-blue);
+  background: var(--rx-white);
+  color: var(--rx-blue);
+  font-weight: 800;
+  font-size: 0.9rem;
+}
+
+.card {
+  min-width: 0;
+  padding: 12px 14px 14px;
+  border: 1px solid var(--rx-border);
+  border-radius: 14px;
+  background: var(--rx-surface);
+}
+
+.stopTitle {
+  margin: 0 0 10px;
+  font-family: var(--rx-font-display);
+  font-size: 1rem;
+  line-height: 1.3;
+  color: var(--rx-heading);
+}
+
+.weekLabel {
+  margin-right: 4px;
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--rx-text-soft);
+}
+
+.start {
+  display: inline-block;
+  margin-left: 8px;
+  padding: 2px 8px;
+  border-radius: 99px;
+  border: 1px solid var(--rx-blue);
+  background: var(--rx-surface-blue);
+  color: var(--rx-blue);
+  font-size: 0.72rem;
+  font-weight: 700;
+  vertical-align: middle;
+}
+
+.steps {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+  gap: 8px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.step {
+  display: grid;
+  gap: 2px;
+  min-height: 48px;
+  padding: 8px 10px;
+  border: 1px solid var(--rx-blue-pale);
+  border-radius: 10px;
+  background: var(--rx-surface-soft);
+  color: var(--rx-heading);
+  text-decoration: none;
+}
+
+.step:hover {
+  border-color: var(--rx-blue);
+  background: var(--rx-surface-blue);
+}
+
+.step:focus-visible {
+  outline: 3px solid var(--rx-blue);
+  outline-offset: 2px;
+}
+
+.stepLabel {
+  font-weight: 700;
+  font-size: 0.95rem;
+}
+
+.stepHint {
+  font-size: 0.8rem;
+  color: var(--rx-text-soft);
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .step {
+    transition: border-color 0.15s ease, background-color 0.15s ease;
+  }
+}
