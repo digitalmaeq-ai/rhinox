@@ -3,6 +3,7 @@ import assert from "node:assert/strict";
 import fs from "node:fs";
 import test from "node:test";
 import { NURSERY_1_REGISTRY } from "../lib/tmc-registry/seed/nursery-1.ts";
+import { buildPathView } from "../lib/tmc-path/view.ts";
 import { buildLearningPath, validateLearningPath, isLearnerSafeResource, STEP_ORDER, RESOURCE_TYPE_FOR_STEP } from "../lib/tmc-path/learning-path.ts";
 
 const R = NURSERY_1_REGISTRY;
@@ -120,4 +121,44 @@ test("the registry does not depend on the path", () => {
   for (const file of ["../lib/tmc-registry/book-registry.ts", "../lib/tmc-registry/seed/nursery-1.ts"]) {
     assert.ok(!/tmc-path/.test(fs.readFileSync(new URL(file, import.meta.url), "utf8")), file);
   }
+});
+
+test("the view gives every step an address in the shape of the existing site routes", () => {
+  // The real check that every address loads is scripts/code-studio-v2-path-browser-tests.cjs.
+  const view = buildPathView(path, R);
+  assert.equal(view.stops.length, 39);
+  const hrefs = [];
+  for (const stop of view.stops) {
+    const week = `/think-move-code/nursery-1/term-${stop.term}/week-${stop.week}`;
+    assert.equal(stop.weekHref, week);
+    for (const step of stop.steps) {
+      hrefs.push(step.href);
+      if (step.kind === "learn") assert.equal(step.href, week);
+      if (step.kind === "play") assert.equal(step.href, `${week}/play/screen`);
+      if (step.kind === "match") assert.equal(step.href, `${week}/play/pictures`);
+      if (step.kind === "quiz") assert.equal(step.href, `/explore/stem-quizzes/nursery-1-term-${stop.term}-week-${stop.week}`);
+    }
+  }
+  const play = fs.readFileSync(new URL("../lib/tmc/nursery-1.ts", import.meta.url), "utf8");
+  assert.match(play, /pictures:/);
+  assert.match(play, /screen:/);
+  assert.equal(hrefs.length, 156);
+  assert.equal(new Set(hrefs).size, 156, "no two steps open the same address");
+  assert.ok(hrefs.every((h) => h.startsWith("/") && !h.includes("//")));
+});
+
+test("the view carries no content beyond titles, labels and addresses", () => {
+  const view = buildPathView(path, R);
+  assert.deepEqual(Object.keys(view).sort(), ["level", "stops", "title"]);
+  assert.deepEqual(Object.keys(view.stops[0]).sort(), ["id", "steps", "term", "title", "week", "weekHref"]);
+  assert.deepEqual(Object.keys(view.stops[0].steps[0]).sort(), ["href", "id", "kind", "label"]);
+  const text = fs.readFileSync(new URL("../lib/tmc-path/view.ts", import.meta.url), "utf8");
+  assert.deepEqual(text.split("\n").filter((l) => /^\s*import\s/.test(l) && !/^\s*import\s+type\s/.test(l)), []);
+});
+
+test("the server module is server-only and fails the build on a bad path", () => {
+  const text = fs.readFileSync(new URL("../lib/tmc-path/learning-path.server.ts", import.meta.url), "utf8");
+  assert.match(text, /import "server-only"/);
+  assert.match(text, /validateLearningPath/);
+  assert.match(text, /throw new Error/);
 });

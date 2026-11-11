@@ -37,6 +37,22 @@ export default function TmcHome() {
           <Image className={styles.ayo} src="/tmc/n1/ayo.png" alt="Ayo, the boy from the book" width={240} height={360} priority />
         </header>
 
+        <section className={styles.choose} aria-labelledby="choose-title">
+          <h2 id="choose-title" className={styles.chooseTitle}>
+            How would you like to use Think • Move • Code!?
+          </h2>
+          <div className={styles.chooseOptions}>
+            <a className={styles.chooseCard} href="#weeks">
+              <strong>Week by week</strong>
+              <span>Pick any week. Print the cards, read the guides and play the games.</span>
+            </a>
+            <Link className={styles.chooseCard} href="/think-move-code/nursery-1/path">
+              <strong>Learning Path</strong>
+              <span>Follow one step at a time: learn, play, match and quiz.</span>
+            </Link>
+          </div>
+        </section>
+
         <div className={styles.grid}>
           <section id="weeks" className={styles.main} aria-labelledby="weeks-title">
             <h2 id="weeks-title" className={styles.h2}>

@@ -422,8 +422,10 @@ test("registry stays out of public assets and client components", () => {
     const text = readFileSync(file, "utf8");
     const importsRegistry = /tmc-registry\/(seed|book-registry)/.test(text);
     if (importsRegistry && /^\s*["']use client["']/m.test(text)) assert.fail(`client component imports the registry: ${file}`);
-    if (importsRegistry && !file.includes(`${path.sep}tmc-registry${path.sep}`)) {
-      assert.fail(`only the registry's own server module may import it for now: ${file}`);
+    const isPathServerModule = file.endsWith(`${path.sep}tmc-path${path.sep}learning-path.server.ts`);
+    if (isPathServerModule) assert.match(text, /import "server-only"/, "the path's server module must be server-only");
+    if (importsRegistry && !file.includes(`${path.sep}tmc-registry${path.sep}`) && !isPathServerModule) {
+      assert.fail(`only the registry's own server module and the Learning Path's server module may import it: ${file}`);
     }
   }
   const publicFiles = walk(path.join(root, "public")).filter((f) => !f.includes(`${path.sep}pyodide${path.sep}`));

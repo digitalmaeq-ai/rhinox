@@ -569,3 +569,54 @@
     font-size: 0.92rem;
   }
 }
+
+/* ---------- Choose how to use it ---------- */
+
+.choose {
+  margin-top: 18px;
+}
+
+.chooseTitle {
+  margin: 0 0 10px;
+  font-family: var(--rx-font-display);
+  font-size: 1.1rem;
+  color: var(--rx-heading);
+}
+
+.chooseOptions {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: 12px;
+}
+
+.chooseCard {
+  display: grid;
+  gap: 4px;
+  padding: 14px 16px;
+  border: 1px solid var(--rx-border);
+  border-radius: 14px;
+  background: var(--rx-surface);
+  color: var(--rx-text);
+  text-decoration: none;
+}
+
+.chooseCard strong {
+  font-family: var(--rx-font-display);
+  color: var(--rx-heading);
+}
+
+.chooseCard span {
+  font-size: 0.9rem;
+  line-height: 1.45;
+  color: var(--rx-text-soft);
+}
+
+.chooseCard:hover {
+  border-color: var(--rx-blue);
+  background: var(--rx-surface-blue);
+}
+
+.chooseCard:focus-visible {
+  outline: 3px solid var(--rx-blue);
+  outline-offset: 2px;
+}
