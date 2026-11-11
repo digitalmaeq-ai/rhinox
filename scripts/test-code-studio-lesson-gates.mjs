@@ -161,3 +161,21 @@ assert.deepEqual(w2.steps.code.exercise?.expectedOrder, ["wake-up", "get-dressed
 assert.ok(w2.steps.code.exercise?.items.every((item) => w2.presentation?.pictureIcons?.[item.id]), "Every Week 2 picture has an icon.");
 assert.deepEqual(w2.bookSource, { activityBookLessonId: "tmc-n1-ab-t1-w2", teacherGuideLessonId: "tmc-n1-tg-t1-w2" });
 console.log("Week 2 checks passed.");
+
+// Week 3 is described by the approved books alone: no curriculum-sheet record exists for it.
+import { activityFromBookSpec, interactiveLessonFor } from "../lib/tmc/lessons.ts";
+const w3id = "tmc-v3-15-nursery-1-t1-w3";
+const w3 = getLessonSpec(w3id);
+assert.ok(w3 && w3.unit, "Week 3 carries its own details.");
+assert.equal(CURRICULUM_ACTIVITIES.some((item) => item.id === w3id), false, "Week 3 has no curriculum-sheet record.");
+const w3activity = activityFromBookSpec(w3);
+assert.ok(w3activity && w3activity.curriculumVersion === "book", "The page details are built from the books, not labelled v3.15.");
+assert.equal(isLessonSpecConsistent(w3, w3activity), true, "The Week 3 spec passes the same gate as Weeks 1 and 2.");
+assert.equal(interactiveLessonFor({ term: 1, week: 3 })?.id, w3id, "Week 3 is served.");
+assert.equal(interactiveLessonFor({ term: 1, week: 4 }), null, "Week 4 is not served yet.");
+assert.deepEqual(w3.steps.code.exercise?.expectedOrder, ["walk", "pick-up"]);
+assert.ok(w3.steps.code.exercise?.items.every((item) => w3.presentation?.pictureIcons?.[item.id]), "Every Week 3 picture has an icon.");
+assert.equal(w3.steps.build.inBook, false);
+assert.equal(activityFromBookSpec({ ...w3, unit: undefined }), null, "Without a unit block there is nothing to build from.");
+assert.deepEqual(w3.bookSource, { activityBookLessonId: "tmc-n1-ab-t1-w3", teacherGuideLessonId: "tmc-n1-tg-t1-w3" });
+console.log("Week 3 checks passed.");
