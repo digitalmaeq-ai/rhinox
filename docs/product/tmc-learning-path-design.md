@@ -1,6 +1,7 @@
 # Think • Move • Code! Learning Path: design for approval
 
-Status: **proposal, nothing built.** Owner approval needed before any code (see "Decisions").
+Status: **approved by the owner (2026-11-11); phase 2 built, phases 3 to 6 not started.**
+Decisions recorded: (1) name "Learning Path"; (2) soft order; (3) progress kept on the adult's device is approved for the pilot, nothing stored until phase 4; (4) the Code Studio lessons for Weeks 1 to 8 are **set aside**: the path does not use them, they stay as they are, and the owner will pick the better of the two designs later.
 Level: Nursery 1 first; later levels reuse the same pattern.
 
 ## 1. The idea
@@ -26,11 +27,11 @@ The registry (`lib/tmc-registry`) already holds every week's game, quiz, printab
 
 Each week is one stop with up to five steps, each taken from what the registry already has:
 
-1. **Learn**: the reviewed interactive lesson if the week has one, otherwise the week page.
+1. **Learn**: the week page. (The Code Studio lessons are set aside for now, see the status line.)
 2. **Play**: the week's screen game.
 3. **Match**: the week's matching game.
 4. **Quiz**: the week's quiz.
-5. **Offline**: the printable cards (adult prints; the child acts and draws).
+5. **Offline**: the printable cards (adult prints; the child acts and draws). **Not on the path yet:** the registry classes the cards as licensed and teacher-audience, so the child path leaves them out. They return when the access policy for printables is settled.
 
 Stars follow the books: the same "Step-Star" idea as the Activity Book's My Stars and badge pages, so the app and the book say the same thing.
 
@@ -61,7 +62,7 @@ Option B is meant to avoid collecting personal data. Before C, or any server sto
 ## 7. Build phases (each its own small PR, none merged without your word)
 
 1. **This design** (you are reading it).
-2. **Path data:** a typed list of weeks and steps that reads registry ids, plus tests (ids real, verified, not restricted).
+2. **Path data (done):** `types/tmc-learning-path.ts` and `lib/tmc-path/learning-path.ts` build 39 stops of 4 steps (Learn, Play, Match, Quiz) from the registry and validate them; tests in `scripts/test-tmc-learning-path.mjs`.
 3. **Picker and read-only path pages:** the choice screen and the trail, no saving.
 4. **Device-only progress (needs approval of Option B).**
 5. **Hints and RhinoBot as guide:** tiered hints, "Today's next step".
