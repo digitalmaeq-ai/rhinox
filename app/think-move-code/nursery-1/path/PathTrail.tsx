@@ -13,6 +13,7 @@ import {
   summarize,
   toggleStep,
 } from "@/lib/tmc-path/progress";
+import { HINT_TIERS, MAX_HINT_LEVEL, hintsUpTo, todaysStep, type StepKind } from "@/lib/tmc-path/guide";
 import type { PathView } from "@/lib/tmc-path/view";
 
 const KIND_HINT: Record<string, string> = {
@@ -29,6 +30,8 @@ export default function PathTrail({ view }: { view: PathView }) {
   const [done, setDone] = useState<ReadonlySet<string>>(() => new Set());
   const [canSave, setCanSave] = useState(true);
   const [askReset, setAskReset] = useState(false);
+  // How many hints are showing per step. Kept in memory only, never stored.
+  const [hintLevel, setHintLevel] = useState<Record<string, number>>({});
 
   // Read what this browser remembers once the page is on screen, and follow changes from other tabs.
   useEffect(() => {
@@ -61,10 +64,27 @@ export default function PathTrail({ view }: { view: PathView }) {
   const summary = summarize(view, done);
   const next = nextUp(view, done);
   const nothingDone = summary.stepsDone === 0;
+  const today = todaysStep(view, done);
   const terms = [...new Set(view.stops.map((stop) => stop.term))];
 
   return (
     <>
+      <section className={styles.today} aria-labelledby="today-title">
+        <h2 id="today-title" className={styles.panelTitle}>
+          Today&apos;s next step
+        </h2>
+        {today ? (
+          <>
+            <p className={styles.todayText}>{today.message}</p>
+            <Link className={styles.todayLink} href={today.href}>
+              Go to {today.stepLabel}
+            </Link>
+          </>
+        ) : (
+          <p className={styles.todayText}>RhinoBot says: every step is done. Well done! You can open any week again to practise.</p>
+        )}
+      </section>
+
       <section className={styles.panel} aria-labelledby="progress-title">
         <h2 id="progress-title" className={styles.panelTitle}>
           Your progress
@@ -159,6 +179,32 @@ export default function PathTrail({ view }: { view: PathView }) {
                               >
                                 {isDone ? "✓ Done" : "Mark done"}
                               </button>
+                              {(() => {
+                                const level = hintLevel[step.id] ?? 0;
+                                const kind = step.kind as StepKind;
+                                if (!(kind in HINT_TIERS)) return null;
+                                return (
+                                  <div className={styles.hints}>
+                                    {level > 0 ? (
+                                      <ul className={styles.hintList} aria-live="polite">
+                                        {hintsUpTo(kind, level).map((text) => (
+                                          <li key={text}>{text}</li>
+                                        ))}
+                                      </ul>
+                                    ) : null}
+                                    {level < MAX_HINT_LEVEL ? (
+                                      <button
+                                        type="button"
+                                        className={styles.hintButton}
+                                        onClick={() => setHintLevel((prev) => ({ ...prev, [step.id]: level + 1 }))}
+                                      >
+                                        {level === 0 ? "Need a hint?" : "Another hint"}
+                                        <span className={styles.srOnly}>{` for term ${stop.term} week ${stop.week} ${step.label}`}</span>
+                                      </button>
+                                    ) : null}
+                                  </div>
+                                );
+                              })()}
                             </li>
                           );
                         })}

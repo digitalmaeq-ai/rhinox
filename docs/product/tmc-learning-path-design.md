@@ -1,6 +1,6 @@
 # Think • Move • Code! Learning Path: design for approval
 
-Status: **approved by the owner (2026-11-11); phases 2, 3 and 4 built, phases 5 and 6 not started.**
+Status: **approved by the owner (2026-11-11); phases 2 to 5 built, phase 6 not started.**
 Decisions recorded: (1) name "Learning Path"; (2) soft order; (3) progress kept on the adult's device is approved for the pilot, built in phase 4: only step ids in this browser's localStorage, no names, accounts or network calls; (4) the Code Studio lessons for Weeks 1 to 8 are **set aside**: the path does not use them, they stay as they are, and the owner will pick the better of the two designs later.
 Level: Nursery 1 first; later levels reuse the same pattern.
 
@@ -88,3 +88,10 @@ Option B is meant to avoid collecting personal data. Before C, or any server sto
 - Shown as stars per week (one per step), "Week complete", a steps and weeks count, and a "Next up" cue. No streaks or timers.
 - Reset has a two-step confirm. If the browser blocks storage the page works for the session and says so.
 - Still true: get legal advice before any server-side storage of children's data (not built).
+
+## Phase 5 as built: guide and hints
+
+- "Today's next step" card at the top of the path: the first step not done, in book order, with a RhinoBot line and a link. A suggestion only; nothing is locked. No dates, streaks or timers.
+- Each step has "Need a hint?", revealing three tiers one at a time: a nudge, a way to try, then a grown-up tip. Hints explain how to use the step; they never give answers or add lesson content.
+- Hints are held in memory only and are not saved.
+- Limit: the games and quizzes do not report back, so hints cannot react to what a child does inside them.

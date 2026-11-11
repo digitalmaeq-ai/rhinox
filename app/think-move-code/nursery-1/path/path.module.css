@@ -373,3 +373,73 @@
   background: #e9f7f1;
   color: var(--rx-success);
 }
+
+/* ---------- Guide: today's step and hints ---------- */
+
+.today {
+  margin-top: 4px;
+  padding: 14px 16px;
+  border: 1px solid var(--rx-blue);
+  border-radius: 14px;
+  background: #f1f7ff;
+}
+
+.todayText {
+  margin: 0 0 10px;
+  font-size: 1rem;
+  color: var(--rx-heading);
+}
+
+.todayLink {
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
+  padding: 0 18px;
+  border-radius: 99px;
+  background: var(--rx-blue);
+  color: var(--rx-white);
+  font-weight: 700;
+  text-decoration: none;
+}
+
+.todayLink:focus-visible,
+.hintButton:focus-visible {
+  outline: 3px solid var(--rx-heading);
+  outline-offset: 2px;
+}
+
+.hints {
+  display: grid;
+  gap: 6px;
+}
+
+.hintList {
+  margin: 0;
+  padding-left: 18px;
+  font-size: 0.85rem;
+  line-height: 1.45;
+  color: var(--rx-text-soft);
+}
+
+.hintButton {
+  justify-self: start;
+  min-height: 36px;
+  padding: 0 10px;
+  border: 0;
+  background: none;
+  color: var(--rx-blue);
+  font: inherit;
+  font-size: 0.85rem;
+  font-weight: 600;
+  text-decoration: underline;
+  cursor: pointer;
+}
+
+.srOnly {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+}
