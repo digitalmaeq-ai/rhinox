@@ -24,10 +24,10 @@ const ok = (name, pass) => { if (!pass) bad++; console.log(`${pass ? "ok  " : "F
   // The trail.
   ok("page title", (await page.locator("h1").innerText()).trim() === "Learning Path");
   ok("39 stops", (await page.locator("main h3").count()) === 39 && (await page.locator("main h3").count()) === 39);
-  ok("3 term headings", (await page.locator("main h2").count()) === 3);
+  ok("progress panel plus 3 term headings", (await page.locator("main h2").count()) === 4);
   ok("156 step links", (await page.locator("main ul li a[href]").count()) === 156);
   ok("Start here appears once", (await page.getByText("Start here").count()) === 1);
-  ok("says nothing is saved", /does not save progress/.test(await page.locator("body").innerText()));
+  ok("explains progress is kept only in this browser", /saved only in this browser/i.test(await page.locator("body").innerText()));
   ok("no horizontal scroll (desktop)", !(await page.evaluate(() => document.documentElement.scrollWidth > innerWidth)));
 
   // Every link must load.
@@ -46,6 +46,52 @@ const ok = (name, pass) => { if (!pass) bad++; console.log(`${pass ? "ok  " : "F
   await page.setViewportSize({ width: 375, height: 700 });
   ok("no horizontal scroll (phone)", !(await page.evaluate(() => document.documentElement.scrollWidth > innerWidth)));
   await page.screenshot({ path: process.env.PATH_SHOT || "/tmp/path-phone.png" });
+
+  // Progress (phase 4): marks persist on this device only.
+  const KEY = "tmc.learning-path.nursery-1.v1";
+  const offOrigin = [];
+  page.on("request", (r) => { if (!r.url().startsWith(BASE) && !r.url().startsWith("data:") && !r.url().startsWith("blob:")) offOrigin.push(r.url()); });
+  await page.goto(`${BASE}/think-move-code/nursery-1/path`);
+  await page.evaluate((k) => localStorage.removeItem(k), KEY);
+  await page.reload();
+  ok("starts at 0 of 156", /0 of 156/.test(await page.locator("body").innerText()));
+  ok("reset disabled when nothing done", await page.getByRole("button", { name: "Reset progress" }).isDisabled());
+  const tick = (label) => page.getByRole("button", { name: label });
+  await tick("Term 1 week 1 Learn: mark as done").click();
+  await tick("Term 1 week 1 Play: mark as done").click();
+  ok("2 of 156 after two ticks", /2 of 156/.test(await page.locator("body").innerText()));
+  ok("tick is a pressed toggle", (await tick("Term 1 week 1 Learn: done").getAttribute("aria-pressed")) === "true");
+  ok("Next up cue appears, Start here gone", (await page.getByText("Next up").count()) === 1 && (await page.getByText("Start here").count()) === 0);
+  await page.reload();
+  ok("progress survives reload", /2 of 156/.test(await page.locator("body").innerText()));
+  const stored = JSON.parse(await page.evaluate((k) => localStorage.getItem(k), KEY));
+  ok("stored value is version plus step ids only", Object.keys(stored).sort().join() === "done,v" && stored.done.length === 2 && stored.done.every((id) => /^tmc-n1-t\d-w\d+:(learn|play|match|quiz)$/.test(id)));
+  await tick("Term 1 week 1 Match: mark as done").click();
+  await tick("Term 1 week 1 Quiz: mark as done").click();
+  ok("a full week shows Week complete and 1 of 39", (await page.getByText("Week complete").count()) === 1 && /1 of 39 weeks complete/.test(await page.locator("body").innerText()));
+  ok("nothing was locked: a later week is still a normal link", (await page.locator("main ul li a[href]").count()) === 156);
+  await page.getByRole("button", { name: "Reset progress" }).click();
+  await page.getByRole("button", { name: "Keep it" }).click();
+  ok("Keep it leaves progress alone", /4 of 156/.test(await page.locator("body").innerText()));
+  await page.getByRole("button", { name: "Reset progress" }).click();
+  await page.getByRole("button", { name: "Yes, clear it" }).click();
+  ok("reset clears page and storage", /0 of 156/.test(await page.locator("body").innerText()) && (await page.evaluate((k) => localStorage.getItem(k), KEY)) === null);
+  await page.evaluate((k) => localStorage.setItem(k, "{broken"), KEY);
+  await page.reload();
+  ok("damaged stored value is ignored", /0 of 156/.test(await page.locator("body").innerText()));
+  ok("no requests left this site while marking progress", offOrigin.length === 0);
+
+  // Storage blocked: page still works for the session and warns.
+  const blocked = await browser.newPage({ viewport: { width: 400, height: 800 } });
+  await blocked.addInitScript(() => {
+    const boom = () => { throw new Error("blocked"); };
+    Object.defineProperty(window, "localStorage", { get: boom });
+  });
+  await blocked.goto(`${BASE}/think-move-code/nursery-1/path`);
+  await blocked.getByRole("button", { name: "Term 1 week 1 Learn: mark as done" }).click();
+  ok("blocked storage: tick still works and a warning shows", /1 of 156/.test(await blocked.locator("body").innerText()) && (await blocked.getByRole("status").count()) >= 1);
+  ok("no horizontal scroll (phone)", !(await blocked.evaluate(() => document.documentElement.scrollWidth > innerWidth)));
+  await blocked.close();
   ok("no page errors", errors.length === 0);
   await browser.close();
   process.exit(bad ? 1 : 0);

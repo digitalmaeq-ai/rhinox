@@ -1,0 +1,175 @@
+"use client";
+
+import Link from "next/link";
+import { useEffect, useMemo, useState } from "react";
+
+import styles from "./path.module.css";
+import {
+  PROGRESS_STORAGE_KEY,
+  nextUp,
+  parseProgress,
+  serializeProgress,
+  stopProgress,
+  summarize,
+  toggleStep,
+} from "@/lib/tmc-path/progress";
+import type { PathView } from "@/lib/tmc-path/view";
+
+const KIND_HINT: Record<string, string> = {
+  learn: "Read the week",
+  play: "Put it in order",
+  match: "Find the pairs",
+  quiz: "Try the quiz",
+};
+
+// The trail with progress. An adult marks each step done; the ticks are kept only in this browser
+// on this device (see lib/tmc-path/progress.ts). Nothing is sent anywhere.
+export default function PathTrail({ view }: { view: PathView }) {
+  const validIds = useMemo(() => new Set(view.stops.flatMap((stop) => stop.steps.map((step) => step.id))), [view]);
+  const [done, setDone] = useState<ReadonlySet<string>>(() => new Set());
+  const [canSave, setCanSave] = useState(true);
+  const [askReset, setAskReset] = useState(false);
+
+  // Read what this browser remembers once the page is on screen, and follow changes from other tabs.
+  useEffect(() => {
+    const load = () => {
+      try {
+        setDone(parseProgress(window.localStorage.getItem(PROGRESS_STORAGE_KEY), validIds));
+      } catch {
+        setCanSave(false);
+      }
+    };
+    load();
+    const onStorage = (event: StorageEvent) => {
+      if (event.key === PROGRESS_STORAGE_KEY || event.key === null) load();
+    };
+    window.addEventListener("storage", onStorage);
+    return () => window.removeEventListener("storage", onStorage);
+  }, [validIds]);
+
+  const save = (next: ReadonlySet<string>) => {
+    setDone(next);
+    try {
+      if (next.size === 0) window.localStorage.removeItem(PROGRESS_STORAGE_KEY);
+      else window.localStorage.setItem(PROGRESS_STORAGE_KEY, serializeProgress(next));
+      setCanSave(true);
+    } catch {
+      setCanSave(false);
+    }
+  };
+
+  const summary = summarize(view, done);
+  const next = nextUp(view, done);
+  const nothingDone = summary.stepsDone === 0;
+  const terms = [...new Set(view.stops.map((stop) => stop.term))];
+
+  return (
+    <>
+      <section className={styles.panel} aria-labelledby="progress-title">
+        <h2 id="progress-title" className={styles.panelTitle}>
+          Your progress
+        </h2>
+        <p className={styles.panelNumbers} aria-live="polite">
+          <strong>
+            {summary.stepsDone} of {summary.stepsTotal}
+          </strong>{" "}
+          steps done · <strong>{summary.weeksComplete}</strong> of {summary.weeksTotal} weeks complete
+        </p>
+        <p className={styles.privacy}>
+          A grown-up marks each step done. Progress is saved only in this browser, on this device. There are no names or accounts, and nothing is sent to us. Clearing your browser data, or using another device, starts again from the beginning.
+        </p>
+        {!canSave ? (
+          <p className={styles.warn} role="status">
+            This browser is not letting us save progress, so ticks will be lost when you leave this page.
+          </p>
+        ) : null}
+        <div className={styles.panelActions}>
+          {askReset ? (
+            <>
+              <span className={styles.confirmText}>Clear all saved progress on this device?</span>
+              <button
+                type="button"
+                className={styles.danger}
+                onClick={() => {
+                  save(new Set());
+                  setAskReset(false);
+                }}
+              >
+                Yes, clear it
+              </button>
+              <button type="button" className={styles.secondary} onClick={() => setAskReset(false)}>
+                Keep it
+              </button>
+            </>
+          ) : (
+            <button type="button" className={styles.secondary} disabled={nothingDone} onClick={() => setAskReset(true)}>
+              Reset progress
+            </button>
+          )}
+        </div>
+      </section>
+
+      {terms.map((term) => (
+        <section key={term} className={styles.term} aria-labelledby={`term-${term}`}>
+          <h2 id={`term-${term}`} className={styles.termTitle}>
+            Term {term}
+          </h2>
+          <ol className={styles.trail}>
+            {view.stops
+              .filter((stop) => stop.term === term)
+              .map((stop) => {
+                const progress = stopProgress(stop, done);
+                const showStart = nothingDone && stop.term === 1 && stop.week === 1;
+                return (
+                  <li key={stop.id} className={styles.stop}>
+                    <span className={`${styles.badge} ${progress.complete ? styles.badgeDone : ""}`} aria-hidden="true">
+                      {progress.complete ? "✓" : stop.week}
+                    </span>
+                    <div className={styles.card}>
+                      <h3 className={styles.stopTitle}>
+                        <span className={styles.weekLabel}>Week {stop.week}</span> {stop.title}
+                        {showStart ? <span className={styles.start}>Start here</span> : null}
+                        {progress.complete ? <span className={styles.complete}>Week complete</span> : null}
+                      </h3>
+                      <p className={styles.stars} role="img" aria-label={`${progress.done} of ${progress.total} steps done`}>
+                        <span aria-hidden="true">
+                          {Array.from({ length: progress.total }, (_, index) => (index < progress.done ? "★" : "☆")).join(" ")}
+                        </span>
+                        <span className={styles.starsText} aria-hidden="true">
+                          {progress.done} of {progress.total}
+                        </span>
+                      </p>
+                      <ul className={styles.steps}>
+                        {stop.steps.map((step) => {
+                          const isDone = done.has(step.id);
+                          const isNext = next?.stepId === step.id;
+                          return (
+                            <li key={step.id} className={`${styles.stepItem} ${isDone ? styles.stepDone : ""}`}>
+                              <Link className={styles.step} href={step.href}>
+                                <span className={styles.stepLabel}>{step.label}</span>
+                                <span className={styles.stepHint}>{KIND_HINT[step.kind] ?? ""}</span>
+                                {isNext && !nothingDone ? <span className={styles.nextUp}>Next up</span> : null}
+                              </Link>
+                              <button
+                                type="button"
+                                className={styles.tick}
+                                aria-pressed={isDone}
+                                aria-label={`Term ${stop.term} week ${stop.week} ${step.label}: ${isDone ? "done" : "mark as done"}`}
+                                onClick={() => save(toggleStep(done, step.id, validIds))}
+                              >
+                                {isDone ? "✓ Done" : "Mark done"}
+                              </button>
+                            </li>
+                          );
+                        })}
+                      </ul>
+                    </div>
+                  </li>
+                );
+              })}
+          </ol>
+        </section>
+      ))}
+    </>
+  );
+}
