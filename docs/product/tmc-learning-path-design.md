@@ -103,3 +103,10 @@ Option B is meant to avoid collecting personal data. Before C, or any server sto
 - **Nursery 2 is not listed.** It has not been designed, has no registry data, no page and no picker entry. A level with no weeks in the registry fails the path checks, so it cannot appear by accident.
 - To add a level later: put its book content in the registry, add it to `PATH_LEVELS` and the server module's registry list, and add a small page file. A test checks that every listed level has a registry.
 - Tested with a stand-in second level (a relabelled copy of Nursery 1 inside the test only, not content).
+
+## Polish pass (after phase 6)
+
+- "Today's next step" and "Your progress" sit side by side on wide screens, so the first week shows on the first screen. Ayo (the real book picture) appears on the next-step card.
+- Weeks are collapsible: only the week with the next step is open; a grown-up can open or close any week.
+- A finished week shows a short "Well done" banner (a small pop that respects reduced motion; no sound, no timers).
+- Each Nursery 1 week page has a "Continue on the Learning Path" link.

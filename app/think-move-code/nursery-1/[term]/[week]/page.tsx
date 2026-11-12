@@ -16,6 +16,7 @@ import {
   weekPath,
 } from "@/lib/tmc/nursery-1";
 import { interactiveLessonFor, nursery1LessonPath } from "@/lib/tmc/lessons";
+import { pathLevelFor } from "@/lib/tmc-path/levels";
 
 interface WeekPageProps {
   params: Promise<{ term: string; week: string }>;
@@ -149,6 +150,10 @@ export default async function WeekPage({ params }: WeekPageProps) {
             ) : null}
           </div>
           <p className={styles.note}>Optional: about 5 minutes is plenty. The lesson never needs a screen.</p>
+          <p className={styles.note}>
+            Want one step at a time?{" "}
+            <Link href={pathLevelFor("nursery-1")?.pagePath ?? "/think-move-code"}>Continue on the Learning Path</Link>.
+          </p>
         </section>
 
         <section className={styles.section} aria-labelledby="parents">

@@ -101,6 +101,29 @@ const ok = (name, pass) => { if (!pass) bad++; console.log(`${pass ? "ok  " : "F
   const afterHints = JSON.parse(await page.evaluate((k) => localStorage.getItem(k), KEY));
   ok("hints are not stored", afterHints.done.length === 1);
 
+  // Polish: collapsible weeks, celebration, link from the week page.
+  await page.goto(`${BASE}/think-move-code/nursery-1/path`);
+  await page.evaluate((k) => localStorage.removeItem(k), KEY);
+  await page.reload();
+  await page.waitForSelector("details[open]");
+  ok("only the current week is open at first", (await page.locator("main details[open]").count()) === 1 && (await page.locator("main details").count()) === 39);
+  const week2 = page.locator("main details", { hasText: "Week 3" }).first();
+  await week2.locator("summary").click();
+  ok("a closed week opens by hand and stays open", (await page.locator("main details[open]").count()) === 2);
+  await week2.locator("summary").click();
+  ok("and closes again", (await page.locator("main details[open]").count()) === 1);
+  for (const k of ["Learn", "Play", "Match", "Quiz"]) await tick(`Term 1 week 1 ${k}: mark as done`).click();
+  ok("finished week shows the well done banner", (await page.getByText("Well done! All four steps are done.").count()) === 1);
+  await page.waitForTimeout(200);
+  ok("the open week moves on to the next step's week", (await page.locator("main details[open]").count()) === 1 && /week 2/i.test(await page.locator("main details[open]").first().innerText()) && /Today's next step/.test(await page.locator("body").innerText()));
+  const summaryOk = await page.evaluate(() => [...document.querySelectorAll("main details > summary")].every((s) => s.querySelector("h3")));
+  ok("every week summary holds its heading", summaryOk);
+  ok("today card shows Ayo", (await page.locator("section[aria-labelledby=today-title] img").count()) === 1);
+  await page.goto(`${BASE}/think-move-code/nursery-1/term-1/week-1`);
+  const pathLink = page.getByRole("link", { name: "Continue on the Learning Path" });
+  ok("week page links to the Learning Path", (await pathLink.getAttribute("href")) === "/think-move-code/nursery-1/path");
+  await page.evaluate((k) => localStorage.removeItem(k), KEY);
+
   // Storage blocked: page still works for the session and warns.
   const blocked = await browser.newPage({ viewport: { width: 400, height: 800 } });
   await blocked.addInitScript(() => {
