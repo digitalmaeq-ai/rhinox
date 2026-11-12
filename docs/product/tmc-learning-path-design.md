@@ -110,3 +110,10 @@ Option B is meant to avoid collecting personal data. Before C, or any server sto
 - Weeks are collapsible: only the week with the next step is open; a grown-up can open or close any week.
 - A finished week shows a short "Well done" banner (a small pop that respects reduced motion; no sound, no timers).
 - Each Nursery 1 week page has a "Continue on the Learning Path" link.
+
+## "Do it together": screen-free lesson on the week page (trial: Nursery 1 Term 1, Weeks 1 to 3)
+
+- Decision: instead of building more RhinoBot screen lessons (which would repeat the games and quiz), the Teacher Guide's own 40-minute lesson is shown on the week page: goal, words, what you need, then Think (8), Move (10), Code (12) and Book & close (10).
+- Wording is the Teacher Guide's, copied exactly and checked against the guide text for Weeks 1 to 3. Nothing is rewritten or invented. A week appears only after its text has been copied and checked.
+- The Learning Path shows a small "Do it together" link on those weeks, pointing to the week page section.
+- Source file: `lib/tmc/lesson-guide.ts` (plain data). Roll out in batches, each checked against the book.

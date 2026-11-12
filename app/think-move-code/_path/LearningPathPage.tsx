@@ -16,7 +16,7 @@ export function learningPathMetadata(levelSlug: string): Metadata {
 
 // A trail through one level's weeks. It holds only order, links and progress; every step opens
 // content that already exists. Progress is kept in the visitor's own browser (see PathTrail).
-export default function LearningPathPage({ levelSlug }: { levelSlug: string }) {
+export default function LearningPathPage({ levelSlug, guideKeys }: { levelSlug: string; guideKeys?: readonly string[] }) {
   const config = pathLevelFor(levelSlug);
   if (!config) throw new Error(`No Learning Path is set up for level "${levelSlug}"`);
   const view = getPathView(levelSlug);
@@ -45,7 +45,7 @@ export default function LearningPathPage({ levelSlug }: { levelSlug: string }) {
           </p>
         </header>
 
-        <PathTrail view={view} levelSlug={levelSlug} />
+        <PathTrail view={view} levelSlug={levelSlug} guideKeys={guideKeys} />
       </div>
     </main>
   );

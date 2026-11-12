@@ -554,3 +554,9 @@ details[open] > .summary {
     animation: none;
   }
 }
+
+.guideLink {
+  margin: 0 0 10px;
+  font-size: 0.85rem;
+  color: var(--rx-text-soft);
+}

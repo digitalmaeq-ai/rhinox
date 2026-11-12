@@ -124,6 +124,22 @@ const ok = (name, pass) => { if (!pass) bad++; console.log(`${pass ? "ok  " : "F
   ok("week page links to the Learning Path", (await pathLink.getAttribute("href")) === "/think-move-code/nursery-1/path");
   await page.evaluate((k) => localStorage.removeItem(k), KEY);
 
+  // Do it together (trial: Weeks 1 to 3).
+  for (const w of [1, 2, 3]) {
+    await page.goto(`${BASE}/think-move-code/nursery-1/term-1/week-${w}`);
+    const sec = page.locator("#do-it-together").locator("xpath=ancestor::section");
+    ok(`week ${w} page shows Do it together with 4 timed parts`, (await sec.locator("ol li").count()) === 4 && /Think\s*8 min/.test(await sec.innerText()) && /Book & close\s*10 min/.test(await sec.innerText()));
+  }
+  await page.goto(`${BASE}/think-move-code/nursery-1/term-1/week-4`);
+  ok("week 4 has no Do it together yet", (await page.locator("#do-it-together").count()) === 0);
+  await page.goto(`${BASE}/think-move-code/nursery-1/path`);
+  ok("the path links to Do it together for weeks 1 to 3 only", (await page.locator("main a", { hasText: "Do it together" }).count()) === 3);
+  const href = await page.getByRole("link", { name: "Do it together" }).first().getAttribute("href");
+  ok("the link points at the week page section", href === "/think-move-code/nursery-1/term-1/week-1#do-it-together");
+  await page.getByRole("link", { name: "Do it together" }).first().click();
+  await page.waitForURL(/week-1#do-it-together/);
+  ok("the link lands on the lesson", (await page.locator("#do-it-together").isVisible()));
+
   // Storage blocked: page still works for the session and warns.
   const blocked = await browser.newPage({ viewport: { width: 400, height: 800 } });
   await blocked.addInitScript(() => {
