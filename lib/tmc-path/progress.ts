@@ -24,9 +24,20 @@ export const MAX_STORED_STEPS = 500;
 const MAX_STORED_CHARS = 20_000;
 
 export type DoneSteps = ReadonlySet<string>;
+/** Anything that can say whether an id is allowed: a Set of ids, or a shape check. */
+export interface IdCheck {
+  has(id: string): boolean;
+}
+
+/** The shape of a step id, for example "tmc-n1-t1-w1:play". Used where the full path is not at hand. */
+const STEP_ID_PATTERN = /^[a-z0-9]+(-[a-z0-9]+)*-t[1-3]-w(?:[1-9]|1[0-3]):(?:learn|play|match|quiz)$/;
+export function isStepId(value: string): boolean {
+  return STEP_ID_PATTERN.test(value);
+}
+const ANY_STEP_ID: IdCheck = { has: isStepId };
 
 /** Reads stored text. Anything unexpected gives an empty set, never an error; unknown ids are dropped. */
-export function parseProgress(raw: string | null | undefined, validIds: ReadonlySet<string>): Set<string> {
+export function parseProgress(raw: string | null | undefined, validIds: IdCheck): Set<string> {
   const done = new Set<string>();
   if (typeof raw !== "string" || raw.length === 0 || raw.length > MAX_STORED_CHARS) return done;
   let value: unknown;
@@ -50,7 +61,7 @@ export function serializeProgress(done: DoneSteps): string {
 }
 
 /** Marks a step done or not done. An id that is not on the path changes nothing. */
-export function toggleStep(done: DoneSteps, id: string, validIds: ReadonlySet<string>): Set<string> {
+export function toggleStep(done: DoneSteps, id: string, validIds: IdCheck): Set<string> {
   const next = new Set(done);
   if (!validIds.has(id)) return next;
   if (next.has(id)) next.delete(id);
@@ -98,4 +109,17 @@ export function nextUp(view: PathView, done: DoneSteps): { stopId: string; stepI
     }
   }
   return null;
+}
+
+/**
+ * Adds one step to the stored text when a game or quiz reports that a child finished it. Returns the
+ * new text to store, or null when nothing needs storing (not a step id, already done, or full).
+ * Other saved steps are kept. Pure: the caller reads and writes the browser's storage.
+ */
+export function recordStepDone(raw: string | null | undefined, stepId: string): string | null {
+  if (!isStepId(stepId)) return null;
+  const done = parseProgress(raw, ANY_STEP_ID);
+  if (done.has(stepId) || done.size >= MAX_STORED_STEPS) return null;
+  done.add(stepId);
+  return serializeProgress(done);
 }

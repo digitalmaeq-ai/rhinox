@@ -104,7 +104,7 @@ export default function PathTrail({ view, levelSlug }: { view: PathView; levelSl
           steps done · <strong>{summary.weeksComplete}</strong> of {summary.weeksTotal} weeks complete
         </p>
         <p className={styles.privacy}>
-          A grown-up marks each step done. Progress is saved only in this browser, on this device. There are no names or accounts, and nothing is sent to us. Clearing your browser data, or using another device, starts again from the beginning.
+          Games and quizzes tick their own step when a child finishes them, and a grown-up can tick or untick any step. Progress is saved only in this browser, on this device. There are no names or accounts, and nothing is sent to us. Clearing your browser data, or using another device, starts again from the beginning.
         </p>
         {!canSave ? (
           <p className={styles.warn} role="status">
