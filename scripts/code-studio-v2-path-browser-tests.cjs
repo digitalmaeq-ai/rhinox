@@ -24,7 +24,7 @@ const ok = (name, pass) => { if (!pass) bad++; console.log(`${pass ? "ok  " : "F
   // The trail.
   ok("page title", (await page.locator("h1").innerText()).trim() === "Learning Path");
   ok("39 stops", (await page.locator("main h3").count()) === 39 && (await page.locator("main h3").count()) === 39);
-  ok("progress panel plus 3 term headings", (await page.locator("main h2").count()) === 4);
+  ok("today card, progress panel and 3 term headings", (await page.locator("main h2").count()) === 5);
   ok("156 step links", (await page.locator("main ul li a[href]").count()) === 156);
   ok("Start here appears once", (await page.getByText("Start here").count()) === 1);
   ok("explains progress is kept only in this browser", /saved only in this browser/i.test(await page.locator("body").innerText()));
@@ -63,6 +63,7 @@ const ok = (name, pass) => { if (!pass) bad++; console.log(`${pass ? "ok  " : "F
   ok("tick is a pressed toggle", (await tick("Term 1 week 1 Learn: done").getAttribute("aria-pressed")) === "true");
   ok("Next up cue appears, Start here gone", (await page.getByText("Next up").count()) === 1 && (await page.getByText("Start here").count()) === 0);
   await page.reload();
+  await page.waitForFunction(() => /2 of 156/.test(document.body.innerText), null, { timeout: 5000 }).catch(() => {});
   ok("progress survives reload", /2 of 156/.test(await page.locator("body").innerText()));
   const stored = JSON.parse(await page.evaluate((k) => localStorage.getItem(k), KEY));
   ok("stored value is version plus step ids only", Object.keys(stored).sort().join() === "done,v" && stored.done.length === 2 && stored.done.every((id) => /^tmc-n1-t\d-w\d+:(learn|play|match|quiz)$/.test(id)));
@@ -80,6 +81,48 @@ const ok = (name, pass) => { if (!pass) bad++; console.log(`${pass ? "ok  " : "F
   await page.reload();
   ok("damaged stored value is ignored", /0 of 156/.test(await page.locator("body").innerText()));
   ok("no requests left this site while marking progress", offOrigin.length === 0);
+
+
+  // Guide (phase 5): today's next step and tiered hints.
+  await page.goto(`${BASE}/think-move-code/nursery-1/path`);
+  await page.evaluate((k) => localStorage.removeItem(k), KEY);
+  await page.reload();
+  const today = page.getByRole("region", { name: /Today.s next step/ });
+  ok("today card starts at Term 1 Week 1 Learn", /let's begin with Learn in Term 1, Week 1/.test(await today.innerText()));
+  await tick("Term 1 week 1 Learn: mark as done").click();
+  ok("today card moves to Play", /Play in Term 1, Week 1/.test(await today.innerText()));
+  ok("today link opens a real page", (await fetch(BASE + (await today.getByRole("link").getAttribute("href")))).status === 200);
+  ok("no hints showing at first", (await page.getByText("Grown-up tip").count()) === 0);
+  await page.getByRole("button", { name: /Need a hint\? for term 1 week 1 Play/ }).click();
+  ok("first hint appears, no grown-up tip yet", (await page.getByText(/RhinoBot says: look at all the cards/).count()) === 1 && (await page.getByText("Grown-up tip").count()) === 0);
+  await page.getByRole("button", { name: /Another hint for term 1 week 1 Play/ }).click();
+  await page.getByRole("button", { name: /Another hint for term 1 week 1 Play/ }).click();
+  ok("third hint is the grown-up tip and the button goes away", (await page.getByText(/Grown-up tip: let the child try/).count()) === 1 && (await page.getByRole("button", { name: /hint for term 1 week 1 Play/i }).count()) === 0);
+  const afterHints = JSON.parse(await page.evaluate((k) => localStorage.getItem(k), KEY));
+  ok("hints are not stored", afterHints.done.length === 1);
+
+  // Polish: collapsible weeks, celebration, link from the week page.
+  await page.goto(`${BASE}/think-move-code/nursery-1/path`);
+  await page.evaluate((k) => localStorage.removeItem(k), KEY);
+  await page.reload();
+  await page.waitForSelector("details[open]");
+  ok("only the current week is open at first", (await page.locator("main details[open]").count()) === 1 && (await page.locator("main details").count()) === 39);
+  const week2 = page.locator("main details", { hasText: "Week 3" }).first();
+  await week2.locator("summary").click();
+  ok("a closed week opens by hand and stays open", (await page.locator("main details[open]").count()) === 2);
+  await week2.locator("summary").click();
+  ok("and closes again", (await page.locator("main details[open]").count()) === 1);
+  for (const k of ["Learn", "Play", "Match", "Quiz"]) await tick(`Term 1 week 1 ${k}: mark as done`).click();
+  ok("finished week shows the well done banner", (await page.getByText("Well done! All four steps are done.").count()) === 1);
+  await page.waitForTimeout(200);
+  ok("the open week moves on to the next step's week", (await page.locator("main details[open]").count()) === 1 && /week 2/i.test(await page.locator("main details[open]").first().innerText()) && /Today's next step/.test(await page.locator("body").innerText()));
+  const summaryOk = await page.evaluate(() => [...document.querySelectorAll("main details > summary")].every((s) => s.querySelector("h3")));
+  ok("every week summary holds its heading", summaryOk);
+  ok("today card shows Ayo", (await page.locator("section[aria-labelledby=today-title] img").count()) === 1);
+  await page.goto(`${BASE}/think-move-code/nursery-1/term-1/week-1`);
+  const pathLink = page.getByRole("link", { name: "Continue on the Learning Path" });
+  ok("week page links to the Learning Path", (await pathLink.getAttribute("href")) === "/think-move-code/nursery-1/path");
+  await page.evaluate((k) => localStorage.removeItem(k), KEY);
 
   // Storage blocked: page still works for the session and warns.
   const blocked = await browser.newPage({ viewport: { width: 400, height: 800 } });

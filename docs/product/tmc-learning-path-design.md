@@ -1,6 +1,6 @@
 # Think • Move • Code! Learning Path: design for approval
 
-Status: **approved by the owner (2026-11-11); phases 2, 3 and 4 built, phases 5 and 6 not started.**
+Status: **approved by the owner (2026-11-11); phases 2 to 6 built; Nursery 2 itself is not designed, so it has no path yet.**
 Decisions recorded: (1) name "Learning Path"; (2) soft order; (3) progress kept on the adult's device is approved for the pilot, built in phase 4: only step ids in this browser's localStorage, no names, accounts or network calls; (4) the Code Studio lessons for Weeks 1 to 8 are **set aside**: the path does not use them, they stay as they are, and the owner will pick the better of the two designs later.
 Level: Nursery 1 first; later levels reuse the same pattern.
 
@@ -88,3 +88,25 @@ Option B is meant to avoid collecting personal data. Before C, or any server sto
 - Shown as stars per week (one per step), "Week complete", a steps and weeks count, and a "Next up" cue. No streaks or timers.
 - Reset has a two-step confirm. If the browser blocks storage the page works for the session and says so.
 - Still true: get legal advice before any server-side storage of children's data (not built).
+
+## Phase 5 as built: guide and hints
+
+- "Today's next step" card at the top of the path: the first step not done, in book order, with a RhinoBot line and a link. A suggestion only; nothing is locked. No dates, streaks or timers.
+- Each step has "Need a hint?", revealing three tiers one at a time: a nudge, a way to try, then a grown-up tip. Hints explain how to use the step; they never give answers or add lesson content.
+- Hints are held in memory only and are not saved.
+- Limit: the games and quizzes do not report back, so hints cannot react to what a child does inside them.
+
+## Phase 6 as built: ready for more levels
+
+- The path code was already level-neutral. Phase 6 removed the last Nursery 1 fixed points: the page and trail are shared (`app/think-move-code/_path/`), the saved-progress key is made per level (`progressStorageKey`), and levels are listed in `lib/tmc-path/levels.ts`.
+- Nursery 1's address, look and saved-progress key are unchanged, so nobody loses progress.
+- **Nursery 2 is not listed.** It has not been designed, has no registry data, no page and no picker entry. A level with no weeks in the registry fails the path checks, so it cannot appear by accident.
+- To add a level later: put its book content in the registry, add it to `PATH_LEVELS` and the server module's registry list, and add a small page file. A test checks that every listed level has a registry.
+- Tested with a stand-in second level (a relabelled copy of Nursery 1 inside the test only, not content).
+
+## Polish pass (after phase 6)
+
+- "Today's next step" and "Your progress" sit side by side on wide screens, so the first week shows on the first screen. Ayo (the real book picture) appears on the next-step card.
+- Weeks are collapsible: only the week with the next step is open; a grown-up can open or close any week.
+- A finished week shows a short "Well done" banner (a small pop that respects reduced motion; no sound, no timers).
+- Each Nursery 1 week page has a "Continue on the Learning Path" link.

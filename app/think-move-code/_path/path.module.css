@@ -373,3 +373,184 @@
   background: #e9f7f1;
   color: var(--rx-success);
 }
+
+/* ---------- Guide: today's step and hints ---------- */
+
+.today {
+  margin-top: 4px;
+  padding: 14px 16px;
+  border: 1px solid var(--rx-blue);
+  border-radius: 14px;
+  background: #f1f7ff;
+}
+
+.todayText {
+  margin: 0 0 10px;
+  font-size: 1rem;
+  color: var(--rx-heading);
+}
+
+.todayLink {
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
+  padding: 0 18px;
+  border-radius: 99px;
+  background: var(--rx-blue);
+  color: var(--rx-white);
+  font-weight: 700;
+  text-decoration: none;
+}
+
+.todayLink:focus-visible,
+.hintButton:focus-visible {
+  outline: 3px solid var(--rx-heading);
+  outline-offset: 2px;
+}
+
+.hints {
+  display: grid;
+  gap: 6px;
+}
+
+.hintList {
+  margin: 0;
+  padding-left: 18px;
+  font-size: 0.85rem;
+  line-height: 1.45;
+  color: var(--rx-text-soft);
+}
+
+.hintButton {
+  justify-self: start;
+  min-height: 36px;
+  padding: 0 10px;
+  border: 0;
+  background: none;
+  color: var(--rx-blue);
+  font: inherit;
+  font-size: 0.85rem;
+  font-weight: 600;
+  text-decoration: underline;
+  cursor: pointer;
+}
+
+.srOnly {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+}
+
+/* ---------- Polish: compact top, Ayo, collapsible weeks, celebration ---------- */
+
+.topRow {
+  display: grid;
+  gap: 12px;
+  margin-top: 4px;
+}
+
+@media (min-width: 860px) {
+  .topRow {
+    grid-template-columns: 1fr 1fr;
+    align-items: stretch;
+  }
+}
+
+.topRow .today,
+.topRow .panel {
+  margin-top: 0;
+}
+
+.today {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+
+.todayAyo {
+  flex: none;
+  width: auto;
+  height: 104px;
+}
+
+.todayBody {
+  min-width: 0;
+}
+
+.summary {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  align-items: center;
+  gap: 4px 12px;
+  list-style: none;
+  cursor: pointer;
+  border-radius: 10px;
+}
+
+.summary::-webkit-details-marker {
+  display: none;
+}
+
+.summary::after {
+  content: "Show steps ▾";
+  grid-column: 2;
+  grid-row: 1;
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: var(--rx-blue);
+}
+
+details[open] > .summary::after {
+  content: "Hide steps ▴";
+}
+
+.summary:focus-visible {
+  outline: 3px solid var(--rx-blue);
+  outline-offset: 2px;
+}
+
+.summary .stopTitle {
+  grid-column: 1;
+  grid-row: 1;
+  margin: 0;
+}
+
+.summary .stars {
+  grid-column: 1 / -1;
+  margin: 0;
+}
+
+details[open] > .summary {
+  margin-bottom: 10px;
+}
+
+.celebrate {
+  margin: 0 0 10px;
+  padding: 8px 12px;
+  border-radius: 10px;
+  border: 1px solid var(--rx-success);
+  background: #e9f7f1;
+  color: var(--rx-heading);
+  font-weight: 600;
+  animation: celebratePop 0.5s ease-out;
+}
+
+@keyframes celebratePop {
+  0% {
+    transform: scale(0.94);
+    opacity: 0;
+  }
+  100% {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .celebrate {
+    animation: none;
+  }
+}

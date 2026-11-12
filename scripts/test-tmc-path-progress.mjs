@@ -69,7 +69,7 @@ test("next up is the first undone step in book order, and null at the end", () =
 });
 
 test("progress code and the trail never use the network, cookies or analytics", () => {
-  for (const file of ["../lib/tmc-path/progress.ts", "../app/think-move-code/nursery-1/path/PathTrail.tsx"]) {
+  for (const file of ["../lib/tmc-path/progress.ts", "../app/think-move-code/_path/PathTrail.tsx"]) {
     const text = fs.readFileSync(new URL(file, import.meta.url), "utf8");
     assert.doesNotMatch(text, /\bfetch\s*\(|XMLHttpRequest|sendBeacon|WebSocket|document\.cookie|gtag|analytics|indexedDB|sessionStorage/i, file);
   }
