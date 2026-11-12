@@ -127,7 +127,7 @@ export default async function WeekPage({ params }: WeekPageProps) {
             <h2 id="do-it-together" className={`${styles.sectionTitle} ${guideStyles.anchor}`}>
               Do it together
             </h2>
-            <p className={styles.sectionLead}>The 40-minute lesson from the Teacher Guide. No screen, power or kit needed.</p>
+            <p className={styles.sectionLead}>The 40-minute lesson from the Teacher Guide, taught without a screen. The list below says what to prepare.</p>
             <dl className={guideStyles.facts}>
               <div>
                 <dt>Goal</dt>

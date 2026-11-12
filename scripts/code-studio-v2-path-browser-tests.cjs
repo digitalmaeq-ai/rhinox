@@ -124,16 +124,26 @@ const ok = (name, pass) => { if (!pass) bad++; console.log(`${pass ? "ok  " : "F
   ok("week page links to the Learning Path", (await pathLink.getAttribute("href")) === "/think-move-code/nursery-1/path");
   await page.evaluate((k) => localStorage.removeItem(k), KEY);
 
-  // Do it together (trial: Weeks 1 to 3).
+  // Do it together: every one of the 39 weeks.
   for (const w of [1, 2, 3]) {
     await page.goto(`${BASE}/think-move-code/nursery-1/term-1/week-${w}`);
     const sec = page.locator("#do-it-together").locator("xpath=ancestor::section");
     ok(`week ${w} page shows Do it together with 4 timed parts`, (await sec.locator("ol li").count()) === 4 && /Think\s*8 min/.test(await sec.innerText()) && /Book & close\s*10 min/.test(await sec.innerText()));
   }
-  await page.goto(`${BASE}/think-move-code/nursery-1/term-1/week-4`);
-  ok("week 4 has no Do it together yet", (await page.locator("#do-it-together").count()) === 0);
+  let withGuide = 0, fourParts = 0;
+  for (let t = 1; t <= 3; t++) for (let w = 1; w <= 13; w++) {
+    const res = await fetch(`${BASE}/think-move-code/nursery-1/term-${t}/week-${w}`);
+    const html = await res.text();
+    if (res.status === 200 && html.includes('id="do-it-together"')) withGuide++;
+    const sec = html.split('id="do-it-together"')[1] || "";
+    if ((sec.split("</ol>")[0].match(/<li/g) || []).length === 4) fourParts++;
+  }
+  ok("all 39 week pages have Do it together", withGuide === 39);
+  ok("all 39 show four timed parts", fourParts === 39);
+  await page.goto(`${BASE}/think-move-code/nursery-1/term-1/week-12`);
+  ok("an assessment week shows the guide's own part names", /Warm-up\s*5 min/.test(await page.locator("#do-it-together").locator("xpath=ancestor::section").innerText()));
   await page.goto(`${BASE}/think-move-code/nursery-1/path`);
-  ok("the path links to Do it together for weeks 1 to 3 only", (await page.locator("main a", { hasText: "Do it together" }).count()) === 3);
+  ok("the path links to Do it together for all 39 weeks", (await page.locator("main a", { hasText: "Do it together" }).count()) === 39);
   const href = await page.getByRole("link", { name: "Do it together" }).first().getAttribute("href");
   ok("the link points at the week page section", href === "/think-move-code/nursery-1/term-1/week-1#do-it-together");
   await page.getByRole("link", { name: "Do it together" }).first().click();
