@@ -299,3 +299,93 @@
   .editorBar { gap: 4px 12px; }
   .steps { gap: 2px 10px; font-size: 11.5px; }
 }
+
+
+/* ---------- Robot Lab workspace hierarchy refresh ----------
+   Keep the existing Blockly and simulation components intact.
+   Give the working area the full content width and move the mission
+   briefing above it instead of reserving a narrow permanent sidebar. */
+@media (min-width: 1100px) {
+  .root {
+    --lab-h: clamp(360px, calc(var(--studio-h, 100dvh) - 420px), 680px);
+  }
+
+  .board {
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-rows: auto auto auto auto minmax(0, 1fr) auto;
+    column-gap: 0;
+    row-gap: 0;
+  }
+
+  .header,
+  .missions,
+  .complete,
+  .more {
+    grid-column: 1;
+  }
+
+  .header { grid-row: 1; }
+  .missions { grid-row: 2; }
+  .complete { grid-row: 3; }
+
+  .topRow,
+  .topRowSingle {
+    grid-column: 1;
+    grid-row: 4;
+    margin: 0 0 10px;
+    align-items: stretch;
+  }
+
+  .topRow {
+    grid-template-columns: minmax(0, 1.2fr) minmax(280px, 0.8fr);
+  }
+
+  .topRowSingle {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .topRow .briefing {
+    grid-template-columns: minmax(0, 1.2fr) minmax(0, 1fr);
+    align-content: center;
+  }
+
+  .topRow .predict {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+  }
+
+  .predictOptions {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .lab {
+    grid-column: 1;
+    grid-row: 5;
+    min-height: 0;
+    grid-template-columns: minmax(0, 1.5fr) minmax(0, 1fr);
+    gap: 12px;
+    align-items: start;
+  }
+
+  .editor,
+  .sim {
+    min-width: 0;
+  }
+
+  .more {
+    grid-row: 6;
+    margin-top: 10px;
+  }
+}
+
+/* Keep the workspace usable on medium screens without compressing either pane. */
+@media (min-width: 981px) and (max-width: 1099px) {
+  .lab {
+    grid-template-columns: minmax(0, 1.35fr) minmax(0, 1fr);
+  }
+
+  .topRow {
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  }
+}
