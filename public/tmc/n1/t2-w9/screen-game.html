@@ -57,6 +57,7 @@ body{margin:0;font-family:"Nunito","Trebuchet MS",Arial,sans-serif;background:va
 .bin .in{display:flex;flex-wrap:wrap;gap:4px;justify-content:center;margin-top:6px}
 .bin .in svg{width:46px;height:46px}
 .bin.hint{border-color:var(--orange);background:#FFF4D6}
+@media (prefers-reduced-motion:reduce){*,*::before,*::after{animation-duration:.001ms!important;animation-iteration-count:1!important;animation-delay:0s!important;transition-duration:.001ms!important;scroll-behavior:auto!important}.shake{outline:3px solid #c0392b;outline-offset:2px}}
 </style>
 <style id="fit-css">
 html.fit-on,html.fit-on body{height:100%;overflow:hidden}
@@ -110,7 +111,7 @@ function drop(b){
     b.classList.add('shake'); setTimeout(()=>b.classList.remove('shake'),500);
   }
 }
-$('next').onclick=()=>{ r=(r+1)%ROUNDS.length; build(); window.scrollTo({top:0,behavior:'smooth'}); };
+$('next').onclick=()=>{ r=(r+1)%ROUNDS.length; build(); window.scrollTo({top:0,behavior:(matchMedia('(prefers-reduced-motion: reduce)').matches?'auto':'smooth')}); };
 $('speak').onclick=()=>speak($('say').textContent);
 build();
 </script>

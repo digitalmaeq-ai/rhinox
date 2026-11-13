@@ -52,6 +52,7 @@ body{margin:0;font-family:"Nunito","Trebuchet MS",Arial,sans-serif;background:va
 .seq .it svg{width:92%;height:auto}
 .seq .it.blank{outline:4px dashed var(--orange);background:#FFF4D6}
 .seq .it.now{outline:5px solid var(--orange)}
+@media (prefers-reduced-motion:reduce){*,*::before,*::after{animation-duration:.001ms!important;animation-iteration-count:1!important;animation-delay:0s!important;transition-duration:.001ms!important;scroll-behavior:auto!important}.shake{outline:3px solid #c0392b;outline-offset:2px}}
 </style>
 <style id="fit-css">
 html.fit-on,html.fit-on body{height:100%;overflow:hidden}
@@ -164,7 +165,7 @@ function pick(k){
 $('listen').onclick=listen;
 $('undo').onclick=()=>{ filled.pop(); draw(); };
 window.__found=()=>found;
-$('next').onclick=()=>{ r=(r+1)%ROUNDS.length; build(); window.scrollTo({top:0,behavior:'smooth'}); };
+$('next').onclick=()=>{ r=(r+1)%ROUNDS.length; build(); window.scrollTo({top:0,behavior:(matchMedia('(prefers-reduced-motion: reduce)').matches?'auto':'smooth')}); };
 $('speak').onclick=()=>speak($('say').textContent);
 build();
 </script>
