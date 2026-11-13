@@ -2,7 +2,10 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 
+import GameFrame from "../../../../../_path/GameFrame";
 import styles from "../../../../../tmc.module.css";
+import { pathLevelFor } from "@/lib/tmc-path/levels";
+import { GAME_STEP, nursery1StepId } from "@/lib/tmc-path/reporting";
 import { GAMES, NURSERY_1_WEEKS, findWeek, gameTitle, weekAssets, weekPath, type GameKey } from "@/lib/tmc/nursery-1";
 
 interface PlayPageProps {
@@ -46,7 +49,14 @@ export default async function PlayPage({ params }: PlayPageProps) {
             Full screen
           </a>
         </div>
-        <iframe className={styles.frame} src={src} title={`${gameTitle(item, game)} game`} />
+        <GameFrame
+          className={styles.frame}
+          src={src}
+          title={`${gameTitle(item, game)} game`}
+          levelSlug="nursery-1"
+          stepId={nursery1StepId(item.term, item.week, GAME_STEP[game])}
+          pathHref={pathLevelFor("nursery-1")?.pagePath ?? "/think-move-code"}
+        />
       </div>
     </main>
   );

@@ -111,6 +111,17 @@ Option B is meant to avoid collecting personal data. Before C, or any server sto
 - A finished week shows a short "Well done" banner (a small pop that respects reduced motion; no sound, no timers).
 - Each Nursery 1 week page has a "Continue on the Learning Path" link.
 
+## Games and quizzes tick their own step (device only)
+
+- Fixes the earlier limit that the path could not know when a child finished a game or quiz.
+- **Ordering game (Play):** ticked when the child gets the first round right. A wrong order ticks nothing.
+- **Pairs game (Match):** ticked when all pairs are found and the final question is answered correctly.
+- **Quiz:** ticked when the quiz is submitted (finished, not passed). Only Nursery 1 week quizzes do this; other quizzes are untouched.
+- **Learn** stays a grown-up tick, because reading cannot be detected.
+- Still device only: the same single browser-storage key, step ids only, nothing sent anywhere. If the browser blocks storage, the game says so and still works. A grown-up can untick any step on the path.
+- The game files are unchanged. The page that frames them watches the "well done" panel each game already shows.
+- Rule kept: assistance and a deferred teacher check are never recorded as a pass; this records "finished once", not a score.
+
 ## "Do it together": screen-free lesson on the week page (all 39 weeks)
 
 - Decision: instead of building more RhinoBot screen lessons (which would repeat the games and quiz), the Teacher Guide's own 40-minute lesson is shown on the week page: goal, words, what you need, then Think (8), Move (10), Code (12) and Book & close (10).

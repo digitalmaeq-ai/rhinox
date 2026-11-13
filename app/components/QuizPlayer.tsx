@@ -1,6 +1,9 @@
 "use client";
 
 import { useMemo, useState } from "react";
+
+import { quizSlugToStep } from "@/lib/tmc-path/reporting";
+import { saveStepDone } from "@/lib/tmc-path/save-step";
 import type { QuizContent, QuizQuestion } from "@/types/quizzes";
 
 interface QuizPlayerProps {
@@ -202,9 +205,13 @@ export default function QuizPlayer({
     );
   }
 
+  // Nursery 1 quizzes tick their Learning Path step (this browser only) when finished.
+  const pathStep = quizSlugToStep(quiz.slug);
+
   function submitQuiz() {
     setSubmitted(true);
     setCurrentQuestion(0);
+    if (pathStep) saveStepDone(pathStep.levelSlug, pathStep.stepId);
   }
 
   function restartQuiz() {
@@ -251,6 +258,10 @@ export default function QuizPlayer({
             ? "Well done!"
             : "Keep practising!"}
         </h2>
+
+        {pathStep ? (
+          <p role="status">This quiz is ticked on your Learning Path, saved only in this browser.</p>
+        ) : null}
 
         <div className="rx-quiz-score">
           <strong>
