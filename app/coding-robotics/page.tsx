@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 
 import Breadcrumbs from "../components/Breadcrumbs";
-import PageHeader from "../components/PageHeader";
+import ExploreHero from "../components/ExploreHero";
 import { getSectionByPath, getSectionItems } from "@/lib/content-sections";
 import styles from "./coding-robotics.module.css";
 
@@ -56,13 +56,21 @@ export default function CodingRoboticsPage() {
       <div className={`rx-container ${styles.crumbs}`}>
         <Breadcrumbs items={[{ label: "Home", href: "/" }, { label: "Coding & Robotics" }]} />
       </div>
-      <PageHeader
-        eyebrow="RhinoCode"
-        title="Learn to code by building"
+      <ExploreHero
+        image="/images/hero/coding.jpg"
+        alt="Lines of code on a screen"
+        eyebrow="RhinoCode · Coding & Robotics"
+        lineOne="Learn to code"
+        lineTwo="by building."
         lead="Program a robot, write Python, make games and practise with challenges. Everything runs in the browser."
+        actions={[{ label: "Open the Robot Lab", href: "/coding-robotics/robot-lab" }, { label: "Where to start", href: "#start", secondary: true }]}
+        panel={{ image: "/images/play/experience-robot-maze-coder.jpg", alt: "A robot maze coding challenge", label: "Code the robot through a maze", href: "/coding-robotics/challenges" }}
+        stats={[{ value: "5", label: "places to code and play" }, ...(challenges > 0 ? [{ value: String(challenges), label: "game challenges" }] : []), { label: "Nothing to install" }]}
+        align="left"
+        tone="sky"
       />
 
-      <section className={styles.indexSection} aria-label="Where to start">
+      <section id="start" className={styles.indexSection} aria-label="Where to start" style={{ scrollMarginTop: 80 }}>
         <div className="rx-container">
           <ol className={styles.index}>
             {rows.map((row, i) => (

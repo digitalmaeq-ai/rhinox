@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useState } from "react";
 
+import ExploreHero from "@/app/components/ExploreHero";
 import type { TrainingTrack } from "@/lib/schools/training";
 import styles from "./training.module.css";
 
@@ -11,15 +12,21 @@ export default function Syllabus({ tracks }: { tracks: TrainingTrack[] }) {
   const t = tracks.find((x) => x.slug === slug) ?? tracks[0];
   return (
     <>
-      <header className={styles.head}>
-        <div className={`rx-container ${styles.headInner}`}>
-          <p className={styles.eyebrow}>Teacher Training</p>
-          <h1>Training teachers can use <span>on Monday.</span></h1>
-          <p className={styles.lead}>Hands-on sessions so teachers leave with methods and materials for the next class. Choose a track to read its syllabus.</p>
-        </div>
-      </header>
+      <ExploreHero
+        image="/images/journey/journey-science.jpg"
+        alt="A teacher and a young learner at a chalkboard of equations"
+        imagePosition="50% 40%"
+        eyebrow="Teacher Training"
+        lineOne="Training teachers can use"
+        lineTwo="on Monday."
+        lead="Hands-on sessions so teachers leave with methods and materials for the next class. Choose a track to read its syllabus."
+        actions={[{ label: "Browse the tracks", href: "#tracks" }, { label: "Request a quote", href: "/schools/request-a-quote", secondary: true }]}
+        stats={[{ value: String(tracks.length), label: "training tracks" }, { label: "Hands-on sessions" }, { label: "Shaped to your school" }]}
+        align="left"
+        tone="amber"
+      />
 
-      <section className={styles.browser}>
+      <section id="tracks" className={styles.browser} style={{ scrollMarginTop: 80 }}>
         <div className={`rx-container ${styles.browserInner}`}>
           <div className={styles.list} role="tablist" aria-orientation="vertical" aria-label="Training tracks">
             {tracks.map((x, i) => (

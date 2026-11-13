@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 
 import Breadcrumbs from "../../components/Breadcrumbs";
+import ExploreHero from "../../components/ExploreHero";
 import { KIND_LABEL, termPlans, type WeekKind } from "@/lib/schools/data";
 import { TEACHER_FILES, N1_BASE } from "@/lib/tmc/nursery-1";
 import styles from "./solutions.module.css";
@@ -30,19 +31,19 @@ export default function Page() {
         <Breadcrumbs items={[{ label: "Home", href: "/" }, { label: "Schools & Institutions", href: "/schools" }, { label: "STEM School Solutions" }]} />
       </div>
 
-      <header className={styles.head}>
-        <div className={`rx-container ${styles.headInner}`}>
-          <p className={styles.eyebrow}>STEM School Solutions</p>
-          <h1>One school year, <span>planned week by week.</span></h1>
-          <p className={styles.lead}>
-            Our completed Nursery 1 programme gives your school {total} ready-to-teach weeks across three terms. This is the whole year at a glance.
-          </p>
-          <div className={styles.actions}>
-            <Link href={N1_BASE} className="rx-button rx-button-primary">Open the Nursery 1 programme</Link>
-            <Link href="/schools/request-a-quote" className="rx-button rx-button-secondary">Request a quote</Link>
-          </div>
-        </div>
-      </header>
+      <ExploreHero
+        image="/images/hero/classroom.jpg"
+        alt="Learners and a teacher around a microscope in a classroom"
+        imagePosition="50% 30%"
+        eyebrow="STEM School Solutions"
+        lineOne="One school year,"
+        lineTwo="planned week by week."
+        lead={`Our completed Nursery 1 programme gives your school ${total} ready-to-teach weeks across three terms. This is the whole year at a glance.`}
+        actions={[{ label: "Open the Nursery 1 programme", href: N1_BASE }, { label: "Request a quote", href: "/schools/request-a-quote", secondary: true }]}
+        stats={[{ value: String(total), label: "weeks" }, { value: "3", label: "terms" }, { value: "6", label: "files every week" }]}
+        align="center"
+        tone="sky"
+      />
 
       <section className={styles.road} aria-labelledby="road-title">
         <div className={`rx-container ${styles.roadInner}`}>
