@@ -56,7 +56,10 @@ export function interactiveLessonFor(week: { term: number; week: number }): Curr
   return (spec && activityFromBookSpec(spec)) ?? CURRICULUM_ACTIVITIES.find((item) => item.id === id) ?? null;
 }
 
-/** Curriculum lessons that exist as records but are not yet reviewed for learners. */
+/**
+ * Curriculum lessons that exist as records but are not yet reviewed for learners.
+ * Nursery 1 and 2 are built from the approved books alone, so their curriculum-sheet records are never listed.
+ */
 export function lessonsInReview(): CurriculumActivity[] {
-  return CURRICULUM_ACTIVITIES.filter((item) => !isReviewedInteractiveLesson(item.id));
+  return CURRICULUM_ACTIVITIES.filter((item) => item.level !== "Nursery 1" && item.level !== "Nursery 2" && !isReviewedInteractiveLesson(item.id));
 }

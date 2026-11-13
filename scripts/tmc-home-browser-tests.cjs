@@ -35,7 +35,7 @@ function check(condition, message) {
     check(weekNumbers.every((list) => list.length === 13 && list.every((n, i) => n === i + 1)), `${tag}: 13 weeks per term, in order`);
     check((await page.locator("a[aria-label^='Start Week']").count()) === 39, `${tag}: 39 Start buttons`);
 
-    // A week opens to its goal, cards and games, and its lesson in Week 1.
+    // A week opens to its goal, cards and games, and no RhinoBot lesson link in any week.
     const week1 = terms.nth(0).locator("ol > li").first();
     check(!(await week1.locator("details").evaluate((el) => el.open)), `${tag}: a week starts closed`);
     await week1.locator("summary").click();
@@ -43,10 +43,10 @@ function check(condition, message) {
     check(await week1.getByRole("link", { name: "Cards", exact: true }).isVisible(), `${tag}: week shows cards`);
     check((await week1.locator("a[href*='/play/']").count()) === 2, `${tag}: week shows both games`);
     check(await week1.getByRole("link", { name: "Teacher pack" }).isVisible(), `${tag}: week links to the teacher pack`);
-    check(await week1.getByRole("link", { name: "RhinoBot lesson" }).isVisible(), `${tag}: Week 1 shows its RhinoBot lesson`);
+    check((await week1.getByRole("link", { name: "RhinoBot lesson" }).count()) === 0, `${tag}: Week 1 offers no RhinoBot lesson`);
     const week2 = terms.nth(0).locator("ol > li").nth(1);
     await week2.locator("summary").click();
-    check((await week2.getByRole("link", { name: "RhinoBot lesson" }).count()) === 0, `${tag}: a lesson in review is not offered`);
+    check((await week2.getByRole("link", { name: "RhinoBot lesson" }).count()) === 0, `${tag}: Week 2 offers no RhinoBot lesson`);
 
     // Start button sits inside its row, not over the title.
     const box = await week1.getByRole("link", { name: /^Start Week 1/ }).boundingBox();
@@ -112,14 +112,12 @@ function check(condition, message) {
   await page.goto(`${BASE}/q/n1-t2-w5`, { waitUntil: "networkidle" });
   check(new URL(page.url()).pathname === "/think-move-code/nursery-1/term-2/week-5", "a printed QR short link still reaches its week");
   await page.goto(`${BASE}/think-move-code/nursery-1/term-1/week-1`, { waitUntil: "networkidle" });
-  await page.getByRole("link", { name: /Lesson with RhinoBot/ }).click();
-  await page.waitForURL(/week-1\/lesson$/);
-  check(await page.getByText("STEP 1 OF 6").isVisible(), "the week page opens the lesson at step 1");
-  await page.getByRole("button", { name: /Back to the week page/ }).first().click();
-  await page.waitForURL(/week-1$/);
-  check(true, "the lesson returns to its week page");
-  const missing = await page.goto(`${BASE}/think-move-code/nursery-1/term-1/week-2/lesson`);
-  check(missing.status() === 404, "a week without a reviewed lesson has no lesson page");
+  check((await page.getByRole("link", { name: /Lesson with RhinoBot/ }).count()) === 0, "the week page has no RhinoBot lesson link");
+  check(await page.locator("#do-it-together").isVisible(), "the week page shows Do it together");
+  for (const w of [1, 2, 3]) {
+    const gone = await page.goto(`${BASE}/think-move-code/nursery-1/term-1/week-${w}/lesson`);
+    check(gone.status() === 404, `the old Week ${w} lesson address is a 404`);
+  }
   // The Code Studio rail has Think • Move • Code! and no Learn.
   await page.goto(`${BASE}/coding-robotics/studio`, { waitUntil: "networkidle" });
   const rail = page.locator('nav[aria-label="Code Studio"]');

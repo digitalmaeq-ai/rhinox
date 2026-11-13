@@ -210,7 +210,6 @@ test("Stage 6: website routes exist in the app and every quiz exists in the cont
     assert.match(readFileSync(file, "utf8"), new RegExp(`"slug": "nursery-1-term-${t}-week-${w}"`), `slug of ${code}`);
   }
   assert.ok(existsSync(path.join(root, "app/think-move-code/nursery-1/[term]/[week]/page.tsx")));
-  assert.ok(existsSync(path.join(root, "app/think-move-code/nursery-1/[term]/[week]/lesson")));
   // Quiz pages are served by the site's catch-all route from the content registry's quiz route.
   assert.ok(existsSync(path.join(root, "app/[...path]/page.tsx")), "catch-all content route");
   assert.match(readFileSync(path.join(root, "lib/content-registry.ts"), "utf8"), /type: "quiz",[\s\S]*?route: "\/explore\/stem-quizzes"/);
@@ -226,7 +225,6 @@ test("Stage 6: interactive lessons match the reviewed lessons on the website (no
 
 test("Stage 3/6: every reviewed interactive lesson names its book lessons and exact pages, and the registry agrees", () => {
   const reviewed = NURSERY_1_WEEKS.filter((wk) => interactiveLessonFor(wk));
-  assert.ok(reviewed.length >= 1);
   const roleOk = {
     think: { "activity-book": ["think-move", "think-code"], "teacher-guide": ["lesson-plan"] },
     move: { "activity-book": ["think-move", "think-code"], "teacher-guide": ["lesson-plan"] },
@@ -379,10 +377,8 @@ test("Stage 7: access debt inventory is exact, so a new restricted file or type 
 });
 
 test("Stage 7: compatibility. Old addresses, the v3.15 lesson id and the legacy mappings are all preserved", () => {
-  const lessonRoute = readFileSync(path.join(root, "app/think-move-code/nursery-1/[term]/[week]/lesson/page.tsx"), "utf8");
-  assert.match(lessonRoute, /dynamicParams = false/, "weeks without a reviewed lesson must stay a 404");
-  assert.ok(interactiveLessonFor({ term: 1, week: 1 }), "the Term 1 Week 1 lesson is still offered");
-  assert.equal(interactiveLessonFor({ term: 1, week: 1 }).id, "tmc-v3-15-nursery-1-t1-w1", "the legacy activity id is unchanged");
+  assert.equal(existsSync(path.join(root, "app/think-move-code/nursery-1/[term]/[week]/lesson/page.tsx")), false, "the RhinoBot lesson route was removed, so those addresses are a 404");
+  assert.equal(interactiveLessonFor({ term: 1, week: 1 }), null, "no Nursery 1 week offers a RhinoBot lesson");
   assert.ok(R.legacyMappings.some((m) => m.legacyId === "tmc-v3-15-nursery-1-t1-w1" && m.status === "unresolved" && m.preservedForCompatibility));
   for (const [t, w] of NURSERY_1_WEEK_TABLE) {
     assert.ok(existsSync(path.join(root, "app/think-move-code/nursery-1/[term]/[week]/page.tsx")));
