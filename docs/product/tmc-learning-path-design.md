@@ -128,3 +128,10 @@ Option B is meant to avoid collecting personal data. Before C, or any server sto
 - Wording is the Teacher Guide's, extracted from its lesson-plan pages for all 39 weeks (Term 1 Weeks 1 to 3 were first copied by hand; the extraction reproduces them exactly). Nothing is rewritten or invented. Each lesson has four parts adding up to 40 minutes. Part names and minutes follow the guide, so practice, station, assessment and showcase weeks show their own (for example Warm-up, Stations, Showcase, Badges).
 - The Learning Path shows a small "Do it together" link on every week, pointing to the week page section.
 - Source file: `lib/tmc/lesson-guide.ts` (plain data). Not every lesson is "no kit": some weeks need a torch (teacher only), big blocks or a toy car, so the section says "taught without a screen" and lists what to prepare.
+
+## RhinoBot screen lessons removed (Nursery 1 Weeks 1 to 3)
+
+- Decision (13 Nov 2026): the three RhinoBot screen lessons for Term 1 Weeks 1 to 3 are removed from the site so every Nursery 1 week follows one pattern: "Do it together" (the Teacher Guide lesson), games, quiz and printables. The Weeks 4 to 8 lessons (PR #77) were closed unmerged.
+- Removed: the lesson page route, the three lesson specs, the "Lesson with RhinoBot" links and their registry entries. The old addresses (`/think-move-code/nursery-1/term-1/week-1/lesson` and Weeks 2 and 3) now return 404. Printed QR codes point to the week pages, so they are unaffected.
+- Kept: the lesson engine in `lib/code-studio-v2` (type, scoring, consistency rules) for other levels. The three removed specs live in `scripts/fixtures/nursery-1-lesson-specs.ts` as test fixtures so the engine stays tested.
+- Nursery 1 and 2 curriculum-sheet records are never listed as "lessons in review".

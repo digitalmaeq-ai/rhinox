@@ -86,8 +86,8 @@ test("validator catches a teacher-only resource and a wrong resource type", () =
   assert.ok(errors.some((e) => /not safe for the child path/.test(e)));
 });
 
-test("validator catches an interactive lesson used as a step", () => {
-  const p = clone(); p.stops[0].steps[0].resourceId = "tmc-n1-t1-w1-interactive-lesson";
+test("validator catches a teacher-only file used as a step", () => {
+  const p = clone(); p.stops[0].steps[0].resourceId = "tmc-n1-t1-w1-lesson-plan";
   assert.ok(errorsFor(p).some((e) => /not safe for the child path|must point at/.test(e)));
 });
 

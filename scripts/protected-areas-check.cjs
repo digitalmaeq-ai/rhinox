@@ -29,7 +29,7 @@ const ROUTES = [
   "/think-move-code/nursery-1",
   "/think-move-code/nursery-1/term-1",
   "/think-move-code/nursery-1/term-1/week-1",
-  "/think-move-code/nursery-1/term-1/week-1/lesson",
+  "/think-move-code/nursery-1/path",
   "/think-move-code/nursery-1/term-1/week-1/play/pictures",
   "/coding-robotics",
   "/coding-robotics/code-studio",
