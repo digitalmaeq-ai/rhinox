@@ -283,6 +283,31 @@ export const nursery1T1W12Quiz: QuizContent = {
       ],
       "correctAnswer": "a",
       "points": 1
+    },
+    {
+      "id": "q10",
+      "type": "multiple-choice",
+      "question": "Spare (second try for ③): Stamp, ↻, ↻. How many stamps?",
+      "options": [
+        {
+          "id": "a",
+          "text": "1"
+        },
+        {
+          "id": "b",
+          "text": "2"
+        },
+        {
+          "id": "c",
+          "text": "3"
+        },
+        {
+          "id": "d",
+          "text": "4"
+        }
+      ],
+      "correctAnswer": "c",
+      "points": 1
     }
   ]
 };
