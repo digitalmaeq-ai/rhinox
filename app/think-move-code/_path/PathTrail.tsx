@@ -26,7 +26,16 @@ const KIND_HINT: Record<string, string> = {
 
 // The trail with progress. An adult marks each step done; the ticks are kept only in this browser
 // on this device (see lib/tmc-path/progress.ts). Nothing is sent anywhere.
-export default function PathTrail({ view, levelSlug }: { view: PathView; levelSlug: string }) {
+export default function PathTrail({
+  view,
+  levelSlug,
+  guideKeys = [],
+}: {
+  view: PathView;
+  levelSlug: string;
+  /** "term-week" keys of weeks that have a screen-free "Do it together" lesson on their week page. */
+  guideKeys?: readonly string[];
+}) {
   const storageKey = useMemo(() => progressStorageKey(levelSlug), [levelSlug]);
   const validIds = useMemo(() => new Set(view.stops.flatMap((stop) => stop.steps.map((step) => step.id))), [view]);
   const [done, setDone] = useState<ReadonlySet<string>>(() => new Set());
@@ -182,6 +191,11 @@ export default function PathTrail({ view, levelSlug }: { view: PathView; levelSl
                       {progress.complete ? (
                         <p className={styles.celebrate}>
                           <span aria-hidden="true">🎉 </span>Well done! All four steps are done.
+                        </p>
+                      ) : null}
+                      {guideKeys.includes(`${stop.term}-${stop.week}`) ? (
+                        <p className={styles.guideLink}>
+                          Teaching this week without a screen? <Link href={`${stop.weekHref}#do-it-together`}>Do it together</Link>
                         </p>
                       ) : null}
                       <ul className={styles.steps}>

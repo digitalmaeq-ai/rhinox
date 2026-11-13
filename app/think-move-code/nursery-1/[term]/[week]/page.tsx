@@ -3,6 +3,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 
+import guideStyles from "./lessonGuide.module.css";
 import styles from "../../../tmc.module.css";
 import {
   NURSERY_1_TERMS,
@@ -16,6 +17,7 @@ import {
   weekPath,
 } from "@/lib/tmc/nursery-1";
 import { interactiveLessonFor, nursery1LessonPath } from "@/lib/tmc/lessons";
+import { lessonGuideFor } from "@/lib/tmc/lesson-guide";
 import { pathLevelFor } from "@/lib/tmc-path/levels";
 
 interface WeekPageProps {
@@ -64,6 +66,7 @@ export default async function WeekPage({ params }: WeekPageProps) {
   const { previous, next } = neighbours(item);
   const showcase = item.week === 13;
   const lesson = interactiveLessonFor(item);
+  const guide = lessonGuideFor(item.term, item.week);
 
   return (
     <main className={styles.page}>
@@ -118,6 +121,40 @@ export default async function WeekPage({ params }: WeekPageProps) {
           </div>
           <p className={styles.note}>No printer? Draw the pictures on paper. The games work just as well.</p>
         </section>
+
+        {guide ? (
+          <section className={styles.section} aria-labelledby="do-it-together">
+            <h2 id="do-it-together" className={`${styles.sectionTitle} ${guideStyles.anchor}`}>
+              Do it together
+            </h2>
+            <p className={styles.sectionLead}>The 40-minute lesson from the Teacher Guide, taught without a screen. The list below says what to prepare.</p>
+            <dl className={guideStyles.facts}>
+              <div>
+                <dt>Goal</dt>
+                <dd>{guide.goal}</dd>
+              </div>
+              <div>
+                <dt>Words</dt>
+                <dd>{guide.words}</dd>
+              </div>
+              <div>
+                <dt>You need</dt>
+                <dd>{guide.youNeed}</dd>
+              </div>
+            </dl>
+            <ol className={guideStyles.list}>
+              {guide.parts.map((part) => (
+                <li key={part.name} className={guideStyles.part}>
+                  <h3 className={guideStyles.partName}>
+                    {part.name}
+                    <span className={guideStyles.minutes}>{part.minutes} min</span>
+                  </h3>
+                  <p className={guideStyles.partText}>{part.text}</p>
+                </li>
+              ))}
+            </ol>
+          </section>
+        ) : null}
 
         <section className={styles.section} aria-labelledby="games">
           <h2 id="games" className={styles.sectionTitle}>
